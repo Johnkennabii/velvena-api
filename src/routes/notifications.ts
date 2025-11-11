@@ -81,4 +81,28 @@ router.patch("/:id/seen", async (req, res) => {
   }
 });
 
+// ✅ Compteur des notifications non lues
+router.get("/unseen-count", async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Utilisateur non authentifié" });
+    }
+
+    const count = await prisma.notificationUserLink.count({
+      where: {
+        user_id: userId,
+        seen: false, // ✅ uniquement les non lues
+      },
+    });
+
+    res.json({ success: true, count });
+  } catch (error) {
+    console.error("❌ Erreur GET /notifications/unseen-count :", error);
+    res.status(500).json({ success: false, message: "Erreur serveur" });
+  }
+});
+
 export default router;

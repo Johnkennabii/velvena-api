@@ -14,7 +14,10 @@ router.get("/", async (req, res) => {
             return res.status(401).json({ success: false, message: "Utilisateur non authentifié" });
         }
         const notifications = await prisma.notificationUserLink.findMany({
-            where: { user_id: userId },
+            where: {
+                user_id: userId,
+                seen: false
+            },
             include: {
                 notification: true,
             },
