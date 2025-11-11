@@ -1,0 +1,90 @@
+{
+  "/contract-addons/{id}/soft": {
+    "patch": {
+      "tags": ["Contract Addons"],
+      "summary": "Soft delete a contract addon",
+      "description": "Marks a contract addon as deleted by setting `deleted_at` and `deleted_by`. The addon remains in the database but is excluded from active queries. Useful for audit and recovery.",
+      "operationId": "softDeleteContractAddon",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Unique identifier of the contract addon to soft delete.",
+          "schema": {
+            "type": "string",
+            "format": "uuid",
+            "example": "d2b51c7b-4385-4b5b-8e8f-9942c3a2f1b7"
+          }
+        }
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "✅ Contract addon successfully soft deleted",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SoftDeleteContractAddonResponse"
+              },
+              "examples": {
+                "success": {
+                  "summary": "Example: addon soft deleted",
+                  "value": {
+                    "success": true,
+                    "data": {
+                      "id": "d2b51c7b-4385-4b5b-8e8f-9942c3a2f1b7",
+                      "name": "Livraison à domicile",
+                      "price_ht": 25.0,
+                      "price_ttc": 30.0,
+                      "included": false,
+                      "deleted_by": "16937819-c033-438f-bbad-543d83443371",
+                      "deleted_at": "2025-10-09T22:45:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "⚠️ Missing ID in request",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "ID is required"
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "❌ Contract addon not found",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Contract addon not found"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error - Failed to soft delete contract addon",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Failed to soft delete contract addon"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "/dresses": {
+    "post": {
+      "tags": ["Dresses"],
+      "summary": "Create a new dress",
+      "description": "Creates a new dress record with optional image uploads (up to 5). Requires authentication via Bearer token. If images are provided, they are uploaded to Hetzner Object Storage. The `reference` field must be unique.",
+      "operationId": "createDress",
+      "security": [
+        { "bearerAuth": [] }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "multipart/form-data": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name of the dress",
+                  "example": "Elegant Evening Gown"
+                },
+                "reference": {
+                  "type": "string",
+                  "description": "Unique internal reference for the dress",
+                  "example": "EVG12345"
+                },
+                "price_ht": {
+                  "type": "number",
+                  "format": "float",
+                  "example": 150.00
+                },
+                "price_ttc": {
+                  "type": "number",
+                  "format": "float",
+                  "example": 180.00
+                },
+                "price_per_day_ht": {
+                  "type": "number",
+                  "format": "float",
+                  "example": 15.00
+                },
+                "price_per_day_ttc": {
+                  "type": "number",
+                  "format": "float",
+                  "example": 18.00
+                },
+                "type_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "2502e841-b7a6-48dc-ad8a-f5b69dcda649"
+                },
+                "size_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "e1385f86-b163-4c4c-a671-b269aa9ad7f4"
+                },
+                "condition_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "3bf7f7e0-c461-4ba5-8fea-a4fd2b8eeea8"
+                },
+                "color_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "7f736acb-7b51-4d07-9c18-13dbffeaabf8"
+                },
+                "images": {
+                  "type": "array",
+                  "description": "Up to 5 uploaded images for the dress",
+                  "items": { "type": "string", "format": "binary" },
+                  "maxItems": 5
+                }
+              },
+              "required": [
+                "name",
+                "reference",
+                "price_ht",
+                "price_ttc",
+                "price_per_day_ht",
+                "price_per_day_ttc",
+                "type_id",
+                "size_id",
+                "condition_id",
+                "color_id"
+              ]
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "✅ Dress successfully created",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDressResponse"
+              },
+              "examples": {
+                "success": {
+                  "summary": "Example success response",
+                  "value": {
+                    "success": true,
+                    "data": {
+                      "id": "b5c28a27-23b5-437b-9eaa-9a61260e34f5",
+                      "name": "Elegant Evening Gown",
+                      "reference": "EVG12345",
+                      "price_ht": 150,
+                      "price_ttc": 180,
+                      "price_per_day_ht": 15,
+                      "price_per_day_ttc": 18,
+                      "type_id": "2502e841-b7a6-48dc-ad8a-f5b69dcda649",
+                      "size_id": "e1385f86-b163-4c4c-a671-b269aa9ad7f4",
+                      "condition_id": "3bf7f7e0-c461-4ba5-8fea-a4fd2b8eeea8",
+                      "color_id": "7f736acb-7b51-4d07-9c18-13dbffeaabf8",
+                      "images": [
+                        "https://allure-dress-storage.hel1.your-objectstorage.com/87f67b2a-f230-4c2d-844e-dc03bdfd09d1.png"
+                      ],
+                      "created_by": "16937819-c033-438f-bbad-543d83443371",
+                      "created_at": "2025-10-09T22:45:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "⚠️ Missing or invalid field(s)",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Name and reference are required"
+              }
+            }
+          }
+        },
+        "409": {
+          "description": "⚠️ Duplicate reference",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Reference already exists"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error — Failed to create dress",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Failed to create dress"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

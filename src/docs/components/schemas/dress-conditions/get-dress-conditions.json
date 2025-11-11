@@ -1,0 +1,33 @@
+{
+  "GetDressConditionsResponse": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "example": true
+      },
+      "data": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "example": "3bf7f7e0-c461-4ba5-8fea-a4fd2b8eeea8"
+            },
+            "name": {
+              "type": "string",
+              "example": "Neuf"
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2025-10-09T20:00:00.000Z"
+            }
+          }
+        }
+      }
+    }
+  }
+}

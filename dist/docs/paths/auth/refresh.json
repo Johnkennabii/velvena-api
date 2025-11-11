@@ -1,0 +1,88 @@
+{
+  "/auth/refresh": {
+    "post": {
+      "tags": ["Auth"],
+      "summary": "Refresh the authentication token (JWT)",
+      "description": "Generates a new valid JWT for an already authenticated user. This endpoint requires a valid existing token in the `Authorization` header. The new token is valid for 6 hours and includes the user’s ID, email, and role information.",
+      "operationId": "refreshToken",
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "✅ Successfully refreshed the token",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthRefreshResponse"
+              },
+              "examples": {
+                "success": {
+                  "summary": "Example of a successful token refresh",
+                  "value": {
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    "id": "a7c1b2e3-4d5f-6789-abcd-ef0123456789",
+                    "email": "emma.dupont@example.com",
+                    "role": "ADMIN",
+                    "profile": {
+                      "id": "cdef1234-5678-90ab-cdef-1234567890ab",
+                      "firstName": "Emma",
+                      "lastName": "Dupont",
+                      "role": {
+                        "id": "r1a2b3c4-5d6e-789f-0123-456789abcdef",
+                        "name": "ADMIN"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "🔒 Unauthorized — missing or invalid token",
+          "content": {
+            "application/json": {
+              "examples": {
+                "missingToken": {
+                  "summary": "No token provided",
+                  "value": { "error": "Unauthorized" }
+                },
+                "invalidToken": {
+                  "summary": "Invalid JWT",
+                  "value": { "error": "Invalid token" }
+                }
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "🚫 User not found — token refers to a non-existing user",
+          "content": {
+            "application/json": {
+              "example": { "error": "User not found" }
+            }
+          }
+        },
+        "400": {
+          "description": "⚠️ Bad request — error during token refresh",
+          "content": {
+            "application/json": {
+              "example": { "error": "Failed to refresh token" }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error — unexpected failure",
+          "content": {
+            "application/json": {
+              "example": { "error": "Internal Server Error" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "/contract-addons/{id}/hard": {
+    "delete": {
+      "tags": ["Contract Addons"],
+      "summary": "Permanently delete a contract addon",
+      "description": "Completely removes a contract addon from the database. This operation is irreversible and should be used with caution. Related references will cause an error if foreign key constraints are active.",
+      "operationId": "hardDeleteContractAddon",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Unique identifier of the contract addon to permanently delete.",
+          "schema": {
+            "type": "string",
+            "format": "uuid",
+            "example": "9c2d64d8-5e3b-4f94-8a18-56e1e693ab6c"
+          }
+        }
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "✅ Contract addon permanently deleted",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HardDeleteContractAddonResponse"
+              },
+              "examples": {
+                "success": {
+                  "summary": "Example: deletion successful",
+                  "value": {
+                    "success": true,
+                    "message": "Contract addon permanently deleted"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "⚠️ Missing or invalid ID",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "ID is required"
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "❌ Contract addon not found",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Contract addon not found"
+              }
+            }
+          }
+        },
+        "409": {
+          "description": "🔒 Cannot delete due to existing dependencies",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Cannot delete: addon is linked to active packages or contracts"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error - Failed to permanently delete contract addon",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Failed to hard delete contract addon"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

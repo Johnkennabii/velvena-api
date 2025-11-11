@@ -1,0 +1,70 @@
+{
+  "/dress-storage": {
+    "get": {
+      "tags": ["Dress Storage"],
+      "summary": "List all dress images",
+      "description": "Retrieves all image files stored in the Hetzner Object Storage `dresses` bucket. Each file includes its ID (key), name, and public URL.",
+      "operationId": "listDressImages",
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "✅ Successfully retrieved dress images list",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListDressImagesResponse"
+              },
+              "examples": {
+                "success": {
+                  "summary": "Example: List of dress images",
+                  "value": {
+                    "success": true,
+                    "files": [
+                      {
+                        "id": "dress_001.png",
+                        "name": "dress_001.png",
+                        "url": "https://media-allure-creation.hel1.your-objectstorage.com/dresses/dress_001.png"
+                      },
+                      {
+                        "id": "dress_002.jpg",
+                        "name": "dress_002.jpg",
+                        "url": "https://media-allure-creation.hel1.your-objectstorage.com/dresses/dress_002.jpg"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "🔒 Unauthorized - Missing or invalid token",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Unauthorized"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error - Failed to list dress images",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Impossible de récupérer les images",
+                "details": "InvalidAccessKeyId"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

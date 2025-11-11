@@ -1,0 +1,17 @@
+{
+  "SoftDeleteDressSizeResponse": {
+    "type": "object",
+    "properties": {
+      "success": { "type": "boolean", "example": true },
+      "data": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string", "example": "M" },
+          "deleted_by": { "type": ["string", "null"], "format": "uuid" },
+          "deleted_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "tags": [
+    "Dresses"
+  ],
+  "summary": "Delete a dress permanently",
+  "description": "Deletes a dress by its ID permanently from the database. This operation cannot be undone.",
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "description": "ID of the dress to delete",
+      "required": true,
+      "schema": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "example": 123
+    }
+  ],
+  "responses": {
+    "200": {
+      "description": "Dress deleted successfully",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            }
+          },
+          "examples": {
+            "success": {
+              "summary": "Successful deletion",
+              "value": {
+                "message": "Dress with ID 123 has been deleted permanently."
+              }
+            }
+          }
+        }
+      }
+    },
+    "404": {
+      "description": "Dress not found",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string"
+              }
+            }
+          },
+          "examples": {
+            "notFound": {
+              "summary": "Dress ID does not exist",
+              "value": {
+                "error": "Dress with ID 123 not found."
+              }
+            }
+          }
+        }
+      }
+    },
+    "500": {
+      "description": "Internal server error",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string"
+              },
+              "details": {
+                "type": "string"
+              }
+            }
+          },
+          "examples": {
+            "serverError": {
+              "summary": "Unexpected error",
+              "value": {
+                "error": "Internal server error",
+                "details": "Database connection failed."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "GetAvatarByIdResponse": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "example": true
+      },
+      "file": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique key (filename) of the avatar in the storage bucket",
+            "example": "avatar_001.png"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name (usually same as id)",
+            "example": "avatar_001.png"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Public URL of the avatar file in Hetzner Object Storage",
+            "example": "https://avatar.hel1.your-objectstorage.com/avatar_001.png"
+          }
+        },
+        "required": ["id", "name", "url"]
+      }
+    },
+    "required": ["success", "file"]
+  }
+}

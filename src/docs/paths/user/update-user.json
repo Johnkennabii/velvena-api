@@ -1,0 +1,139 @@
+{
+  "/users/{id}": {
+    "put": {
+      "tags": ["Users"],
+      "summary": "Update or create user profile",
+      "description": "Updates a user's password and/or profile information (excluding email). If the user has no profile, a new one will be created automatically. The `role_id` field is required when updating or creating a profile.",
+      "operationId": "updateUser",
+      "security": [{ "bearerAuth": [] }],
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string", "format": "uuid" },
+          "description": "User ID (UUID)"
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "password": {
+                  "type": "string",
+                  "description": "New password (optional, hashed automatically)"
+                },
+                "profile": {
+                  "type": "object",
+                  "description": "Profile fields to update or create",
+                  "required": ["role_id"],
+                  "properties": {
+                    "firstname": { "type": "string", "example": "Emma" },
+                    "lastname": { "type": "string", "example": "Dupont" },
+                    "address": { "type": "string", "example": "12 Rue de Paris" },
+                    "city": { "type": "string", "example": "Lyon" },
+                    "country": { "type": "string", "example": "France" },
+                    "postal_code": { "type": "string", "example": "69000" },
+                    "avatar_url": { "type": "string", "example": "https://cdn.allure-creation.fr/avatars/emma.png" },
+                    "role_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "example": "d5f45d3a-9f20-45ea-9e9a-2b06bdb764f2"
+                    }
+                  }
+                }
+              },
+              "example": {
+                "password": "newSecurePassword123",
+                "profile": {
+                  "firstName": "Emma",
+                  "lastName": "Dupont",
+                  "country": "France",
+                  "city": "Lyon",
+                  "address": "12 Rue de Paris",
+                  "postal_code": "69000",
+                  "role_id": "d5f45d3a-9f20-45ea-9e9a-2b06bdb764f2"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "✅ User profile successfully updated or created",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": { "type": "boolean", "example": true },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "string", "format": "uuid", "example": "0aabde22-f1a3-42f1-a1b4-998f456a31d1" },
+                      "email": { "type": "string", "example": "user@allure-creation.fr" },
+                      "profile": {
+                        "type": "object",
+                        "properties": {
+                          "firstname": { "type": "string", "example": "Emma" },
+                          "lastname": { "type": "string", "example": "Dupont" },
+                          "country": { "type": "string", "example": "France" },
+                          "city": { "type": "string", "example": "Lyon" },
+                          "address": { "type": "string", "example": "12 Rue de Paris" },
+                          "postal_code": { "type": "string", "example": "69000" },
+                          "role": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string", "example": "d5f45d3a-9f20-45ea-9e9a-2b06bdb764f2" },
+                              "name": { "type": "string", "example": "ADMIN" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "example": {
+                "success": true,
+                "data": {
+                  "id": "0aabde22-f1a3-42f1-a1b4-998f456a31d1",
+                  "email": "user@allure-creation.fr",
+                  "profile": {
+                    "firstName": "Emma",
+                    "lastName": "Dupont",
+                    "country": "France",
+                    "city": "Lyon",
+                    "address": "12 Rue de Paris",
+                    "postal_code": "69000",
+                    "role": { "name": "ADMIN" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "❌ Invalid request (missing required fields)",
+          "content": {
+            "application/json": {
+              "example": { "success": false, "error": "role_id is required for profile updates" }
+            }
+          }
+        },
+        "500": {
+          "description": "❌ Server error",
+          "content": {
+            "application/json": {
+              "example": { "success": false, "error": "Failed to update user" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

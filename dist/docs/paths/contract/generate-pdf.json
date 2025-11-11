@@ -1,0 +1,59 @@
+{
+  "/contracts/{id}/generate-pdf": {
+    "post": {
+      "tags": ["Contracts"],
+      "summary": "Generate a manual-signature PDF for a contract",
+      "description": "Creates a fresh PDF (with manual signature block) for the specified contract, uploads it to the Hetzner bucket, updates the contract record (status/signature link) and returns the public URL.",
+      "operationId": "generateContractPdfManually",
+      "security": [{ "bearerAuth": [] }],
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "UUID of the contract to export.",
+          "schema": { "type": "string", "format": "uuid", "example": "f4a62e51-15cc-4d84-bd2a-8390abaf8a93" }
+        }
+      ],
+      "requestBody": {
+        "description": "Aucune donnée n'est requise pour cette opération.",
+        "required": false,
+        "content": {
+          "application/json": {
+            "schema": { "type": "object", "description": "Empty object" },
+            "example": {}
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "✅ PDF generated and contract updated.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "link": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Public URL of the generated PDF."
+                  }
+                },
+                "required": ["link"]
+              },
+              "example": {
+                "link": "https://media-allure-creation.hel1.your-objectstorage.com/contracts/f4a6/signed_1730941710000.pdf"
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "❌ Contract not found."
+        },
+        "500": {
+          "description": "💥 Internal error while generating the PDF."
+        }
+      }
+    }
+  }
+}

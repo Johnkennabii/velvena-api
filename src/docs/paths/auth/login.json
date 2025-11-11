@@ -1,0 +1,85 @@
+{
+  "/auth/login": {
+    "post": {
+      "tags": ["Auth"],
+      "summary": "Authenticate user and issue JWT",
+      "description": "Authenticates a user using email and password. Returns a JWT valid for 6 hours, along with user details.",
+      "operationId": "loginUser",
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": ["email", "password"],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "example": "emma.dupont@example.com",
+                  "description": "User email address"
+                },
+                "password": {
+                  "type": "string",
+                  "format": "password",
+                  "example": "StrongPass!2025",
+                  "description": "Plaintext password"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "User successfully authenticated",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  },
+                  "id": {
+                    "type": "string",
+                    "example": "1a2b3c4d-5e6f-7890-abcd-ef1234567890"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "emma.dupont@example.com"
+                  },
+                  "role": {
+                    "type": ["string", "null"],
+                    "example": "ADMIN"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Invalid credentials",
+          "content": {
+            "application/json": {
+              "example": {
+                "error": "Invalid password"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "Internal server error",
+          "content": {
+            "application/json": {
+              "example": {
+                "error": "Internal Server Error"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

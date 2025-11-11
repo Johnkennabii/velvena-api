@@ -1,0 +1,286 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String    @id @default(uuid())
+  email              String    @unique
+  password           String
+  created_at         DateTime  @default(now())
+  created_by         String?
+  deleted_at         DateTime?
+  deleted_by         String?
+  last_signin_at     DateTime?
+  raw_user_meta_data Json?
+  updated_at         DateTime? @updatedAt
+  updated_by         String?
+  profile            Profile?
+}
+
+model Profile {
+  id          String    @id @default(uuid())
+  firstName   String?
+  lastName    String?
+  userId      String    @unique
+  address     String?
+  avatar_url  String?
+  city        String?
+  country     String?
+  created_at  DateTime  @default(now())
+  created_by  String?
+  deleted_at  DateTime?
+  deleted_by  String?
+  postal_code String?
+  role_id     String?
+  updated_at  DateTime? @updatedAt
+  updated_by  String?
+  user_layout Json?
+  role        Role?     @relation(fields: [role_id], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model Role {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  created_at  DateTime  @default(now())
+  created_by  String?
+  updated_at  DateTime? @updatedAt
+  updated_by  String?
+  deleted_at  DateTime?
+  deleted_by  String?
+  profiles    Profile[]
+}
+
+model DressType {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  created_at  DateTime  @default(now())
+  created_by  String?
+  updated_at  DateTime? @updatedAt
+  updated_by  String?
+  deleted_at  DateTime?
+  deleted_by  String?
+  dresses     Dress[]
+}
+
+model DressSize {
+  id         String    @id @default(uuid())
+  name       String    @unique
+  created_at DateTime  @default(now())
+  created_by String?
+  updated_at DateTime? @updatedAt
+  updated_by String?
+  deleted_at DateTime?
+  deleted_by String?
+  dresses    Dress[]
+}
+
+model DressCondition {
+  id         String    @id @default(uuid())
+  name       String    @unique
+  created_at DateTime  @default(now())
+  created_by String?
+  updated_at DateTime? @updatedAt
+  updated_by String?
+  deleted_at DateTime?
+  deleted_by String?
+  dresses    Dress[]
+}
+
+model DressColor {
+  id         String    @id @default(uuid())
+  name       String    @unique
+  hex_code   String    @unique
+  created_at DateTime  @default(now())
+  created_by String?
+  updated_at DateTime? @updatedAt
+  updated_by String?
+  deleted_at DateTime?
+  deleted_by String?
+  dresses    Dress[]
+}
+
+model Dress {
+  id                String          @id @default(uuid())
+  name              String
+  reference         String          @unique
+  price_ht          Decimal
+  price_ttc         Decimal
+  images            String[]
+  created_at        DateTime        @default(now())
+  created_by        String?
+  updated_at        DateTime?       @updatedAt
+  updated_by        String?
+  deleted_at        DateTime?
+  deleted_by        String?
+  published_at      DateTime?
+  published_by      String?
+  published_post    Boolean         @default(false)
+  type_id           String?
+  size_id           String?
+  condition_id      String?
+  color_id          String?
+  price_per_day_ht  Decimal
+  price_per_day_ttc Decimal
+  ContractDress     ContractDress[]
+  color             DressColor?     @relation(fields: [color_id], references: [id])
+  condition         DressCondition? @relation(fields: [condition_id], references: [id])
+  size              DressSize?      @relation(fields: [size_id], references: [id])
+  type              DressType?      @relation(fields: [type_id], references: [id])
+}
+
+model Customer {
+  id          String             @id @default(uuid())
+  firstname   String
+  lastname    String
+  email       String             @unique
+  phone       String?
+  birthday    DateTime?
+  country     String?
+  city        String?
+  address     String?
+  postal_code String?
+  created_by  String?
+  created_at  DateTime           @default(now())
+  updated_at  DateTime?          @updatedAt
+  updated_by  String?
+  deleted_at  DateTime?
+  deleted_by  String?
+  contracts   Contract[]
+  sign_links  ContractSignLink[]
+}
+
+model ContractType {
+  id         String     @id @default(uuid())
+  name       String
+  created_at DateTime   @default(now())
+  created_by String?
+  updated_at DateTime?  @updatedAt
+  updated_by String?
+  deleted_at DateTime?
+  deleted_by String?
+  contracts  Contract[]
+}
+
+model ContractPackage {
+  id          String         @id @default(uuid())
+  name        String
+  num_dresses Int
+  price_ht    Decimal
+  price_ttc   Decimal
+  created_at  DateTime       @default(now())
+  created_by  String?
+  updated_at  DateTime?      @updatedAt
+  updated_by  String?
+  deleted_at  DateTime?
+  deleted_by  String?
+  contracts   Contract[]
+  addons      PackageAddon[]
+}
+
+model ContractAddon {
+  id             String              @id @default(uuid())
+  name           String
+  price_ht       Decimal             @default(0)
+  price_ttc      Decimal             @default(0)
+  included       Boolean             @default(false)
+  created_at     DateTime            @default(now())
+  created_by     String?
+  updated_at     DateTime?           @updatedAt
+  updated_by     String?
+  deleted_at     DateTime?
+  deleted_by     String?
+  contract_links ContractAddonLink[]
+  packages       PackageAddon[]
+}
+
+model Contract {
+  id                     String              @id @default(uuid())
+  contract_number        String              @unique
+  customer_id            String
+  start_datetime         DateTime
+  end_datetime           DateTime
+  account_ht             Decimal
+  account_ttc            Decimal
+  account_paid_ht        Decimal
+  account_paid_ttc       Decimal
+  caution_ht             Decimal
+  caution_ttc            Decimal
+  caution_paid_ht        Decimal
+  caution_paid_ttc       Decimal
+  total_price_ht         Decimal
+  total_price_ttc        Decimal
+  deposit_payment_method String
+  status                 String
+  contract_type_id       String
+  package_id             String?
+  created_at             DateTime            @default(now())
+  created_by             String?
+  updated_at             DateTime?           @updatedAt
+  updated_by             String?
+  deleted_at             DateTime?
+  deleted_by             String?
+  signed_at              DateTime?
+  signed_pdf_url         String?
+  contract_type          ContractType        @relation(fields: [contract_type_id], references: [id])
+  customer               Customer            @relation(fields: [customer_id], references: [id])
+  package                ContractPackage?    @relation(fields: [package_id], references: [id])
+  addon_links            ContractAddonLink[]
+  dresses                ContractDress[]
+  sign_link              ContractSignLink?   @relation("ContractToSignLink")
+}
+
+model ContractAddonLink {
+  contract_id String
+  addon_id    String
+  addon       ContractAddon @relation(fields: [addon_id], references: [id])
+  contract    Contract      @relation(fields: [contract_id], references: [id])
+
+  @@id([contract_id, addon_id])
+}
+
+model ContractDress {
+  id          String   @id @default(uuid())
+  contract_id String
+  dress_id    String
+  created_at  DateTime @default(now())
+  contract    Contract @relation(fields: [contract_id], references: [id])
+  dress       Dress    @relation(fields: [dress_id], references: [id])
+}
+
+model PackageAddon {
+  package_id String
+  addon_id   String
+  addon      ContractAddon   @relation(fields: [addon_id], references: [id])
+  package    ContractPackage @relation(fields: [package_id], references: [id])
+
+  @@id([package_id, addon_id])
+}
+
+model ContractSignLink {
+  id          String   @id @default(uuid())
+  contract_id String   @unique
+  customer_id String
+  token       String   @unique
+  expires_at  DateTime
+  contract    Contract @relation("ContractToSignLink", fields: [contract_id], references: [id])
+  customer    Customer @relation(fields: [customer_id], references: [id])
+}
+
+
+model Notification {
+  id          String   @id @default(uuid())
+  type        String
+  title       String
+  message     String?
+  meta        Json?
+  created_at  DateTime @default(now())
+  seen        Boolean  @default(false)
+}

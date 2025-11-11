@@ -1,0 +1,68 @@
+{
+  "/dress-colors": {
+    "get": {
+      "tags": ["Dresses - Colors"],
+      "summary": "Get all dress colors",
+      "description": "Retrieves the list of all available dress colors that are not soft-deleted. The results are sorted alphabetically by name.",
+      "operationId": "getDressColors",
+      "security": [
+        { "bearerAuth": [] }
+      ],
+      "responses": {
+        "200": {
+          "description": "✅ Successfully retrieved all dress colors",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DressColorListResponse"
+              },
+              "examples": {
+                "success": {
+                  "summary": "Example success response",
+                  "value": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "7f736acb-7b51-4d07-9c18-13dbffeaabf8",
+                        "name": "Rouge Bordeaux",
+                        "hex_value": "#8A0303",
+                        "created_at": "2024-06-10T12:00:00Z",
+                        "updated_at": null
+                      },
+                      {
+                        "id": "c1b2d3e4-f567-8901-2345-6789abcdef01",
+                        "name": "Bleu Nuit",
+                        "hex_value": "#141E61",
+                        "created_at": "2024-06-11T09:30:00Z",
+                        "updated_at": null
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Server error while fetching dress colors",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "serverError": {
+                  "summary": "Internal error example",
+                  "value": {
+                    "success": false,
+                    "error": "Failed to fetch colors"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

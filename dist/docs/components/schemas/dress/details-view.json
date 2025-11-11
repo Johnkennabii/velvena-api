@@ -1,0 +1,164 @@
+{
+  "get": {
+    "tags": [
+      "Dresses"
+    ],
+    "summary": "Get detailed view of dresses with pagination",
+    "description": "Retrieve a paginated list of dresses with detailed information including id, name, description, price, color, size, and availability status.",
+    "parameters": [
+      {
+        "name": "page",
+        "in": "query",
+        "description": "Page number to retrieve",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "default": 1,
+          "minimum": 1
+        }
+      },
+      {
+        "name": "limit",
+        "in": "query",
+        "description": "Number of items per page",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 100
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "A paginated list of dresses with detailed information",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "example": 1
+                },
+                "limit": {
+                  "type": "integer",
+                  "example": 10
+                },
+                "totalPages": {
+                  "type": "integer",
+                  "example": 5
+                },
+                "totalItems": {
+                  "type": "integer",
+                  "example": 50
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "example": "dress_12345"
+                      },
+                      "name": {
+                        "type": "string",
+                        "example": "Elegant Evening Gown"
+                      },
+                      "description": {
+                        "type": "string",
+                        "example": "A beautiful evening gown perfect for formal events."
+                      },
+                      "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 149.99
+                      },
+                      "color": {
+                        "type": "string",
+                        "example": "Red"
+                      },
+                      "size": {
+                        "type": "string",
+                        "example": "M"
+                      },
+                      "available": {
+                        "type": "boolean",
+                        "example": true
+                      }
+                    },
+                    "required": ["id", "name", "price", "available"]
+                  }
+                }
+              },
+              "required": ["page", "limit", "totalPages", "totalItems", "items"]
+            },
+            "examples": {
+              "success": {
+                "summary": "Example response",
+                "value": {
+                  "page": 1,
+                  "limit": 10,
+                  "totalPages": 5,
+                  "totalItems": 50,
+                  "items": [
+                    {
+                      "id": "dress_12345",
+                      "name": "Elegant Evening Gown",
+                      "description": "A beautiful evening gown perfect for formal events.",
+                      "price": 149.99,
+                      "color": "Red",
+                      "size": "M",
+                      "available": true
+                    },
+                    {
+                      "id": "dress_12346",
+                      "name": "Casual Summer Dress",
+                      "description": "Light and breezy summer dress for casual outings.",
+                      "price": 79.99,
+                      "color": "Yellow",
+                      "size": "S",
+                      "available": false
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Internal Server Error"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "An unexpected error occurred while processing the request."
+                }
+              },
+              "required": ["error", "message"]
+            },
+            "examples": {
+              "serverError": {
+                "summary": "Example error response",
+                "value": {
+                  "error": "Internal Server Error",
+                  "message": "An unexpected error occurred while processing the request."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

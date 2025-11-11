@@ -1,0 +1,103 @@
+{
+  "patch": {
+    "tags": ["Dresses"],
+    "summary": "Soft delete a dress by ID",
+    "description": "This endpoint allows you to soft delete a dress by its unique identifier. The dress will not be permanently removed but marked as deleted.",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "description": "ID of the dress to soft delete",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Dress soft deleted successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "123e4567-e89b-12d3-a456-426614174000"
+                },
+                "deletedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "example": "2024-06-01T12:00:00Z"
+                }
+              },
+              "required": ["id", "deletedAt"]
+            },
+            "examples": {
+              "success": {
+                "summary": "Successful soft delete",
+                "value": {
+                  "id": "123e4567-e89b-12d3-a456-426614174000",
+                  "deletedAt": "2024-06-01T12:00:00Z"
+                }
+              }
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Dress not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Dress with id '123e4567-e89b-12d3-a456-426614174000' not found"
+                }
+              },
+              "required": ["error"]
+            },
+            "examples": {
+              "notFound": {
+                "summary": "Dress not found",
+                "value": {
+                  "error": "Dress with id '123e4567-e89b-12d3-a456-426614174000' not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "An unexpected error occurred"
+                }
+              },
+              "required": ["error"]
+            },
+            "examples": {
+              "serverError": {
+                "summary": "Internal server error",
+                "value": {
+                  "error": "An unexpected error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

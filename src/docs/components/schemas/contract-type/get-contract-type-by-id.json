@@ -1,0 +1,47 @@
+{
+  "ContractType": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "example": "ct_9a8d7f6e"
+      },
+      "name": {
+        "type": "string",
+        "example": "Location courte durée"
+      },
+      "description": {
+        "type": ["string", "null"],
+        "example": "Contrat de location pour une période de moins de 30 jours"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time",
+        "example": "2025-03-15T10:22:00.000Z"
+      },
+      "updated_at": {
+        "type": ["string", "null"],
+        "format": "date-time",
+        "example": "2025-04-02T09:45:00.000Z"
+      },
+      "deleted_at": {
+        "type": ["string", "null"],
+        "format": "date-time",
+        "example": null
+      }
+    },
+    "required": ["id", "name"]
+  },
+  "ContractTypeResponse": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "example": true
+      },
+      "data": {
+        "$ref": "#/components/schemas/ContractType"
+      }
+    }
+  }
+}

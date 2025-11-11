@@ -1,0 +1,110 @@
+{
+  "/dress-colors/{id}": {
+    "put": {
+      "tags": ["Dresses - Colors"],
+      "summary": "Update an existing dress color",
+      "description": "Updates an existing color in the database using its unique ID. Requires authentication. You can modify the name, the hex code, or both. Automatically sets `updated_by` based on the authenticated user.",
+      "operationId": "updateDressColor",
+      "security": [
+        { "bearerAuth": [] }
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid",
+            "example": "7f736acb-7b51-4d07-9c18-13dbffeaabf8"
+          },
+          "description": "The unique identifier of the dress color to update."
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/UpdateDressColorRequest"
+            },
+            "examples": {
+              "updateColor": {
+                "summary": "Example request to update a color",
+                "value": {
+                  "name": "Rouge Cerise",
+                  "hex_code": "#A10035"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "✅ Dress color successfully updated",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDressColorResponse"
+              },
+              "examples": {
+                "success": {
+                  "summary": "Example successful update",
+                  "value": {
+                    "success": true,
+                    "data": {
+                      "id": "7f736acb-7b51-4d07-9c18-13dbffeaabf8",
+                      "name": "Rouge Cerise",
+                      "hex_code": "#A10035",
+                      "updated_by": "a91c8e7a-5f0d-4fa2-8fcb-92694b0b7b45",
+                      "updated_at": "2025-10-09T20:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "⚠️ Missing required color ID or invalid input",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "missingId": {
+                  "summary": "Missing color ID",
+                  "value": {
+                    "success": false,
+                    "error": "Color id is required"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error while updating color",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "serverError": {
+                  "summary": "Unexpected Prisma or database error",
+                  "value": {
+                    "success": false,
+                    "error": "Failed to update color"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

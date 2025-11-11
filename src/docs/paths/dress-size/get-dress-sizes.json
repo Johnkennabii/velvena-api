@@ -1,0 +1,55 @@
+{
+  "/dress-sizes": {
+    "get": {
+      "tags": ["Dresses - Sizes"],
+      "summary": "Get all dress sizes",
+      "description": "Retrieves all available dress sizes that have not been soft-deleted. Results are ordered alphabetically by name.",
+      "operationId": "getDressSizes",
+      "security": [
+        { "bearerAuth": [] }
+      ],
+      "responses": {
+        "200": {
+          "description": "✅ Successfully retrieved dress sizes",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetDressSizesResponse"
+              },
+              "examples": {
+                "success": {
+                  "summary": "Example successful response",
+                  "value": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "5e21a1d4-3c43-4f99-9b1b-0a9f88f2e7c5",
+                        "name": "S"
+                      },
+                      {
+                        "id": "7a92b3a2-1a13-4a24-9d2d-7f2f55a4b122",
+                        "name": "M"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error - Failed to fetch sizes",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+              "example": {
+                "success": false,
+                "error": "Failed to fetch dress sizes"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

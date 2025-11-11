@@ -1,0 +1,31 @@
+{
+  "GetCustomersResponse": {
+    "type": "object",
+    "properties": {
+      "success": { "type": "boolean" },
+      "page": { "type": "integer", "example": 1 },
+      "limit": { "type": "integer", "example": 20 },
+      "total": { "type": "integer", "example": 125 },
+      "data": {
+        "type": "array",
+        "items": { "$ref": "#/components/schemas/Customer" }
+      }
+    }
+  },
+  "Customer": {
+    "type": "object",
+    "properties": {
+      "id": { "type": "string", "format": "uuid" },
+      "firstname": { "type": "string" },
+      "lastname": { "type": "string" },
+      "email": { "type": "string", "format": "email" },
+      "phone": { "type": "string" },
+      "country": { "type": "string" },
+      "city": { "type": "string" },
+      "address": { "type": "string" },
+      "postal_code": { "type": "string" },
+      "created_at": { "type": "string", "format": "date-time" },
+      "updated_at": { "type": ["string", "null"], "format": "date-time" }
+    }
+  }
+}

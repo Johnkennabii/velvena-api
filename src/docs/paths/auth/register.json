@@ -1,0 +1,197 @@
+
+
+{
+  "/auth/register": {
+    "post": {
+      "tags": ["Auth"],
+      "summary": "Register a new user (Admin-only)",
+      "description": "Creates a new user account and associated profile. This endpoint can only be called by an **authenticated admin** or user with appropriate permissions. The password is securely hashed with bcrypt before storage. If the email already exists, a 400 error is returned.",
+      "operationId": "registerUser",
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": ["email", "password", "roleName"],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "example": "emma.dupont@example.com",
+                  "description": "Email address of the new user. Must be unique."
+                },
+                "password": {
+                  "type": "string",
+                  "format": "password",
+                  "example": "StrongPass!2025",
+                  "description": "Plain-text password. It will be hashed before being stored."
+                },
+                "roleName": {
+                  "type": "string",
+                  "example": "ADMIN",
+                  "description": "Name of the role to assign (must exist in `roles` table)."
+                },
+                "firstName": {
+                  "type": "string",
+                  "example": "Emma",
+                  "description": "Optional. First name of the new user."
+                },
+                "lastName": {
+                  "type": "string",
+                  "example": "Dupont",
+                  "description": "Optional. Last name of the new user."
+                }
+              }
+            },
+            "examples": {
+              "basicExample": {
+                "summary": "Register a new user",
+                "value": {
+                  "email": "emma.dupont@example.com",
+                  "password": "StrongPass!2025",
+                  "roleName": "MANAGER",
+                  "firstName": "Emma",
+                  "lastName": "Dupont"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "✅ User successfully created",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "email", "role", "profile"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "1a2b3c4d-5e6f-7890-abcd-ef1234567890"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "emma.dupont@example.com"
+                  },
+                  "role": {
+                    "type": "string",
+                    "example": "MANAGER"
+                  },
+                  "profile": {
+                    "type": "object",
+                    "description": "Associated profile record created automatically",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "987e6543-e21b-12d3-a456-426614174999"
+                      },
+                      "role_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "123e4567-e89b-12d3-a456-426614174000"
+                      },
+                      "firstName": {
+                        "type": ["string", "null"],
+                        "example": "Emma"
+                      },
+                      "lastName": {
+                        "type": ["string", "null"],
+                        "example": "Dupont"
+                      },
+                      "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-09T18:30:00.000Z"
+                      },
+                      "created_by": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "7d8e9f10-11aa-12bb-13cc-14ddeeff5566"
+                      }
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "successExample": {
+                  "summary": "User successfully registered",
+                  "value": {
+                    "id": "1a2b3c4d-5e6f-7890-abcd-ef1234567890",
+                    "email": "emma.dupont@example.com",
+                    "role": "MANAGER",
+                    "profile": {
+                      "id": "987e6543-e21b-12d3-a456-426614174999",
+                      "role_id": "123e4567-e89b-12d3-a456-426614174000",
+                      "firstName": "Emma",
+                      "lastName": "Dupont",
+                      "created_at": "2025-10-09T18:30:00.000Z",
+                      "created_by": "7d8e9f10-11aa-12bb-13cc-14ddeeff5566"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "⚠️ Invalid input or duplicate user",
+          "content": {
+            "application/json": {
+              "examples": {
+                "missingFields": {
+                  "summary": "Missing required fields",
+                  "value": {
+                    "error": "Missing email or password"
+                  }
+                },
+                "duplicateUser": {
+                  "summary": "Email already exists",
+                  "value": {
+                    "error": "User with this email already exists"
+                  }
+                },
+                "roleNotFound": {
+                  "summary": "Invalid role name",
+                  "value": {
+                    "error": "Role not found"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "🔒 Unauthorized — Only authenticated users can create accounts",
+          "content": {
+            "application/json": {
+              "example": {
+                "error": "Unauthorized: only authenticated users can create accounts"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error — Failed to register user",
+          "content": {
+            "application/json": {
+              "example": {
+                "error": "Internal Server Error"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,496 @@
+import puppeteer from "puppeteer";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { s3, hetznerBucket } from "./hetzner.js";
+import logger from "./logger.js";
+import { generateContractPDFWithPdfLib } from "./pdfGenerator.js";
+
+/**
+ * Génère un PDF contractuel à partir de la réponse JSON du backend /sign-links/:token
+ */
+interface GenerateContractPdfOptions {
+  includeSignatureBlock?: boolean;
+}
+
+export async function generateContractPDF(
+  token: string | null,
+  contractId: string,
+  existingContract?: any,
+  options: GenerateContractPdfOptions = {}
+) {
+  // 🔹 Récupère les données depuis ton API si aucun contrat n'est fourni
+  let contractPayload = existingContract;
+
+  if (!contractPayload) {
+    if (!token) {
+      throw new Error("Token de signature manquant pour la génération du PDF");
+    }
+    const apiUrl = `https://api.allure-creation.fr/sign-links/${token}`;
+    const response = await fetch(apiUrl);
+    const json = await response.json();
+
+    if (!json.success || !json.data?.contract) {
+      throw new Error("Impossible de récupérer le contrat pour la génération du PDF");
+    }
+    contractPayload = json.data.contract;
+  }
+
+  const contract = contractPayload;
+  const includeSignatureBlock = options.includeSignatureBlock ?? false;
+  const customer = contract.customer || {};
+  const dresses = contract.dresses || [];
+  const addonLinks = Array.isArray(contract.addon_links) ? contract.addon_links.filter((link: any) => link?.addon) : [];
+  const packageAddonIds = new Set(
+    (contract.package?.addons ?? [])
+      .map((pkgAddon: any) => pkgAddon?.addon_id ?? pkgAddon?.addon?.id)
+      .filter(Boolean)
+  );
+  const typeName = contract.contract_type?.name?.toLowerCase() ?? "";
+  const isNegafa = typeName.includes("negafa");
+  const isForfait = typeName.includes("forfait");
+  const isJournalier = typeName.includes("journalier");
+  const isForfaitService = isNegafa || (isForfait && !isJournalier);
+  const isForfaitJournalier = isForfait && isJournalier;
+
+  const formatCurrency = (value: unknown) => {
+    const numeric = Number(value ?? 0);
+    if (Number.isNaN(numeric)) return "0,00";
+    return numeric.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const formatPaymentMethod = (method?: string | null) => {
+    if (!method) return "-";
+    const normalized = method.toLowerCase();
+    if (normalized === "card") return "Carte bancaire";
+    if (normalized === "cash") return "Espèces";
+    return method;
+  };
+
+  const addonDetails = addonLinks.map(({ addon }: any) => {
+    const includedViaPackage = packageAddonIds.has(addon.id) && (isForfaitService || isForfaitJournalier);
+    return {
+      id: addon.id,
+      name: addon.name,
+      description: addon.description,
+      priceTtc: formatCurrency(addon.price_ttc),
+      includedViaPackage,
+    };
+  });
+
+  const addonsSection = addonDetails.length
+    ? `
+    <div class="section">
+      <h2>Options</h2>
+      <div class="addon-list">
+        ${addonDetails
+          .map(
+            ({ name, description, priceTtc, includedViaPackage }: { name: string; description?: string; priceTtc: string; includedViaPackage: boolean }) => `
+          <div class="addon-item">
+            <div>
+              <div class="value"><strong>${name}</strong></div>
+              ${description ? `<div class="label">${description}</div>` : ""}
+            </div>
+            <div class="value addon-price">
+              ${
+                includedViaPackage
+                  ? `<span class="striked">${priceTtc} € TTC</span><span class="tag">Inclus au forfait</span>`
+                  : `${priceTtc} € TTC`
+              }
+            </div>
+          </div>`
+          )
+          .join("")}
+      </div>
+    </div>`
+    : "";
+
+  const signatureBlock = includeSignatureBlock
+    ? `
+    <div class="signatures">
+      <p>Fait à Asnières-sur-Seine le …………………………..</p>
+      <div class="signature-grid">
+        <div>
+          <div class="label">Signature client</div>
+          <div class="value">« Lu & approuvé »</div>
+        </div>
+        <div>
+          <div class="label">Signature prestataire</div>
+          <div class="value">« Lu & approuvé »</div>
+        </div>
+      </div>
+    </div>`
+    : "";
+
+  const forfaitClauses = `
+    <div class="section contract-clauses">
+      <h2>Clauses contractuelles</h2>
+      <p><strong>Ci-après dénommé(e) « le Client »</strong></p>
+      <p>Il a alors été convenu ce qui suit :</p>
+      <div class="article">
+        <h3>Article 1 : Objet du contrat</h3>
+        <p>Le présent contrat a pour objet de définir les modalités selon lesquelles la société ALLURE CRÉATION fournit à ses clients un ensemble de services en lien avec leurs évènements.</p>
+      </div>
+      <div class="article">
+        <h3>Article 2 : Description de la prestation et horaire</h3>
+        <p>La prestation inclut :</p>
+        <ul>
+          <li>Les robes et les bijoux ainsi que les accessoires (voiles, jupons).</li>
+        </ul>
+        <p>La prestation n’excédera pas une durée de 7&nbsp;h (exemple&nbsp;: 19h00 – 2h00). Au-delà, chaque heure supplémentaire est facturée 150&nbsp;€.</p>
+        <p><strong>Sécurité :</strong> il est demandé de fournir à la prestataire (negafa) une pièce spécifique, loge ou local sécurisé par un code ou une clé afin d’y stocker les tenues et préparer la mariée en toute sécurité. Aucun objet de valeur appartenant aux familles n’y sera stocké et seule la negafa aura accès aux clés pour protéger le matériel.</p>
+        <p>Cette loge reste strictement réservée à la mariée et à la prestataire durant toute la prestation. Le repas des négafas est pris en charge par le client.</p>
+        <p>En cas d’impossibilité de fournir les biens réservés à la date convenue, ALLURE CRÉATION s’engage à proposer un bien de même catégorie ou supérieur en remplacement.</p>
+      </div>
+      <div class="article">
+        <h3>Article 3 : Conditions financières</h3>
+        <p>Un acompte correspondant à 50&nbsp;% du montant total de la prestation est versé par le client le jour de la signature du contrat. Le solde est exigible 14 jours avant la prestation. À défaut de paiement complet selon ces modalités, la prestation n’aura pas lieu.</p>
+      </div>
+      <div class="article">
+        <h3>Article 4 : Résiliation – Annulation</h3>
+        <p>Nos contrats sont fermes et définitifs et prennent effet dès leur signature. Ils ne relèvent pas du droit de rétractation L212-20 du Code de la Consommation. L’acompte de 50&nbsp;% reste acquis en cas d’annulation. La responsabilité du prestataire ne pourra être engagée en cas de retard ou de défaillance liée à un cas de force majeure tel que défini par la jurisprudence française.</p>
+      </div>
+      <div class="article">
+        <h3>Article 6 : Responsabilité et comportement</h3>
+        <p>Tout mauvais traitement ou irrespect envers les prestataires entraînera la rupture unilatérale du contrat.</p>
+        <p>J’accepte pleinement les conditions et termes du présent contrat, que je reconnais avoir lus et signés en deux exemplaires originaux dont un sera conservé par la gérante.</p>
+      </div>
+      ${signatureBlock}
+    </div>
+  `;
+
+  const forfaitJournalierClauses = `
+    <div class="section contract-clauses">
+      <h2>Clauses contractuelles</h2>
+      <div class="article">
+        <h3>Article 1 : Description</h3>
+        <p>Ce contrat a pour objet de définir les modalités suivant lesquelles le prestataire fournit à ses clients un ensemble de services liés aux manifestations festives qu’ils organisent :</p>
+        <ul>
+          <li>Location des robes mariée et des bijoux, ainsi que des accessoires (voiles, jupons).</li>
+          <li>Location des robes invitées.</li>
+        </ul>
+      </div>
+      <div class="article">
+        <h3>Article 2 : Conditions financières et caution</h3>
+        <p>Un acompte de 50&nbsp;% du montant total de la location est versé par le client le jour de la signature du contrat et le solde est payé lors du retrait de la robe accompagné de la caution.</p>
+        <p>Nous insistons sur le fait que l’intégralité du paiement devra être effectuée selon ces conditions, à défaut la location n’aura pas lieu.</p>
+        <p><strong>Attention :</strong> seules les cautions réalisées par empreinte carte bancaire ou en espèces sont acceptées (pas de chèque).</p>
+      </div>
+      <div class="article">
+        <h3>Article 3 : Résiliation – Annulation</h3>
+        <p>Nos contrats sont fermes et définitifs et les présentes conditions prennent effet dès signature. Ce contrat n’entre pas dans le champ d’application de la loi de rétractation L212-20 du Code de la Consommation. Le locataire verse un acompte de 50&nbsp;%, non remboursable en cas d’annulation.</p>
+        <p>La responsabilité du prestataire ne peut être engagée pour un retard ou une défaillance de prestation résultant d’un cas de force majeure au sens de la jurisprudence de la Cour de cassation.</p>
+      </div>
+      <div class="article">
+        <h3>Article 4 : Responsabilité des parties</h3>
+        <p>Perte, dégât ou vol : dans le cas où le locataire ne restituerait pas le bien loué ou en cas de vol ou de perte, la caution bancaire sera conservée. Si le bien est réparable, le montant des retouches sera déduit de la caution.</p>
+        <p>Si une robe ou un accessoire est endommagé, égaré ou volé, le prestataire se réserve le droit de réclamer le prix d’achat des articles. Les parties conviennent de n’être responsables des conséquences dommageables résultant d’un cas de force majeure que dans la limite fixée par la jurisprudence française.</p>
+      </div>
+      <div class="article">
+        <h3>Article 5 : Restitution</h3>
+        <p>Le bien doit être restitué le dimanche, pour les locations week-end, aux heures d’ouverture prévues.</p>
+      </div>
+      <div class="article">
+        <h3>Article 6 : Retard dans la restitution</h3>
+        <p>En cas de retard de restitution, le locataire paiera 50&nbsp;€ par jour de retard et par robe invitée, et 100&nbsp;€ par jour et par robe mariée.</p>
+        <p>Les clients s’engagent à restituer les fournitures louées en parfait état dans les délais convenus. À défaut, le prestataire percevra une indemnité.</p>
+      </div>
+      <div class="article">
+        <h3>Article 7 : Impossibilité de fournir le bien</h3>
+        <p>En cas d’impossibilité de fournir le bien réservé à la date souhaitée, Allure Création fournira un bien de même catégorie ou de qualité supérieure en remplacement.</p>
+      </div>
+      <div class="article">
+        <h3>Article 8 : Housse ou cintre</h3>
+        <p>En cas de non-restitution de la housse ou du cintre, il sera demandé au locataire une indemnité de 50&nbsp;€.</p>
+      </div>
+      ${signatureBlock}
+    </div>
+  `;
+
+  const defaultClauses = `
+    <div class="section contract-clauses">
+      <h2>Clauses contractuelles</h2>
+      <div class="article">
+        <h3>Article 1 – Objet</h3>
+        <p>Location de tenues (robes, bijoux, accessoires) pour la durée convenue au contrat.</p>
+      </div>
+      <div class="article">
+        <h3>Article 2 – Restitution</h3>
+        <p>Les robes doivent être rendues propres et protégées dans leur housse.</p>
+      </div>
+      <div class="article">
+        <h3>Article 3 – Retard</h3>
+        <p>Pénalités de 50&nbsp;€ par jour et par robe invitée et 100&nbsp;€ par jour et par robe mariée.</p>
+      </div>
+      <div class="article">
+        <h3>Article 4 – Responsabilité</h3>
+        <p>En cas de perte ou de détérioration, la caution peut être retenue pour couvrir les réparations ou remplacements.</p>
+      </div>
+      <div class="article">
+        <h3>Article 5 – Engagement</h3>
+        <p>Le client confirme avoir lu et accepté les présentes conditions.</p>
+      </div>
+      ${signatureBlock}
+    </div>
+  `;
+
+  const clausesSection = isForfaitJournalier ? forfaitJournalierClauses : isForfaitService ? forfaitClauses : defaultClauses;
+
+  // 🔹 Prépare le HTML dynamique à partir du JSON
+  const html = `
+  <html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Contrat ${contract.contract_number}</title>
+    <style>
+      body {
+        font-family: 'Helvetica', sans-serif;
+        background: #f9fafb;
+        color: #111827;
+        padding: 40px;
+      }
+      h1, h2 {
+        text-align: center;
+        margin-bottom: 0;
+      }
+      h1 { font-size: 20px; margin-bottom: 6px; }
+      h2 { font-size: 16px; margin-top: 30px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
+      .section {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px 24px;
+        margin-top: 20px;
+        page-break-inside: avoid;
+      }
+      .contract-clauses {
+        page-break-before: always;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .grid.grid-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .label {
+        font-size: 10px;
+        color: #6b7280;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+      .value {
+        font-size: 12px;
+        color: #111827;
+        margin-bottom: 8px;
+      }
+      .price-box {
+        background: #eff6ff;
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+        font-weight: 600;
+      }
+      img {
+        border-radius: 6px;
+        width: 100px;
+        height: auto;
+      }
+      .addon-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .addon-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 8px;
+      }
+      .addon-price {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .striked {
+        text-decoration: line-through;
+        color: #b91c1c;
+      }
+      .tag {
+        background: #ecfccb;
+        color: #4d7c0f;
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        text-transform: uppercase;
+      }
+      .contract-clauses h3 {
+        margin-top: 14px;
+        font-size: 13px;
+      }
+      .article {
+        margin-top: 14px;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      .signatures {
+        margin-top: 20px;
+      }
+      .signature-grid {
+        display: flex;
+        justify-content: space-between;
+        gap: 32px;
+        flex-wrap: wrap;
+      }
+      @media print {
+        .section,
+        .article,
+        .contract-clauses h3,
+        .contract-clauses p,
+        .contract-clauses ul,
+        .contract-clauses li {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Contrat de ${contract.contract_type?.name || "location"}</h1>
+    <p style="text-align:center;font-size:12px;color:#6b7280;">
+      Contrat n° ${contract.contract_number} — ${new Date(contract.created_at).toLocaleString("fr-FR")}
+    </p>
+
+    <div class="section">
+      <h2>Informations client</h2>
+      <div class="grid">
+        <div>
+          <div class="label">Nom complet</div>
+          <div class="value">${customer.firstname ?? "-"} ${customer.lastname ?? ""}</div>
+          <div class="label">Téléphone</div>
+          <div class="value">${customer.phone ?? "-"}</div>
+          <div class="label">Ville</div>
+          <div class="value">${customer.city ?? "-"}</div>
+        </div>
+        <div>
+          <div class="label">Email</div>
+          <div class="value">${customer.email ?? "-"}</div>
+          <div class="label">Adresse</div>
+          <div class="value">${customer.address ?? "-"}</div>
+          <div class="label">Pays</div>
+          <div class="value">${customer.country ?? "-"}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Détails du contrat</h2>
+      <div class="grid">
+        <div>
+          <div class="label">Type de contrat</div>
+          <div class="value">${contract.contract_type?.name ?? "-"}</div>
+          <div class="label">Méthode de paiement</div>
+          <div class="value">${formatPaymentMethod(contract.deposit_payment_method)}</div>
+        </div>
+        <div>
+          <div class="label">Période de location</div>
+          <div class="value">${new Date(contract.start_datetime).toLocaleString("fr-FR")} — ${new Date(contract.end_datetime).toLocaleString("fr-FR")}</div>
+          <div class="label">Date de création</div>
+          <div class="value">${new Date(contract.created_at).toLocaleString("fr-FR")}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Récapitulatif financier</h2>
+      <div class="grid grid-3">
+        <div>
+          <div class="label">Total TTC</div>
+          <div class="price-box">${formatCurrency(contract.total_price_ttc)} € TTC</div>
+        </div>
+        <div>
+          <div class="label">Acompte TTC</div>
+          <div class="price-box">${formatCurrency(contract.account_ttc)} € TTC</div>
+        </div>
+        <div>
+          <div class="label">Acompte réglé</div>
+          <div class="price-box">${formatCurrency(contract.account_paid_ttc)} € TTC</div>
+        </div>
+      </div>
+      <div class="grid grid-3" style="margin-top:16px;">
+        <div>
+          <div class="label">Caution TTC</div>
+          <div class="price-box">${formatCurrency(contract.caution_ttc)} € TTC</div>
+        </div>
+        <div>
+          <div class="label">Caution réglée</div>
+          <div class="price-box">${formatCurrency(contract.caution_paid_ttc)} € TTC</div>
+        </div>
+        <div>
+          <div class="label">Méthode de paiement</div>
+          <div class="value">${formatPaymentMethod(contract.deposit_payment_method)}</div>
+        </div>
+      </div>
+    </div>
+
+    ${dresses.length ? `
+    <div class="section">
+      <h2>Robes incluses (${dresses.length})</h2>
+      ${dresses
+        .map(
+          (d: any) => `
+        <div style="margin-top:8px;">
+          <div class="value"><strong>${d.dress?.name ?? "Robe"}</strong></div>
+          <div class="label">Référence</div>
+          <div class="value">${d.dress?.reference ?? "-"}</div>
+          <div class="label">Prix journée TTC</div>
+          <div class="value">${formatCurrency(d.dress?.price_per_day_ttc ?? 0)} € TTC</div>
+        </div>`
+        )
+        .join("")}
+    </div>` : ""}
+
+    ${addonsSection}
+
+    ${clausesSection}
+  </body>
+  </html>
+  `;
+
+  let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null;
+  try {
+    // 🖨️ Génération PDF via Puppeteer
+    browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "load" });
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: { top: "25mm", bottom: "25mm", left: "20mm", right: "20mm" },
+    });
+
+    // ☁️ Upload vers Hetzner
+    const pdfKey = `contracts/${contractId}/signed_${Date.now()}.pdf`;
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: hetznerBucket,
+        Key: pdfKey,
+        Body: pdfBuffer,
+        ContentType: "application/pdf",
+      })
+    );
+
+    return `https://${hetznerBucket}.hel1.your-objectstorage.com/${pdfKey}`;
+  } catch (err) {
+    logger.error({ err }, "❌ Génération PDF Puppeteer impossible, bascule sur pdf-lib");
+    if (browser) {
+      await browser.close().catch(() => {});
+      browser = null;
+    }
+    return generateContractPDFWithPdfLib(contract, options);
+  } finally {
+    if (browser) {
+      await browser.close().catch(() => {});
+    }
+  }
+}

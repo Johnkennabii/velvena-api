@@ -1,0 +1,71 @@
+{
+  "/contract-types": {
+    "post": {
+      "tags": ["Contract Types"],
+      "summary": "Create a new contract type",
+      "description": "Creates a new contract type in the database. The field `name` is required and must be unique. The authenticated user's ID is automatically recorded as `created_by`.",
+      "operationId": "createContractType",
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateContractTypeRequest"
+            },
+            "example": {
+              "name": "Location longue durée"
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "✅ Contract type successfully created",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateContractTypeResponse"
+              },
+              "example": {
+                "success": true,
+                "data": {
+                  "id": "ct_7a2c9d51",
+                  "name": "Location longue durée",
+                  "created_by": "1a2b3c4d-5e6f-7890-abcd-ef1234567890",
+                  "created_at": "2025-10-09T18:35:00.000Z"
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "⚠️ Missing required field `name`",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Name is required"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error — Failed to create contract type",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Failed to create contract type"
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    }
+  }
+}

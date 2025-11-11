@@ -1,0 +1,15 @@
+{
+  "SoftDeleteCustomerResponse": {
+    "type": "object",
+    "properties": {
+      "success": { "type": "boolean" },
+      "data": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "deleted_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

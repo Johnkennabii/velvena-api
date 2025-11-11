@@ -1,0 +1,97 @@
+{
+  "/dress-colors": {
+    "post": {
+      "tags": ["Dresses - Colors"],
+      "summary": "Create a new dress color",
+      "description": "Creates a new color entry for dresses. Both `name` and `hex_code` are required fields. The color is automatically associated with the authenticated user as `created_by`.",
+      "operationId": "createDressColor",
+      "security": [
+        { "bearerAuth": [] }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateDressColorRequest"
+            },
+            "examples": {
+              "createColor": {
+                "summary": "Example request to create a color",
+                "value": {
+                  "name": "Rouge Bordeaux",
+                  "hex_code": "#8A0303"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "✅ Color successfully created",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDressColorResponse"
+              },
+              "examples": {
+                "success": {
+                  "summary": "Example response",
+                  "value": {
+                    "success": true,
+                    "data": {
+                      "id": "4f17c5b0-72b8-4b97-96d2-582c7d62b83a",
+                      "name": "Rouge Bordeaux",
+                      "hex_code": "#8A0303",
+                      "created_by": "a91c8e7a-5f0d-4fa2-8fcb-92694b0b7b45",
+                      "created_at": "2025-10-09T18:45:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "⚠️ Missing required fields",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "missingFields": {
+                  "summary": "Missing name or hex_code",
+                  "value": {
+                    "success": false,
+                    "error": "Name and hex_code are required"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error - Failed to create color",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "serverError": {
+                  "summary": "Unexpected Prisma or database error",
+                  "value": {
+                    "success": false,
+                    "error": "Failed to create color"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "/contract-types": {
+    "get": {
+      "tags": ["Contract Types"],
+      "summary": "Retrieve all contract types",
+      "description": "Fetches all available contract types that have not been soft-deleted. This endpoint is useful for populating dropdowns or selection lists when creating or editing contracts. Results are sorted alphabetically by name.",
+      "operationId": "getContractTypes",
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "✅ Successfully retrieved all contract types",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetContractTypesResponse"
+              },
+              "examples": {
+                "success": {
+                  "summary": "Example: List of contract types",
+                  "value": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "8c1d72b3-6e91-47b9-8c1e-f13c19e5b4de",
+                        "name": "Location journalière",
+                        "description": "Contrat de location à la journée",
+                        "created_at": "2025-05-14T09:15:30.000Z",
+                        "updated_at": null
+                      },
+                      {
+                        "id": "bca0d9f7-9f33-4d8e-b3e3-7a22ed1b6ac7",
+                        "name": "Location week-end",
+                        "description": "Contrat valable pour une durée de deux jours",
+                        "created_at": "2025-04-21T10:45:10.000Z",
+                        "updated_at": "2025-05-01T12:00:00.000Z"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "🔒 Unauthorized - Missing or invalid token",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Unauthorized"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error - Failed to fetch contract types",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Failed to fetch contract types"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

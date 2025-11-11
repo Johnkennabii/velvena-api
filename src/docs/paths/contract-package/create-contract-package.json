@@ -1,0 +1,127 @@
+{
+  "/contract-packages": {
+    "post": {
+      "tags": ["Contract Packages"],
+      "summary": "Create a new contract package",
+      "description": "Creates a new contract package with its associated pricing and optional add-ons. Requires authentication. The authenticated user's ID is automatically stored in `created_by`.",
+      "operationId": "createContractPackage",
+      "security": [
+        { "bearerAuth": [] }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateContractPackageRequest"
+            },
+            "examples": {
+              "basicPackage": {
+                "summary": "Basic package without add-ons",
+                "value": {
+                  "name": "Formule Classique",
+                  "num_dresses": 1,
+                  "price_ht": 200,
+                  "price_ttc": 240
+                }
+              },
+              "packageWithAddons": {
+                "summary": "Package with associated add-ons",
+                "value": {
+                  "name": "Formule Premium",
+                  "num_dresses": 2,
+                  "price_ht": 350,
+                  "price_ttc": 420,
+                  "addon_ids": [
+                    "addon_01",
+                    "addon_02"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "✅ Contract package successfully created",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateContractPackageResponse"
+              },
+              "examples": {
+                "success": {
+                  "summary": "Example: Successful package creation",
+                  "value": {
+                    "success": true,
+                    "data": {
+                      "id": "pkg_001",
+                      "name": "Formule Premium",
+                      "num_dresses": 2,
+                      "price_ht": 350,
+                      "price_ttc": 420,
+                      "created_at": "2025-10-09T22:20:00.000Z",
+                      "created_by": "1a2b3c4d-5e6f-7890-abcd-ef1234567890",
+                      "addons": [
+                        {
+                          "addon": {
+                            "id": "addon_01",
+                            "name": "Pressing inclus",
+                            "price_ht": 25,
+                            "price_ttc": 30
+                          }
+                        },
+                        {
+                          "addon": {
+                            "id": "addon_02",
+                            "name": "Livraison à domicile",
+                            "price_ht": 40,
+                            "price_ttc": 48
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "⚠️ Missing or invalid fields in request body",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Name is required"
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "🔒 Unauthorized — missing or invalid JWT token",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Unauthorized"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal Server Error — Failed to create contract package",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Failed to create contract package"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "/dress-sizes": {
+    "get": {
+      "tags": ["DressSizes"],
+      "summary": "Get all dress sizes",
+      "responses": {
+        "200": {
+          "description": "List of dress sizes",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": { "type": "boolean" },
+                  "data": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/DressSize" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "post": {
+      "tags": ["DressSizes"],
+      "summary": "Create a new dress size",
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" }
+              },
+              "required": ["name"]
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Dress size created",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DressSize" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/dress-sizes/{id}": {
+    "put": {
+      "tags": ["DressSizes"],
+      "summary": "Update a dress size",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string", "format": "uuid" }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Dress size updated",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DressSize" }
+            }
+          }
+        }
+      }
+    },
+    "patch": {
+      "tags": ["DressSizes"],
+      "summary": "Soft delete a dress size",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string", "format": "uuid" }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Dress size soft deleted",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DressSize" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/dress-sizes/{id}/hard": {
+    "delete": {
+      "tags": ["DressSizes"],
+      "summary": "Hard delete a dress size",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string", "format": "uuid" }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Dress size permanently deleted",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": { "type": "boolean" },
+                  "message": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

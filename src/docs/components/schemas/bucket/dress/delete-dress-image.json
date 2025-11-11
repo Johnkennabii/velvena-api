@@ -1,0 +1,16 @@
+{
+  "DeleteDressImageResponse": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "example": true
+      },
+      "message": {
+        "type": "string",
+        "example": "Image deleted"
+      }
+    },
+    "required": ["success", "message"]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "/contracts/{id}/hard": {
+    "delete": {
+      "tags": ["Contracts"],
+      "summary": "Hard delete a contract (permanent removal)",
+      "description": "Permanently removes a contract from the database. This operation cannot be undone and should only be used by administrators with elevated privileges.",
+      "operationId": "hardDeleteContract",
+      "security": [{ "bearerAuth": [] }],
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Unique identifier of the contract to be permanently deleted.",
+          "schema": { "type": "string", "format": "uuid" }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Contract successfully deleted from database",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": { "type": "boolean", "example": true },
+                  "message": { "type": "string", "example": "Contract permanently deleted" }
+                }
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "Contract not found in the database"
+        },
+        "500": {
+          "description": "Internal server error during hard delete"
+        }
+      }
+    }
+  }
+}

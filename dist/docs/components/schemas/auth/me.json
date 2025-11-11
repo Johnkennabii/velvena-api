@@ -1,0 +1,93 @@
+{
+  "AuthMeResponse": {
+    "type": "object",
+    "required": ["token", "id", "email", "role", "profile"],
+    "properties": {
+      "token": {
+        "type": "string",
+        "description": "A newly generated JWT token valid for 6 hours.",
+        "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      },
+      "id": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Unique identifier of the authenticated user.",
+        "example": "a7c1b2e3-4d5f-6789-abcd-ef0123456789"
+      },
+      "email": {
+        "type": "string",
+        "format": "email",
+        "description": "Email address of the authenticated user.",
+        "example": "emma.dupont@example.com"
+      },
+      "role": {
+        "type": ["string", "null"],
+        "description": "Name of the user’s assigned role (can be null).",
+        "example": "ADMIN"
+      },
+      "profile": {
+        "type": "object",
+        "description": "Profile details associated with the authenticated user.",
+        "required": ["id"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier of the user’s profile.",
+            "example": "cdef1234-5678-90ab-cdef-1234567890ab"
+          },
+          "firstName": {
+            "type": ["string", "null"],
+            "description": "User’s first name (nullable).",
+            "example": "Emma"
+          },
+          "lastName": {
+            "type": ["string", "null"],
+            "description": "User’s last name (nullable).",
+            "example": "Dupont"
+          },
+          "role": {
+            "type": "object",
+            "description": "Role details associated with the profile.",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "r1a2b3c4-5d6e-789f-0123-456789abcdef"
+              },
+              "name": {
+                "type": "string",
+                "description": "Role name assigned to this profile.",
+                "example": "ADMIN"
+              }
+            }
+          }
+        }
+      }
+    },
+    "example": {
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "id": "a7c1b2e3-4d5f-6789-abcd-ef0123456789",
+      "email": "emma.dupont@example.com",
+      "role": "ADMIN",
+      "profile": {
+        "id": "cdef1234-5678-90ab-cdef-1234567890ab",
+        "firstName": "Emma",
+        "lastName": "Dupont",
+        "role": {
+          "id": "r1a2b3c4-5d6e-789f-0123-456789abcdef",
+          "name": "ADMIN"
+        }
+      }
+    }
+  },
+  "AuthMeErrorResponse": {
+    "type": "object",
+    "properties": {
+      "error": {
+        "type": "string",
+        "example": "Unauthorized"
+      }
+    }
+  }
+}

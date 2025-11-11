@@ -1,0 +1,56 @@
+{
+  "/dress-types/{id}": {
+    "put": {
+      "tags": ["Dresses - Types"],
+      "summary": "Update a dress type",
+      "description": "Update the name or description of a dress type by ID. Name must remain unique among active types.",
+      "operationId": "updateDressType",
+      "security": [{ "bearerAuth": [] }],
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string", "format": "uuid" },
+          "description": "UUID of the dress type to update"
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/UpdateDressTypeRequest" },
+            "example": { "name": "Robe de gala", "description": "Robe longue et élégante" }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "✅ Dress type updated successfully",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateDressTypeResponse" },
+              "example": {
+                "success": true,
+                "data": {
+                  "id": "b83b12d2-71c8-4b92-b15a-87a0aef9cda1",
+                  "name": "Robe de gala",
+                  "description": "Robe longue et élégante"
+                }
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "❌ Dress type not found",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+              "example": { "success": false, "error": "Dress type not found" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

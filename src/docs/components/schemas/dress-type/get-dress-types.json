@@ -1,0 +1,19 @@
+{
+  "GetDressTypesResponse": {
+    "type": "object",
+    "properties": {
+      "success": { "type": "boolean", "example": true },
+      "data": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "format": "uuid" },
+            "name": { "type": "string", "example": "Robe de soirée" },
+            "description": { "type": ["string", "null"], "example": "Tenue de soirée élégante" }
+          }
+        }
+      }
+    }
+  }
+}

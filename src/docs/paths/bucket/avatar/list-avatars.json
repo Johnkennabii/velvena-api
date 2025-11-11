@@ -1,0 +1,69 @@
+{
+  "/avatars": {
+    "get": {
+      "tags": ["Avatars"],
+      "summary": "List all uploaded avatars",
+      "description": "Retrieves the list of all avatar images stored in the Hetzner Object Storage `avatar` bucket. Each item includes the file key, display name, and a public URL.",
+      "operationId": "listAvatars",
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "✅ Successfully retrieved avatar list",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListAvatarsResponse"
+              },
+              "examples": {
+                "success": {
+                  "summary": "Example: List of avatars",
+                  "value": {
+                    "success": true,
+                    "files": [
+                      {
+                        "id": "avatar_001.png",
+                        "name": "avatar_001.png",
+                        "url": "https://avatar.hel1.your-objectstorage.com/avatar_001.png"
+                      },
+                      {
+                        "id": "avatar_002.jpg",
+                        "name": "avatar_002.jpg",
+                        "url": "https://avatar.hel1.your-objectstorage.com/avatar_002.jpg"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "🔒 Unauthorized - Missing or invalid token",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Unauthorized"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error - Failed to retrieve avatars",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Impossible de récupérer les avatars"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

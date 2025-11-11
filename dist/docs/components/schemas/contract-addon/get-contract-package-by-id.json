@@ -1,0 +1,105 @@
+{
+  "GetContractPackageByIdResponse": {
+    "type": "object",
+    "description": "Response structure for retrieving a contract package by its ID.",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "description": "Indicates whether the operation succeeded.",
+        "example": true
+      },
+      "data": {
+        "type": "object",
+        "description": "Contract package details including linked addons.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier of the contract package.",
+            "example": "9a1e72d3-1f56-47c9-b83a-ff2c63c08b49"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the contract package.",
+            "example": "Forfait Mariage Élégance"
+          },
+          "num_dresses": {
+            "type": "integer",
+            "description": "Number of dresses included in the package.",
+            "example": 3
+          },
+          "price_ht": {
+            "type": "number",
+            "format": "float",
+            "description": "Package price excluding taxes (HT).",
+            "example": 350.0
+          },
+          "price_ttc": {
+            "type": "number",
+            "format": "float",
+            "description": "Package price including taxes (TTC).",
+            "example": 420.0
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date and time when the package was created.",
+            "example": "2025-06-15T10:30:00.000Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "description": "ID of the user who created the package.",
+            "example": "admin-user-id"
+          },
+          "updated_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Timestamp of the last update, if any.",
+            "example": null
+          },
+          "addons": {
+            "type": "array",
+            "description": "List of addons linked to this contract package.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Unique identifier for the addon.",
+                  "example": "a44b7d28-2d9f-4029-9a8b-8a97fca9b97c"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Addon name.",
+                  "example": "Pressing premium"
+                },
+                "price_ht": {
+                  "type": "number",
+                  "description": "Addon price excluding taxes (HT).",
+                  "example": 30.0
+                },
+                "price_ttc": {
+                  "type": "number",
+                  "description": "Addon price including taxes (TTC).",
+                  "example": 36.0
+                }
+              },
+              "required": ["id", "name", "price_ht", "price_ttc"]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "num_dresses",
+          "price_ht",
+          "price_ttc",
+          "created_at",
+          "addons"
+        ]
+      }
+    },
+    "required": ["success", "data"]
+  }
+}

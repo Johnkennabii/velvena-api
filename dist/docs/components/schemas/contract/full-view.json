@@ -1,0 +1,176 @@
+{
+  "get": {
+    "summary": "Retrieve Full Contract View",
+    "description": "Fetches a comprehensive view of a contract including all related entities and detailed information.",
+    "parameters": [
+      {
+        "name": "contractId",
+        "in": "path",
+        "required": true,
+        "description": "The unique identifier of the contract to retrieve.",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "name": "includeDetails",
+        "in": "query",
+        "required": false,
+        "description": "Flag to include detailed nested information in the response.",
+        "schema": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "A full detailed view of the contract",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "contractId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Unique contract identifier"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title of the contract"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["draft", "active", "terminated", "expired"],
+                  "description": "Current status of the contract"
+                },
+                "parties": {
+                  "type": "array",
+                  "description": "List of parties involved in the contract",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "partyId": {
+                        "type": "string",
+                        "description": "Unique identifier for the party"
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "Name of the party"
+                      },
+                      "role": {
+                        "type": "string",
+                        "description": "Role of the party in the contract"
+                      }
+                    },
+                    "required": ["partyId", "name", "role"]
+                  }
+                },
+                "terms": {
+                  "type": "object",
+                  "description": "Contractual terms and conditions",
+                  "properties": {
+                    "startDate": {
+                      "type": "string",
+                      "format": "date",
+                      "description": "Start date of the contract"
+                    },
+                    "endDate": {
+                      "type": "string",
+                      "format": "date",
+                      "description": "End date of the contract"
+                    },
+                    "renewalTerms": {
+                      "type": "string",
+                      "description": "Renewal conditions if applicable"
+                    }
+                  },
+                  "required": ["startDate", "endDate"]
+                },
+                "attachments": {
+                  "type": "array",
+                  "description": "List of related attachments",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "attachmentId": {
+                        "type": "string",
+                        "description": "Unique identifier for the attachment"
+                      },
+                      "fileName": {
+                        "type": "string",
+                        "description": "Name of the file"
+                      },
+                      "fileType": {
+                        "type": "string",
+                        "description": "MIME type of the attachment"
+                      },
+                      "url": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "Download URL for the attachment"
+                      }
+                    },
+                    "required": ["attachmentId", "fileName", "fileType", "url"]
+                  }
+                }
+              },
+              "required": ["contractId", "title", "status", "parties", "terms"]
+            },
+            "examples": {
+              "fullViewExample": {
+                "summary": "Example of a full contract view response",
+                "value": {
+                  "contractId": "123e4567-e89b-12d3-a456-426614174000",
+                  "title": "Software Licensing Agreement",
+                  "status": "active",
+                  "parties": [
+                    {
+                      "partyId": "party-001",
+                      "name": "Acme Corp",
+                      "role": "Licensor"
+                    },
+                    {
+                      "partyId": "party-002",
+                      "name": "Beta LLC",
+                      "role": "Licensee"
+                    }
+                  ],
+                  "terms": {
+                    "startDate": "2023-01-01",
+                    "endDate": "2024-01-01",
+                    "renewalTerms": "Automatic renewal for 1 year unless terminated 30 days prior"
+                  },
+                  "attachments": [
+                    {
+                      "attachmentId": "att-123",
+                      "fileName": "contract.pdf",
+                      "fileType": "application/pdf",
+                      "url": "https://example.com/attachments/att-123"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Contract not found"
+      },
+      "401": {
+        "description": "Unauthorized access"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "tags": [
+      "Contracts"
+    ]
+  }
+}
