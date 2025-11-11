@@ -8,18 +8,19 @@ datasource db {
 }
 
 model User {
-  id                 String    @id @default(uuid())
-  email              String    @unique
+  id                 String                 @id @default(uuid())
+  email              String                 @unique
   password           String
-  created_at         DateTime  @default(now())
+  created_at         DateTime               @default(now())
   created_by         String?
   deleted_at         DateTime?
   deleted_by         String?
   last_signin_at     DateTime?
   raw_user_meta_data Json?
-  updated_at         DateTime? @updatedAt
+  updated_at         DateTime?              @updatedAt
   updated_by         String?
   profile            Profile?
+  notifications      NotificationUserLink[]
 }
 
 model Profile {
@@ -274,13 +275,24 @@ model ContractSignLink {
   customer    Customer @relation(fields: [customer_id], references: [id])
 }
 
-
 model Notification {
-  id          String   @id @default(uuid())
-  type        String
-  title       String
-  message     String?
-  meta        Json?
-  created_at  DateTime @default(now())
-  seen        Boolean  @default(false)
+  id         String                 @id @default(uuid())
+  type       String
+  title      String
+  message    String?
+  meta       Json?
+  created_at DateTime               @default(now())
+  userLinks  NotificationUserLink[]
+}
+
+model NotificationUserLink {
+  id              String       @id @default(uuid())
+  notification_id String
+  user_id         String
+  seen            Boolean      @default(false)
+  seen_at         DateTime?
+  notification    Notification @relation(fields: [notification_id], references: [id])
+  user            User         @relation(fields: [user_id], references: [id])
+
+  @@unique([notification_id, user_id])
 }

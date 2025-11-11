@@ -10,6 +10,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import multer from "multer";
 import { generateContractPDF } from "../../lib/generateContractPDF.js";
 import { io } from "../../server.js";
+import { emitAndStoreNotification } from "../../utils/notifications.js";
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 
 const s3 = new S3Client({
@@ -525,19 +526,19 @@ export const signContractViaLink = async (req: Request, res: Response) => {
         ? [customerFirstName, customerLastName].filter((value): value is string => Boolean(value)).join(" ")
         : null;
 
-    io.emit("notification", {
-      type: "CONTRACT_SIGNED",
-      title: "Contrat signé électroniquement",
-      message: `Le contrat ${updatedContract.contract_number} a été signé par ${customerFullName ?? "le client"}.`,
-      contractNumber: updatedContract.contract_number,
-      customer: {
-        id: updatedContract.customer?.id ?? null,
-        firstName: customerFirstName,
-        lastName: customerLastName,
-        fullName: customerFullName,
-      },
-      timestamp: new Date().toISOString(),
-    });
+await emitAndStoreNotification({
+  type: "CONTRACT_SIGNED",
+  title: "Contrat signé électroniquement",
+  message: `Le contrat ${updatedContract.contract_number} a été signé par ${customerFullName ?? "le client"}.`,
+  contractNumber: updatedContract.contract_number,
+  customer: {
+    id: updatedContract.customer?.id ?? null,
+    firstName: customerFirstName,
+    lastName: customerLastName,
+    fullName: customerFullName,
+  },
+  timestamp: new Date().toISOString(),
+});
 
     // 📄 3️⃣ Génération du PDF complet (fonction dédiée)
     const signedPdfUrl = await generateContractPDF(token, contract.id, updatedContract);
