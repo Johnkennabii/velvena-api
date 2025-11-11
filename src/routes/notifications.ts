@@ -1,8 +1,9 @@
 import express from "express";
 import prisma from "../lib/prisma.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
-
+router.use(authMiddleware);
 /**
  * ✅ GET /notifications
  * Récupère les 30 dernières notifications de l'utilisateur connecté
@@ -15,7 +16,10 @@ router.get("/", async (req, res) => {
     }
 
     const notifications = await prisma.notificationUserLink.findMany({
-      where: { user_id: userId },
+      where: { 
+        user_id: userId,
+        seen: false
+      },
       include: {
         notification: true,
       },

@@ -11,7 +11,6 @@ export declare function emitAndStoreNotification(payload: NotificationPayload): 
     title: string;
     message: string | null;
     meta: import("@prisma/client/runtime/library").JsonValue | null;
-    seen: boolean;
 } | undefined>;
 export {};
 //# sourceMappingURL=notifications.d.ts.map

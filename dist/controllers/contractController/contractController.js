@@ -8,6 +8,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import multer from "multer";
 import { generateContractPDF } from "../../lib/generateContractPDF.js";
 import { io } from "../../server.js";
+import { emitAndStoreNotification } from "../../utils/notifications.js";
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 const s3 = new S3Client({
     region: "eu-central-1",
@@ -441,7 +442,7 @@ export const signContractViaLink = async (req, res) => {
         const customerFullName = customerFirstName || customerLastName
             ? [customerFirstName, customerLastName].filter((value) => Boolean(value)).join(" ")
             : null;
-        io.emit("notification", {
+        await emitAndStoreNotification({
             type: "CONTRACT_SIGNED",
             title: "Contrat signé électroniquement",
             message: `Le contrat ${updatedContract.contract_number} a été signé par ${customerFullName ?? "le client"}.`,
