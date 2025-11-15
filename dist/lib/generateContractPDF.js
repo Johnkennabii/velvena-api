@@ -96,6 +96,7 @@ export async function generateContractPDF(token, contractId, existingContract, o
         <div>
           <div class="label">Signature prestataire</div>
           <div class="value">« Lu & approuvé »</div>
+          <p>H. N.</p>
         </div>
       </div>
     </div>`
