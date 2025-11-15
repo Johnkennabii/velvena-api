@@ -113,7 +113,9 @@ export async function generateContractPDFWithPdfLib(contract: any, options: PdfL
     return method;
   };
 
-  const typeName = contract.contract_type?.name?.toLowerCase() ?? "";
+  const normalizeTypeName = (value?: string | null) =>
+    value ? value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+  const typeName = normalizeTypeName(contract.contract_type?.name);
   const isNegafa = typeName.includes("negafa");
   const isForfait = typeName.includes("forfait");
   const isJournalier = typeName.includes("journalier");
