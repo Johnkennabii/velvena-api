@@ -67,10 +67,12 @@ export async function generateContractPDF(
 
   const addonDetails = addonLinks.map(({ addon }: any) => {
     const includedViaPackage = packageAddonIds.has(addon.id) && (isForfaitService || isForfaitJournalier);
+    const addonDescription =
+      typeof addon.description === "string" && addon.description.trim().length > 0 ? addon.description.trim() : null;
     return {
       id: addon.id,
       name: addon.name,
-      description: addon.description,
+      description: addonDescription,
       priceTtc: formatCurrency(addon.price_ttc),
       includedViaPackage,
     };
@@ -92,7 +94,7 @@ export async function generateContractPDF(
             <div class="value addon-price">
               ${
                 includedViaPackage
-                  ? `<span class="striked">${priceTtc} € TTC</span><span class="tag">Inclus au forfait</span>`
+                  ? `<span class="striked">${priceTtc} € TTC</span><span class="tag tag-success">Inclus au forfait</span>`
                   : `${priceTtc} € TTC`
               }
             </div>
@@ -323,6 +325,11 @@ export async function generateContractPDF(
         padding: 2px 8px;
         border-radius: 999px;
         text-transform: uppercase;
+      }
+      .tag-success {
+        color: #15803d;
+        background: #dcfce7;
+        border: 1px solid #bbf7d0;
       }
       .contract-clauses h3 {
         margin-top: 14px;

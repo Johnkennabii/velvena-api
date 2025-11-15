@@ -191,8 +191,10 @@ export async function generateContractPDFWithPdfLib(contract: any, options: PdfL
       const includedViaPackage = packageAddonIds.has(addon.id) && (isForfaitService || isForfaitJournalier);
       const priceLabel = `${formatCurrency(addon.price_ttc)} € TTC`;
       drawAddonRow(addon.name ?? "Option", priceLabel, includedViaPackage);
-      if (addon.description) {
-        drawText(`   ${addon.description}`, 10, false, 14);
+      const addonDescription =
+        typeof addon.description === "string" && addon.description.trim().length > 0 ? addon.description.trim() : "";
+      if (addonDescription) {
+        drawText(`   ${addonDescription}`, 10, false, 14);
       }
     });
     y -= 8;

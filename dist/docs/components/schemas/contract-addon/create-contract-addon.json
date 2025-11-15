@@ -8,6 +8,11 @@
         "description": "Name of the contract addon.",
         "example": "Livraison à domicile"
       },
+      "description": {
+        "type": ["string", "null"],
+        "description": "Optional description that explains what the addon covers.",
+        "example": "Livraison des tenues directement au domicile du client."
+      },
       "price_ht": {
         "type": "number",
         "format": "float",
@@ -47,6 +52,10 @@
           "name": {
             "type": "string",
             "example": "Livraison à domicile"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "example": "Livraison des tenues directement au domicile du client."
           },
           "price_ht": {
             "type": "number",

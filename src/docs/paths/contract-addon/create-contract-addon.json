@@ -22,6 +22,7 @@
                 "summary": "Standard addon with prices",
                 "value": {
                   "name": "Livraison à domicile",
+                  "description": "Livraison des tenues directement chez le client",
                   "price_ht": 25.0,
                   "price_ttc": 30.0,
                   "included": false
@@ -54,6 +55,7 @@
                     "data": {
                       "id": "c8b7d98a-25ab-49d3-8a40-03c1e173d56f",
                       "name": "Livraison à domicile",
+                      "description": "Livraison des tenues directement chez le client",
                       "price_ht": 25.0,
                       "price_ttc": 30.0,
                       "included": false,

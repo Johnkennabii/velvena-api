@@ -35,6 +35,7 @@
                 "summary": "Modify addon prices",
                 "value": {
                   "name": "Livraison express",
+                  "description": "Livraison en moins de 24 heures",
                   "price_ht": 20.0,
                   "price_ttc": 24.0,
                   "included": false
@@ -67,6 +68,7 @@
                     "data": {
                       "id": "a1b2c3d4-e5f6-7890-1234-abcdef987654",
                       "name": "Livraison express",
+                      "description": "Livraison en moins de 24 heures",
                       "price_ht": 20.0,
                       "price_ttc": 24.0,
                       "included": false,

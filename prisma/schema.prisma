@@ -189,6 +189,7 @@ model ContractPackage {
 model ContractAddon {
   id             String              @id @default(uuid())
   name           String
+  description    String?
   price_ht       Decimal             @default(0)
   price_ttc      Decimal             @default(0)
   included       Boolean             @default(false)

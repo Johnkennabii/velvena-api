@@ -38,12 +38,13 @@ export const getContractAddonById = async (req: AuthenticatedRequest, res: Respo
 // CREATE
 export const createContractAddon = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { name, price_ht, price_ttc, included } = req.body;
+    const { name, description, price_ht, price_ttc, included } = req.body;
     if (!name) return res.status(400).json({ success: false, error: "Name is required" });
 
     const addon = await prisma.contractAddon.create({
       data: {
         name,
+        description: description ?? null,
         price_ht,
         price_ttc,
         included: included ?? false,
@@ -64,12 +65,13 @@ export const updateContractAddon = async (req: AuthenticatedRequest, res: Respon
     const { id } = req.params;
     if (!id) return res.status(400).json({ success: false, error: "ID is required" });
 
-    const { name, price_ht, price_ttc, included } = req.body;
+    const { name, description, price_ht, price_ttc, included } = req.body;
 
     const addon = await prisma.contractAddon.update({
       where: { id: String(id) },
       data: {
         name,
+        description: description ?? null,
         price_ht,
         price_ttc,
         included: included ?? false,

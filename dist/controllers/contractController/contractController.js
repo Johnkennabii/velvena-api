@@ -194,7 +194,7 @@ export const softDeleteContract = async (req, res) => {
         logger.info({ id }, "Soft deleting contract");
         await prisma.contract.update({
             where: { id: id },
-            data: { deleted_at: new Date(), deleted_by: req.user?.id || null, status: "DISABLED" },
+            data: { deleted_at: new Date(), deleted_by: req.user?.id || null },
         });
         res.json({ success: true, message: "Contract soft deleted" });
     }
