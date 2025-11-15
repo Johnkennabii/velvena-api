@@ -81,10 +81,13 @@ export async function generateContractPDF(token, contractId, existingContract, o
       </div>
     </div>`
         : "";
+    const formattedContractCreatedDate = contract.created_at
+        ? new Date(contract.created_at).toLocaleDateString("fr-FR")
+        : "…………………………..";
     const signatureBlock = includeSignatureBlock
         ? `
     <div class="signatures">
-      <p>Fait à Asnières-sur-Seine le …………………………..</p>
+      <p>Fait à Asnières-sur-Seine le ${formattedContractCreatedDate}.</p>
       <div class="signature-grid">
         <div>
           <div class="label">Signature client</div>

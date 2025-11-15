@@ -121,6 +121,7 @@ export async function generateContractPDF(
         <div>
           <div class="label">Signature prestataire</div>
           <div class="value">« Lu & approuvé »</div>
+          <p>H. N.</p>
         </div>
       </div>
     </div>`
