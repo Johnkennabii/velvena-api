@@ -99,36 +99,65 @@ export async function generateContractPDF(token, contractId, existingContract, o
         : "";
     const forfaitClauses = `
     <div class="section contract-clauses">
-      <h2>Clauses contractuelles</h2>
-      <p><strong>Ci-après dénommé(e) « le Client »</strong></p>
-      <p>Il a alors été convenu ce qui suit :</p>
+      <h2>Clauses contractuelles – Prestation Négafa</h2>
+      <p><strong>Entre les soussignés :</strong></p>
+      <p>La société ALLURE CRÉATION, SAS immatriculée sous le n° 985&nbsp;287&nbsp;880&nbsp;0014, sise 4 avenue Laurent Cély, 92600 Asnières-sur-Seine, représentée par Madame Hassna NAFILI en qualité de gérante, ci-après dénommée « le Prestataire »,</p>
+      <p>Et le Client, ci-après dénommé « la Cliente », identifié(e) dans le présent contrat.</p>
       <div class="article">
-        <h3>Article 1 : Objet du contrat</h3>
-        <p>Le présent contrat a pour objet de définir les modalités selon lesquelles la société ALLURE CRÉATION fournit à ses clients un ensemble de services en lien avec leurs évènements.</p>
+        <h3>Article 1 – Objet du contrat</h3>
+        <p>Le contrat encadre une prestation de préparation, habillage, accompagnement et location de tenues traditionnelles fournie pour un événement personnel (mariage, fiançailles, cérémonie).</p>
       </div>
       <div class="article">
-        <h3>Article 2 : Description de la prestation et horaire</h3>
-        <p>La prestation inclut :</p>
+        <h3>Article 2 – Description de la prestation</h3>
+        <ol>
+          <li>Essayage et sélection des tenues au showroom ALLURE CRÉATION.</li>
+          <li>Location des tenues traditionnelles, accessoires et parures.</li>
+          <li>Habillage et préparation de la mariée sur place le jour J.</li>
+          <li>Accompagnement, changements de tenues et présence continue dans la limite définie ci-après.</li>
+        </ol>
+      </div>
+      <div class="article">
+        <h3>Article 3 – Durée de la prestation</h3>
+        <p>La prestation est limitée à sept (7) heures consécutives (ex. 19h00 – 2h00). Toute heure supplémentaire entamée est facturée 150&nbsp;€ TTC.</p>
+      </div>
+      <div class="article">
+        <h3>Article 4 – Mise à disposition d’un espace sécurisé</h3>
+        <p>La Cliente fournit une loge ou un local sécurisé, fermé par clé ou code, dédié au stockage du matériel et aux préparatifs.</p>
+        <ol>
+          <li>Aucun objet personnel ou de valeur de la Cliente/invités ne doit y être déposé.</li>
+          <li>ALLURE CRÉATION décline toute responsabilité en cas de perte, vol ou détérioration de biens tiers.</li>
+          <li>Seule la négafa dispose de la clé ou du dispositif d’ouverture durant la prestation.</li>
+          <li>La loge est strictement réservée à la Mariée et à la Prestataire.</li>
+          <li>Le repas de la négafa est à la charge de la Cliente.</li>
+        </ol>
+      </div>
+      <div class="article">
+        <h3>Article 5 – Conditions financières</h3>
         <ul>
-          <li>Les robes et les bijoux ainsi que les accessoires (voiles, jupons).</li>
+          <li>Les tarifs appliqués correspondent au forfait sélectionné par la Cliente.</li>
+          <li>Un acompte de 50&nbsp;% est exigé à la signature du contrat.</li>
+          <li>Le solde est payable à la remise des tenues.</li>
         </ul>
-        <p>La prestation n’excédera pas une durée de 7&nbsp;h (exemple&nbsp;: 19h00 – 2h00). Au-delà, chaque heure supplémentaire est facturée 150&nbsp;€.</p>
-        <p><strong>Sécurité :</strong> il est demandé de fournir à la prestataire (negafa) une pièce spécifique, loge ou local sécurisé par un code ou une clé afin d’y stocker les tenues et préparer la mariée en toute sécurité. Aucun objet de valeur appartenant aux familles n’y sera stocké et seule la negafa aura accès aux clés pour protéger le matériel.</p>
-        <p>Cette loge reste strictement réservée à la mariée et à la prestataire durant toute la prestation. Le repas des négafas est pris en charge par le client.</p>
-        <p>En cas d’impossibilité de fournir les biens réservés à la date convenue, ALLURE CRÉATION s’engage à proposer un bien de même catégorie ou supérieur en remplacement.</p>
+        <p>Tout retard de paiement peut entraîner suspension ou annulation de la prestation, sans indemnité.</p>
       </div>
       <div class="article">
-        <h3>Article 3 : Conditions financières</h3>
-        <p>Un acompte correspondant à 50&nbsp;% du montant total de la prestation est versé par le client le jour de la signature du contrat. Le solde est exigible 14 jours avant la prestation. À défaut de paiement complet selon ces modalités, la prestation n’aura pas lieu.</p>
+        <h3>Article 6 – Caution</h3>
+        <p>Une caution est obligatoire pour toute location. Elle est restituée après vérification de l’état du matériel. Toute perte, détérioration, brûlure, tâche irréversible ou dommage est déduite de la caution, sans préjudice d’une facturation complémentaire.</p>
       </div>
       <div class="article">
-        <h3>Article 4 : Résiliation – Annulation</h3>
-        <p>Nos contrats sont fermes et définitifs et prennent effet dès leur signature. Ils ne relèvent pas du droit de rétractation L212-20 du Code de la Consommation. L’acompte de 50&nbsp;% reste acquis en cas d’annulation. La responsabilité du prestataire ne pourra être engagée en cas de retard ou de défaillance liée à un cas de force majeure tel que défini par la jurisprudence française.</p>
+        <h3>Article 7 – Substitution</h3>
+        <p>En cas d’impossibilité de fournir le bien réservé pour une raison indépendante de la volonté du Prestataire, un bien de catégorie équivalente ou supérieure est proposé sans frais additionnels. Cette substitution n’est pas un manquement contractuel.</p>
       </div>
       <div class="article">
-        <h3>Article 6 : Responsabilité et comportement</h3>
-        <p>Tout mauvais traitement ou irrespect envers les prestataires entraînera la rupture unilatérale du contrat.</p>
-        <p>J’accepte pleinement les conditions et termes du présent contrat, que je reconnais avoir lus et signés en deux exemplaires originaux dont un sera conservé par la gérante.</p>
+        <h3>Article 8 – Annulation</h3>
+        <p>En cas d’annulation par la Cliente, l’acompte demeure acquis, sauf cas de force majeure dûment justifié. Toute demande doit être formulée par écrit.</p>
+      </div>
+      <div class="article">
+        <h3>Article 9 – Engagement et signature</h3>
+        <ul>
+          <li>La Cliente atteste avoir lu et accepté les conditions générales et particulières.</li>
+          <li>L’acceptation électronique vaut signature manuscrite conformément à l’article 1367 du Code civil.</li>
+        </ul>
       </div>
       ${signatureBlock}
     </div>
