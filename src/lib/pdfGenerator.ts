@@ -126,6 +126,10 @@ export async function generateContractPDFWithPdfLib(contract: any, options: PdfL
   );
   const addons = Array.isArray(contract.addon_links) ? contract.addon_links.filter((link: any) => link?.addon) : [];
   const includeSignatureBlock = options.includeSignatureBlock ?? false;
+  const contractCreatedAt = contract.created_at ? new Date(contract.created_at) : null;
+  const formattedContractCreatedDate = contractCreatedAt
+    ? contractCreatedAt.toLocaleDateString("fr-FR")
+    : "…………………………..";
 
   if (isForfaitService) {
     drawTitle("CONTRAT DE PRESTATION « NÉGAFA »");
@@ -205,15 +209,17 @@ export async function generateContractPDFWithPdfLib(contract: any, options: PdfL
   // 📜 Clauses du contrat
   // -----------------------
   if (isForfaitService) {
-    drawSubtitle("Clauses contractuelles – Location forfait");
-    drawText("Ci-après dénommé(e) « le Client », il est convenu ce qui suit :");
-    drawText("Article 1 – Objet : prestations Allure Création liées aux événements (robes, accessoires, service).");
-    drawText("Article 2 – Prestation : robes, bijoux, accessoires (durée max 7h). Heures supp. : 150 €.");
-    drawText("Loge sécurisée exigée, repas des négafas pris en charge par le client.");
-    drawText("S’il est impossible de fournir le bien réservé, un bien équivalent ou supérieur sera proposé.");
-    drawText("Article 3 – Conditions financières : acompte 50% à la signature, solde 14 jours avant la prestation.");
-    drawText("Article 4 – Résiliation / annulation : contrats fermes, acompte non remboursable, force majeure seule exception.");
-    drawText("Article 6 – Responsabilité / comportement : irrespect envers les prestataires = rupture immédiate.");
+    drawSubtitle("Clauses contractuelles – Prestation Négafa");
+    drawText("Entre ALLURE CRÉATION (SAS 9852878800014) et la Cliente identifiée, il est convenu :");
+    drawText("Article 1 – Objet : préparation, habillage, accompagnement et location de tenues traditionnelles.");
+    drawText("Article 2 – Prestation : essayage showroom, location tenues/accessoires, habillage jour J, assistance aux changements.");
+    drawText("Article 3 – Durée : prestation limitée à 7 h consécutives, heure supplémentaire facturée 150 € TTC.");
+    drawText("Article 4 – Loge sécurisée : pièce fermée réservée à la négafa et à la Mariée, sans objets personnels; repas négafa à la charge de la Cliente.");
+    drawText("Article 5 – Conditions financières : forfait choisi, acompte 50 % à la signature, solde à la remise des tenues; défaut de paiement = suspension/annulation possible.");
+    drawText("Article 6 – Caution : restituée après contrôle; pertes, vols ou dégâts déduits ou facturés.");
+    drawText("Article 7 – Substitution : bien équivalent ou supérieur fourni si indisponibilité, sans manquement.");
+    drawText("Article 8 – Annulation : acompte conservé, sauf force majeure dûment justifiée par écrit.");
+    drawText("Article 9 – Engagement : validation électronique vaut signature manuscrite (art. 1367 C. civ.).");
   } else if (isForfaitJournalier) {
     drawSubtitle("Clauses contractuelles – Forfait journalier");
     drawText("Article 1 – Description : location robes mariée / invitées, bijoux et accessoires.");
@@ -237,7 +243,7 @@ export async function generateContractPDFWithPdfLib(contract: any, options: PdfL
   drawLine();
   drawText("Signé électroniquement conformément à l’article 1367 du Code civil.", 10);
   if (includeSignatureBlock) {
-    drawText("Fait à Asnières-sur-Seine le …………………………..", 10);
+    drawText(`Fait à Asnières-sur-Seine le ${formattedContractCreatedDate}`, 10);
     drawText("Signature client « Lu & approuvé »", 10);
     drawText("Signature prestataire « Lu & approuvé »", 10);
   }

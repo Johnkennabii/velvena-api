@@ -50,10 +50,11 @@ export async function generateContractPDF(token, contractId, existingContract, o
     };
     const addonDetails = addonLinks.map(({ addon }) => {
         const includedViaPackage = packageAddonIds.has(addon.id) && (isForfaitService || isForfaitJournalier);
+        const addonDescription = typeof addon.description === "string" && addon.description.trim().length > 0 ? addon.description.trim() : null;
         return {
             id: addon.id,
             name: addon.name,
-            description: addon.description,
+            description: addonDescription,
             priceTtc: formatCurrency(addon.price_ttc),
             includedViaPackage,
         };
