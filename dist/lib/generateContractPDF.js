@@ -335,7 +335,7 @@ export async function generateContractPDF(token, contractId, existingContract, o
         background: #dcfce7;
         border: 1px solid #bbf7d0;
       }
-      .contract-clauses h3 {
+      .contract-clauses h3 p {
         margin-top: 14px;
         font-size: 13px;
       }
