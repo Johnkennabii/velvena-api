@@ -49,6 +49,10 @@ export async function generateContractPDF(
     { label: "Ville", value: customer.city ?? "-" },
     { label: "Pays", value: customer.country ?? "-" },
   ];
+  const customerInfoRows: Array<Array<{ label: string; value: string }>> = [];
+  for (let i = 0; i < customerInfoEntries.length; i += 2) {
+    customerInfoRows.push(customerInfoEntries.slice(i, i + 2));
+  }
   const dresses = contract.dresses || [];
   const addonLinks = Array.isArray(contract.addon_links) ? contract.addon_links.filter((link: any) => link?.addon) : [];
   const packageAddonIds = new Set(
@@ -314,15 +318,20 @@ export async function generateContractPDF(
       .contract-clauses {
         page-break-before: always;
       }
-      .grid {‡
+      .grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
       }
       .grid.grid-3 {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-      }‡
+      }
       .info-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .info-row {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px 24px;
@@ -428,12 +437,20 @@ export async function generateContractPDF(
     <div class="section">
       <h2>Informations client</h2>
       <div class="info-grid">
-        ${customerInfoEntries
+        ${customerInfoRows
           .map(
-            ({ label, value }) => `
-        <div class="info-item">
-          <div class="label">${label}</div>
-          <div class="value">${value}</div>
+            (row) => `
+        <div class="info-row">
+          ${row
+            .map(
+              ({ label, value }) => `
+          <div class="info-item">
+            <div class="label">${label}</div>
+            <div class="value">${value}</div>
+          </div>`
+            )
+            .join("")}
+          ${row.length === 1 ? `<div class="info-item"></div>` : ""}
         </div>`
           )
           .join("")}

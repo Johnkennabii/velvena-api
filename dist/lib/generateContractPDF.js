@@ -21,6 +21,18 @@ export async function generateContractPDF(token, contractId, existingContract, o
     const contract = contractPayload;
     const includeSignatureBlock = options.includeSignatureBlock ?? false;
     const customer = contract.customer || {};
+    const customerFullName = [customer.firstname, customer.lastname]
+        .map((value) => value?.trim())
+        .filter((value) => Boolean(value && value.length > 0))
+        .join(" ");
+    const customerInfoEntries = [
+        { label: "Nom complet", value: customerFullName || "-" },
+        { label: "Email", value: customer.email ?? "-" },
+        { label: "Téléphone", value: customer.phone ?? "-" },
+        { label: "Adresse", value: customer.address ?? "-" },
+        { label: "Ville", value: customer.city ?? "-" },
+        { label: "Pays", value: customer.country ?? "-" },
+    ];
     const dresses = contract.dresses || [];
     const addonLinks = Array.isArray(contract.addon_links) ? contract.addon_links.filter((link) => link?.addon) : [];
     const packageAddonIds = new Set((contract.package?.addons ?? [])
@@ -280,6 +292,15 @@ export async function generateContractPDF(token, contractId, existingContract, o
       .grid.grid-3 {
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }‡
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 24px;
+      }
+      .info-item {
+        display: flex;
+        flex-direction: column;
+      }
       .label {
         font-size: 10px;
         color: #6b7280;
@@ -376,23 +397,14 @@ export async function generateContractPDF(token, contractId, existingContract, o
 
     <div class="section">
       <h2>Informations client</h2>
-      <div class="grid">
-        <div>
-          <div class="label">Nom complet</div>
-          <div class="value">${customer.firstname ?? "-"} ${customer.lastname ?? ""}</div>
-          <div class="label">Téléphone</div>
-          <div class="value">${customer.phone ?? "-"}</div>
-          <div class="label">Ville</div>
-          <div class="value">${customer.city ?? "-"}</div>
-        </div>
-        <div>
-          <div class="label">Email</div>
-          <div class="value">${customer.email ?? "-"}</div>
-          <div class="label">Adresse</div>
-          <div class="value">${customer.address ?? "-"}</div>
-          <div class="label">Pays</div>
-          <div class="value">${customer.country ?? "-"}</div>
-        </div>
+      <div class="info-grid">
+        ${customerInfoEntries
+        .map(({ label, value }) => `
+        <div class="info-item">
+          <div class="label">${label}</div>
+          <div class="value">${value}</div>
+        </div>`)
+        .join("")}
       </div>
     </div>
 
