@@ -505,11 +505,7 @@ export const generateContractPdfManually = async (req, res) => {
         await prisma.contract.update({
             where: { id },
             data: {
-                signed_pdf_url: pdfUrl,
-                status: "SIGNED",
-                signed_at: new Date(),
-                updated_at: new Date(),
-                updated_by: req.user?.id ?? null,
+                status: "PENDING",
             },
         });
         res.json({ link: pdfUrl });

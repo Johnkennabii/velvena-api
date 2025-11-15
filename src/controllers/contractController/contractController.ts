@@ -238,7 +238,7 @@ export const softDeleteContract = async (req: Request, res: Response) => {
 
     await prisma.contract.update({
       where: { id: id as string },
-      data: { deleted_at: new Date(), deleted_by: (req as any).user?.id || null },
+      data: { deleted_at: new Date(), deleted_by: (req as any).user?.id || null, status: "DISABLED" },
     });
 
     res.json({ success: true, message: "Contract soft deleted" });
@@ -365,6 +365,15 @@ export const generateSignatureLink = async (req: Request, res: Response) => {
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 jours
       },
     });
+
+    const updatedContract = await prisma.contract.update({
+      where: { id },
+      data: { status: "PENDING_SIGNATURE" },
+    });
+    logger.info(
+      { contractId: id, previousStatus: contract.status, newStatus: updatedContract.status },
+      "📝 Statut du contrat mis à jour en attente de signature"
+    );
 
     const baseUrl =  "https://app.allure-creation.fr";
     const url = new URL(`/sign/${signLink.token}`, baseUrl).toString();
