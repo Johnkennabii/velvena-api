@@ -210,16 +210,16 @@ export async function generateContractPDFWithPdfLib(contract: any, options: PdfL
   // -----------------------
   if (isForfaitService) {
     drawSubtitle("Clauses contractuelles – Prestation Négafa");
-    drawText("Entre ALLURE CRÉATION (SAS 9852878800014) et la Cliente identifiée, il est convenu :");
-    drawText("Article 1 – Objet : préparation, habillage, accompagnement et location de tenues traditionnelles.");
-    drawText("Article 2 – Prestation : essayage showroom, location tenues/accessoires, habillage jour J, assistance aux changements.");
-    drawText("Article 3 – Durée : prestation limitée à 7 h consécutives, heure supplémentaire facturée 150 € TTC.");
-    drawText("Article 4 – Loge sécurisée : pièce fermée réservée à la négafa et à la Mariée, sans objets personnels; repas négafa à la charge de la Cliente.");
-    drawText("Article 5 – Conditions financières : forfait choisi, acompte 50 % à la signature, solde à la remise des tenues; défaut de paiement = suspension/annulation possible.");
-    drawText("Article 6 – Caution : restituée après contrôle; pertes, vols ou dégâts déduits ou facturés.");
-    drawText("Article 7 – Substitution : bien équivalent ou supérieur fourni si indisponibilité, sans manquement.");
-    drawText("Article 8 – Annulation : acompte conservé, sauf force majeure dûment justifiée par écrit.");
-    drawText("Article 9 – Engagement : validation électronique vaut signature manuscrite (art. 1367 C. civ.).");
+    drawText("Entre ALLURE CRÉATION (SAS 9852878800014) représentée par Madame Hassna NAFILI et la Cliente identifiée au présent contrat, il est convenu ce qui suit :");
+    drawText("Article 1 – Objet : la prestation couvre la préparation, l’habillage, l’accompagnement et la location de tenues traditionnelles dans le cadre d’un événement personnel.");
+    drawText("Article 2 – Description : essayage et sélection au showroom, location des tenues/accessoires, habillage le jour J par la négafa ou son assistante et accompagnement pour les changements.");
+    drawText("Article 3 – Durée : limitée à sept (7) heures consécutives, par exemple 19h00–2h00; toute heure entamée au-delà est facturée 150 € TTC.");
+    drawText("Article 4 – Espace sécurisé : la Cliente met une loge fermée à clé/code réservée au matériel et aux préparatifs; aucun objet personnel n’y est stocké, seule la négafa dispose des accès et le repas de la négafa est à la charge de la Cliente.");
+    drawText("Article 5 – Conditions financières : la facturation suit le forfait choisi, acompte de 50 % à la signature, solde à la remise des tenues; un retard de paiement peut suspendre ou annuler la prestation sans indemnité.");
+    drawText("Article 6 – Caution : demandée pour chaque location et restituée après vérification; pertes, vols, brûlures, tâches irréversibles ou détériorations sont déduits de la caution, avec facturation complémentaire possible.");
+    drawText("Article 7 – Substitution : en cas d’indisponibilité indépendante de la volonté du Prestataire, un bien de catégorie équivalente ou supérieure est fourni sans frais additionnels, sans constituer un manquement contractuel.");
+    drawText("Article 8 – Annulation : l’acompte reste acquis au Prestataire, sauf force majeure justifiée; toute demande doit être formulée par écrit.");
+    drawText("Article 9 – Engagement : la Cliente reconnaît avoir pris connaissance des conditions et accepte qu’une validation électronique vaille signature manuscrite conformément à l’article 1367 du Code civil.");
   } else if (isForfaitJournalier) {
     drawSubtitle("Clauses contractuelles – Forfait journalier");
     drawText("Article 1 – Description : location robes mariée / invitées, bijoux et accessoires.");
