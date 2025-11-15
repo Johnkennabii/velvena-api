@@ -282,8 +282,6 @@ export async function generateContractPDF(
         background: #f9fafb;
         color: #111827;
         padding: 40px;
-      }
-      p {
         font-size: 13px;
         line-height: 1.6;
       }
