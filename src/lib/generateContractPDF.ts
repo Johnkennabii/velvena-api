@@ -283,6 +283,10 @@ export async function generateContractPDF(
         color: #111827;
         padding: 40px;
       }
+      p {
+        font-size: 13px;
+        line-height: 1.6;
+      }
       h1, h2 {
         text-align: center;
         margin-bottom: 0;
@@ -300,14 +304,14 @@ export async function generateContractPDF(
       .contract-clauses {
         page-break-before: always;
       }
-      .grid {
+      .grid {‡
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
       }
       .grid.grid-3 {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
+      }‡
       .label {
         font-size: 10px;
         color: #6b7280;
