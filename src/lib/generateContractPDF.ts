@@ -69,6 +69,18 @@ export async function generateContractPDF(
   const isForfaitService = isNegafa || (isForfait && !isJournalier);
   const isForfaitJournalier = isForfait && isJournalier;
 
+  logger.info({
+    contractId,
+    contractTypeName: contract.contract_type?.name,
+    typeName,
+    isNegafa,
+    isForfait,
+    isJournalier,
+    isForfaitService,
+    isForfaitJournalier,
+    selectedClausesType: isForfaitJournalier ? 'forfaitJournalier' : isForfaitService ? 'forfaitService' : 'default'
+  }, "📋 Détection du type de clauses pour le PDF");
+
   const formatCurrency = (value: unknown) => {
     const numeric = Number(value ?? 0);
     if (Number.isNaN(numeric)) return "0,00";
@@ -417,6 +429,35 @@ export async function generateContractPDF(
         gap: 32px;
         flex-wrap: wrap;
       }
+      table.dress-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+      }
+      table.dress-table thead {
+        background: #f3f4f6;
+      }
+      table.dress-table th {
+        text-align: left;
+        padding: 10px 12px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #374151;
+        text-transform: uppercase;
+        border-bottom: 2px solid #e5e7eb;
+      }
+      table.dress-table td {
+        padding: 10px 12px;
+        font-size: 12px;
+        color: #111827;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      table.dress-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+      table.dress-table tbody tr:hover {
+        background: #f9fafb;
+      }
       @media print {
         .section,
         .article,
@@ -512,18 +553,27 @@ export async function generateContractPDF(
     ${dresses.length ? `
     <div class="section">
       <h2>Robes incluses (${dresses.length})</h2>
-      ${dresses
-        .map(
-          (d: any) => `
-        <div style="margin-top:8px;">
-          <div class="value"><strong>${d.dress?.name ?? "Robe"}</strong></div>
-          <div class="label">Référence</div>
-          <div class="value">${d.dress?.reference ?? "-"}</div>
-          <div class="label">Prix journée TTC</div>
-          <div class="value">${formatCurrency(d.dress?.price_per_day_ttc ?? 0)} € TTC</div>
-        </div>`
-        )
-        .join("")}
+      <table class="dress-table">
+        <thead>
+          <tr>
+            <th>Nom de la robe</th>
+            <th>Référence</th>
+            <th>Prix journée TTC</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${dresses
+            .map(
+              (d: any) => `
+          <tr>
+            <td><strong>${d.dress?.name ?? "Robe"}</strong></td>
+            <td>${d.dress?.reference ?? "-"}</td>
+            <td>${formatCurrency(d.dress?.price_per_day_ttc ?? 0)} € TTC</td>
+          </tr>`
+            )
+            .join("")}
+        </tbody>
+      </table>
     </div>` : ""}
 
     ${addonsSection}
