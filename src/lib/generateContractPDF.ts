@@ -153,6 +153,29 @@ export async function generateContractPDF(
         </div>
       </div>
     </div>`
+    : contract.signed_at
+    ? `
+    <div class="signatures">
+      <p><strong>Signé électroniquement conformément à l'article 1367 du Code civil.</strong></p>
+      <div class="signature-metadata">
+        <p><strong>Signé électroniquement par :</strong> ${customerFullName}</p>
+        <p><strong>Adresse e-mail :</strong> ${customer.email || "Non renseignée"}</p>
+        <p><strong>Date et heure de signature :</strong> ${
+          contract.signed_at
+            ? new Date(contract.signed_at).toLocaleString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+              })
+            : "Date inconnue"
+        }</p>
+        <p><strong>Localisation de la signature :</strong> ${contract.signature_location || "Non disponible"}</p>
+        <p><strong>Adresse IP :</strong> ${contract.signature_ip || "Non disponible"}</p>
+        <p><strong>Référence unique de signature :</strong> ${contract.signature_reference || "Non disponible"}</p>
+      </div>
+    </div>`
     : "";
 
   const forfaitClauses = `
@@ -502,6 +525,19 @@ const forfaitJournalierClauses = `
         justify-content: space-between;
         gap: 32px;
         flex-wrap: wrap;
+      }
+      .signature-metadata {
+        margin-top: 12px;
+        padding: 16px;
+        background-color: #f9fafb;
+        border-left: 4px solid #3b82f6;
+        border-radius: 4px;
+      }
+      .signature-metadata p {
+        margin: 8px 0;
+        font-size: 11px;
+        color: #374151;
+        line-height: 1.5;
       }
       table.dress-table {
         width: 100%;
