@@ -118,7 +118,7 @@ export async function generateContractPDFWithPdfLib(contract: any, options: PdfL
   const typeName = normalizeTypeName(contract.contract_type?.name);
   const isNegafa = typeName.includes("negafa");
   const isForfait = typeName.includes("forfait");
-  const isJournalier = typeName.includes("journalier");
+  const isJournalier = typeName.includes("Location par jour");
   const isForfaitService = isNegafa || (isForfait && !isJournalier);
   const isForfaitJournalier = isForfait && isJournalier;
   const packageAddonIds = new Set(
