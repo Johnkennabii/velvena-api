@@ -322,13 +322,13 @@ export const generateSignatureLink = async (req, res) => {
         }, "🔗 Lien de signature généré avec succès");
         // ✉️ Préparation de l'email
         const customerFirstName = contract.customer?.firstname?.trim() || "";
-        const customerLasttName = contract.customer?.lastname?.trim() || "";
+        const customerLastName = contract.customer?.lastname?.trim() || "";
         const mailOptions = {
             from: process.env.SMTP_FROM,
             to: email,
             subject: "Signature électronique de votre contrat – Allure Création",
             html: `
-    <p>Bonjour ${customerLasttName || ""} ${customerFirstName || ""},</p>
+    <p>Bonjour ${customerLastName || ""} ${customerFirstName || ""},</p>
 
     <p>
       Votre contrat Allure Création est prêt. Vous pouvez désormais procéder à sa 
