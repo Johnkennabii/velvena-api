@@ -422,6 +422,30 @@ export const signContractViaLink = async (req, res) => {
         if (!contract)
             return res.status(404).json({ success: false, error: "Contrat introuvable" });
         const now = new Date();
+        // 🌍 Capture de l'IP et de la localisation
+        const ipAddress = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+            req.socket.remoteAddress ||
+            'IP inconnue';
+        let location = 'Localisation inconnue';
+        try {
+            // Utilisation de l'API ip-api.com (gratuite, 45 req/min)
+            const geoResponse = await fetch(`http://ip-api.com/json/${ipAddress}?fields=status,country,city,lat,lon`);
+            if (geoResponse.ok) {
+                const geoData = await geoResponse.json();
+                if (geoData.status === 'success') {
+                    location = `${geoData.city || 'Ville inconnue'}, ${geoData.country || 'Pays inconnu'} (${geoData.lat}, ${geoData.lon})`;
+                }
+            }
+        }
+        catch (error) {
+            logger.warn({ error, ipAddress }, "⚠️ Impossible de récupérer la localisation");
+        }
+        logger.info({
+            token,
+            ipAddress,
+            location,
+            contractId: contract.id
+        }, "📍 Signature électronique avec métadonnées");
         // ✍️ 2️⃣ Mise à jour du contrat comme signé
         const updatedContract = await prisma.contract.update({
             where: { id: contract.id },
@@ -429,6 +453,9 @@ export const signContractViaLink = async (req, res) => {
                 status: "SIGNED_ELECTRONICALLY",
                 signed_at: now,
                 updated_at: now,
+                signature_ip: ipAddress,
+                signature_location: location,
+                signature_reference: token,
             },
             include: {
                 customer: true,

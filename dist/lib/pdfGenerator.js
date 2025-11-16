@@ -295,11 +295,38 @@ export async function generateContractPDFWithPdfLib(contract, options = {}) {
     }
     y -= 25;
     drawLine();
-    drawText("Signé électroniquement conformément à l’article 1367 du Code civil.", 10);
     if (includeSignatureBlock) {
+        // Signature manuelle
         drawText(`Fait à Asnières-sur-Seine le ${formattedContractCreatedDate}`, 10);
         drawText("Signature client « Lu & approuvé »", 10);
         drawText("Signature prestataire « Lu & approuvé »", 10);
+    }
+    else if (contract.signed_at) {
+        // Signature électronique avec métadonnées
+        drawText("Signé électroniquement conformément à l'article 1367 du Code civil.", 10, true);
+        y -= 5;
+        const customerFullName = [contract.customer?.firstname, contract.customer?.lastname]
+            .filter(Boolean)
+            .join(" ") || "Client";
+        const signedDate = contract.signed_at
+            ? new Date(contract.signed_at).toLocaleString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            })
+            : "Date inconnue";
+        drawText(`Signé électroniquement par : ${customerFullName}`, 9);
+        drawText(`Adresse e-mail : ${contract.customer?.email || "Non renseignée"}`, 9);
+        drawText(`Date et heure de signature : ${signedDate}`, 9);
+        drawText(`Localisation de la signature : ${contract.signature_location || "Non disponible"}`, 9);
+        drawText(`Adresse IP : ${contract.signature_ip || "Non disponible"}`, 9);
+        drawText(`Référence unique de signature : ${contract.signature_reference || "Non disponible"}`, 9);
+    }
+    else {
+        // Pas encore signé
+        drawText("Signé électroniquement conformément à l'article 1367 du Code civil.", 10);
     }
     // -----------------------
     // ☁️ Upload vers Hetzner

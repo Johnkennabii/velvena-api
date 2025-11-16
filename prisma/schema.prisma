@@ -231,6 +231,9 @@ model Contract {
   deleted_by             String?
   signed_at              DateTime?
   signed_pdf_url         String?
+  signature_ip           String?
+  signature_location     String?
+  signature_reference    String?
   contract_type          ContractType        @relation(fields: [contract_type_id], references: [id])
   customer               Customer            @relation(fields: [customer_id], references: [id])
   package                ContractPackage?    @relation(fields: [package_id], references: [id])
