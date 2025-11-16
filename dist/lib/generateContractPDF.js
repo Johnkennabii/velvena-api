@@ -45,8 +45,8 @@ export async function generateContractPDF(token, contractId, existingContract, o
     const normalizeTypeName = (value) => value ? value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
     const typeName = normalizeTypeName(contract.contract_type?.name);
     const isNegafa = typeName.includes("negafa");
-    const isForfait = typeName.includes("forfait");
-    const isJournalier = typeName.includes("journalier");
+    const isForfait = typeName.includes("Forfait");
+    const isJournalier = typeName.includes("Location par jour");
     const isForfaitService = isNegafa || (isForfait && !isJournalier);
     const isForfaitJournalier = isForfait && isJournalier;
     logger.info({
@@ -58,7 +58,7 @@ export async function generateContractPDF(token, contractId, existingContract, o
         isJournalier,
         isForfaitService,
         isForfaitJournalier,
-        selectedClausesType: isForfaitJournalier ? 'forfaitJournalier' : isForfaitService ? 'forfaitService' : 'default'
+        selectedClausesType: isForfaitJournalier ? 'Location par jour' : isForfaitService ? 'Forfait' : 'default'
     }, "📋 Détection du type de clauses pour le PDF");
     const formatCurrency = (value) => {
         const numeric = Number(value ?? 0);
@@ -195,55 +195,131 @@ export async function generateContractPDF(token, contractId, existingContract, o
     </div>
   `;
     const forfaitJournalierClauses = `
-    <div class="section contract-clauses">
-      <h2>Clauses contractuelles</h2>
-      <div class="article">
-        <h3>Article 1 : Description</h3>
-        <p>Ce contrat a pour objet de définir les modalités suivant lesquelles le prestataire fournit à ses clients un ensemble de services liés aux manifestations festives qu’ils organisent :</p>
-        <ul>
-          <li>Location des robes mariée et des bijoux, ainsi que des accessoires (voiles, jupons).</li>
-          <li>Location des robes invitées.</li>
-        </ul>
-      </div>
-      <div class="article">
-        <h3>Article 2 : Conditions financières et caution</h3>
-        <p>Un acompte de 50&nbsp;% du montant total de la location est versé par le client le jour de la signature du contrat et le solde est payé lors du retrait de la robe accompagné de la caution.</p>
-        <p>Nous insistons sur le fait que l’intégralité du paiement devra être effectuée selon ces conditions, à défaut la location n’aura pas lieu.</p>
-        <p><strong>Attention :</strong> seules les cautions réalisées par empreinte carte bancaire ou en espèces sont acceptées (pas de chèque).</p>
-      </div>
-      <div class="article">
-        <h3>Article 3 : Résiliation – Annulation</h3>
-        <p>Nos contrats sont fermes et définitifs et les présentes conditions prennent effet dès signature. Ce contrat n’entre pas dans le champ d’application de la loi de rétractation L212-20 du Code de la Consommation. Le locataire verse un acompte de 50&nbsp;%, non remboursable en cas d’annulation.</p>
-        <p>La responsabilité du prestataire ne peut être engagée pour un retard ou une défaillance de prestation résultant d’un cas de force majeure au sens de la jurisprudence de la Cour de cassation.</p>
-      </div>
-      <div class="article">
-        <h3>Article 4 : Responsabilité des parties</h3>
-        <p>Perte, dégât ou vol : dans le cas où le locataire ne restituerait pas le bien loué ou en cas de vol ou de perte, la caution bancaire sera conservée. Si le bien est réparable, le montant des retouches sera déduit de la caution.</p>
-        <p>Si une robe ou un accessoire est endommagé, égaré ou volé, le prestataire se réserve le droit de réclamer le prix d’achat des articles. Les parties conviennent de n’être responsables des conséquences dommageables résultant d’un cas de force majeure que dans la limite fixée par la jurisprudence française.</p>
-      </div>
-      <div class="article">
-        <h3>Article 5 : Restitution</h3>
-        <p>Le bien doit être restitué le dimanche, pour les locations week-end, aux heures d’ouverture prévues.</p>
-      </div>
-      <div class="article">
-        <h3>Article 6 : Retard dans la restitution</h3>
-        <p>En cas de retard de restitution, le locataire paiera 50&nbsp;€ par jour de retard et par robe invitée, et 100&nbsp;€ par jour et par robe mariée.</p>
-        <p>Les clients s’engagent à restituer les fournitures louées en parfait état dans les délais convenus. À défaut, le prestataire percevra une indemnité.</p>
-      </div>
-      <div class="article">
-        <h3>Article 7 : Impossibilité de fournir le bien</h3>
-        <p>En cas d’impossibilité de fournir le bien réservé à la date souhaitée, Allure Création fournira un bien de même catégorie ou de qualité supérieure en remplacement.</p>
-      </div>
-      <div class="article">
-        <h3>Article 8 : Housse ou cintre</h3>
-        <p>En cas de non-restitution de la housse ou du cintre, il sera demandé au locataire une indemnité de 50&nbsp;€.</p>
-      </div>
-      ${signatureBlock}
+  <div class="section contract-clauses">
+    <h2>Clauses contractuelles – Location de robes</h2>
+
+    <p><strong>Entre les soussignés :</strong></p>
+    <p>
+      La société <strong>ALLURE CREATION</strong>, Société par actions simplifiée (SAS) immatriculée
+      au registre du commerce et des sociétés sous le numéro <strong>9852878800014</strong>,
+      ayant son siège social au <strong>4 avenue Laurent Cély, 92600 Asnières-sur-Seine</strong>,
+      représentée par <strong>Hassna NAFILI</strong> en qualité de gérante,
+      ci-après dénommée « le Prestataire ».
+    </p>
+    <p>
+      Et le Client, ci-après dénommé « la Cliente », identifié(e) dans le présent contrat.
+    </p>
+
+    <p><strong>Il a alors été convenu ce qui suit :</strong></p>
+
+    <!-- Article 1 -->
+    <div class="article">
+      <h3>Article 1 : Description</h3>
+      <p>
+        Le présent contrat a pour objet de définir les modalités selon lesquelles le Prestataire fournira
+        à la Cliente un ensemble de services liés à la tenue de manifestations festives (mariage, fiançailles,
+        cérémonies).
+      </p>
+      <ul>
+        <li>Location des robes mariée, bijoux et accessoires (voiles, jupons).</li>
+        <li>Location des robes invitées.</li>
+      </ul>
     </div>
-  `;
+
+    <!-- Article 2 -->
+    <div class="article">
+      <h3>Article 2 : Conditions financières et caution</h3>
+      <p>
+        Un acompte de <strong>50&nbsp;%</strong> du montant total de la location est versé le jour de la signature.
+        Le solde doit être réglé au moment du retrait des tenues, accompagné d’une caution.
+      </p>
+      <p>
+        L’intégralité du paiement doit être effectuée selon ces modalités ; à défaut, la location ne pourra
+        avoir lieu.
+      </p>
+      <p><strong>Attention :</strong> seules les cautions en empreinte carte bancaire ou en espèces sont acceptées.
+      Aucun chèque ne sera accepté.</p>
+    </div>
+
+    <!-- Article 3 -->
+    <div class="article">
+      <h3>Article 3 : Résiliation – Annulation</h3>
+      <p>
+        Les contrats sont fermes et définitifs dès leur signature. Ils ne font pas l’objet du droit de rétractation
+        prévu par l’article L212-20 du Code de la Consommation.
+      </p>
+      <p>
+        L’acompte de 50&nbsp;% reste acquis au Prestataire en cas d’annulation.
+      </p>
+      <p>
+        La responsabilité du Prestataire ne pourra être engagée en cas de retard ou impossibilité d’exécution
+        résultant d’un cas de force majeure, tel que défini par la jurisprudence de la Cour de cassation.
+      </p>
+    </div>
+
+    <!-- Article 4 -->
+    <div class="article">
+      <h3>Article 4 : Responsabilité des parties</h3>
+      <p>
+        En cas de perte, dégât ou vol d’un article loué :
+      </p>
+      <ul>
+        <li>La caution bancaire sera conservée si le bien est abîmé (trou, tâche, brûlure, déchirure).</li>
+        <li>Si le bien est réparable, le montant des retouches sera déduit de la caution.</li>
+        <li>Si le bien est perdu, volé ou irréparable, le Prestataire pourra réclamer le prix d’achat du bien.</li>
+      </ul>
+      <p>
+        Les parties ne peuvent être tenues responsables des conséquences d’un cas de force majeure conformément
+        à la jurisprudence française.
+      </p>
+    </div>
+
+    <!-- Article 5 -->
+    <div class="article">
+      <h3>Article 5 : Restitution</h3>
+      <p>
+        Les biens loués doivent être restitués <strong>le dimanche</strong> (pour les locations week-end)
+        aux heures d’ouverture du showroom.
+      </p>
+    </div>
+
+    <!-- Article 6 -->
+    <div class="article">
+      <h3>Article 6 : Retard dans la restitution</h3>
+      <p>En cas de retard, les pénalités suivantes s’appliquent :</p>
+      <ul>
+        <li>50&nbsp;€ par jour de retard et par robe invitée ;</li>
+        <li>100&nbsp;€ par jour de retard et par robe mariée.</li>
+      </ul>
+      <p>
+        Les biens doivent être restitués en parfait état. À défaut, des indemnités supplémentaires peuvent être appliquées.
+      </p>
+    </div>
+
+    <!-- Article 7 -->
+    <div class="article">
+      <h3>Article 7 : Substitution</h3>
+      <p>
+        En cas d’impossibilité de fournir le bien réservé à la date souhaitée, ALLURE CREATION fournira un bien
+        de même catégorie ou de qualité supérieure, sans frais supplémentaires.
+      </p>
+    </div>
+
+    <!-- Article 8 -->
+    <div class="article">
+      <h3>Article 8 : Non-restitution de la housse ou du cintre</h3>
+      <p>
+        La non-restitution de la housse ou du cintre entraînera une indemnité forfaitaire de
+        <strong>50&nbsp;€</strong>.
+      </p>
+    </div>
+
+    ${signatureBlock}
+  </div>
+`;
     const defaultClauses = `
     <div class="section contract-clauses">
-      <h2>Clauses contractuelles</h2>
+      <h2>Clauses contractuelles (autres)</h2>
       <div class="article">
         <h3>Article 1 – Objet</h3>
         <p>Location de tenues (robes, bijoux, accessoires) pour la durée convenue au contrat.</p>
