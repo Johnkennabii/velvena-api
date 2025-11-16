@@ -64,8 +64,8 @@ export async function generateContractPDF(
     value ? value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
   const typeName = normalizeTypeName(contract.contract_type?.name);
   const isNegafa = typeName.includes("negafa");
-  const isForfait = typeName.includes("Forfait");
-  const isJournalier = typeName.includes("Location par jour");
+  const isForfait = typeName.includes("forfait");
+  const isJournalier = typeName.includes("location par jour");
   const isForfaitService = isNegafa || (isForfait && !isJournalier);
   const isForfaitJournalier = isForfait && isJournalier;
 
