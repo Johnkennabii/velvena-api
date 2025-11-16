@@ -63,17 +63,15 @@ export async function generateContractPDF(
   const normalizeTypeName = (value?: string | null) =>
     value ? value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
   const typeName = normalizeTypeName(contract.contract_type?.name);
-  const isNegafa = typeName.includes("negafa");
   const isForfait = typeName.includes("forfait");
   const isJournalier = typeName.includes("location par jour");
-  const isForfaitService = isNegafa || (isForfait && !isJournalier);
-  const isForfaitJournalier = isForfait && isJournalier;
+  const isForfaitService = isForfait ;
+  const isForfaitJournalier =  isJournalier;
 
   logger.info({
     contractId,
     contractTypeName: contract.contract_type?.name,
     typeName,
-    isNegafa,
     isForfait,
     isJournalier,
     isForfaitService,
