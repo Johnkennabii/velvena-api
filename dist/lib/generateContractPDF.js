@@ -126,7 +126,28 @@ export async function generateContractPDF(token, contractId, existingContract, o
         </div>
       </div>
     </div>`
-        : "";
+        : contract.signed_at
+            ? `
+    <div class="signatures">
+      <p style="font-size: 11px;"><strong>Signé électroniquement conformément à l'article 1367 du Code civil.</strong></p>
+      <div class="signature-metadata">
+        <p><strong>Signataire :</strong> ${customerFullName}</p>
+        <p><strong>E-mail :</strong> ${customer.email || "Non renseigné"}</p>
+        <p><strong>Date/Heure :</strong> ${contract.signed_at
+                ? new Date(contract.signed_at).toLocaleString("fr-FR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                })
+                : "Non disponible"}</p>
+        <p><strong>Localisation :</strong> ${contract.signature_location || "Non disponible"}</p>
+        <p><strong>IP :</strong> ${contract.signature_ip || "Non disponible"}</p>
+        <p><strong>Référence :</strong> ${contract.signature_reference || "Non disponible"}</p>
+      </div>
+    </div>`
+            : "";
     const forfaitClauses = `
     <div class="section contract-clauses">
       <h2>Clauses contractuelles – Prestation Négafa</h2>
@@ -470,6 +491,29 @@ export async function generateContractPDF(token, contractId, existingContract, o
         justify-content: space-between;
         gap: 32px;
         flex-wrap: wrap;
+      }
+      .signature-metadata {
+        margin-top: 12px;
+        padding: 12px 16px;
+        background-color: #f9fafb;
+        border-left: 4px solid #3b82f6;
+        border-radius: 4px;
+        max-width: 100%;
+        box-sizing: border-box;
+        page-break-inside: avoid;
+      }
+      .signature-metadata p {
+        margin: 6px 0;
+        font-size: 9px;
+        color: #374151;
+        line-height: 1.4;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+      }
+      .signature-metadata strong {
+        font-size: 9px;
+        font-weight: 600;
       }
       table.dress-table {
         width: 100%;

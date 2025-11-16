@@ -12,7 +12,7 @@ const isSecure = secureFromEnv ? secureFromEnv !== "false" : smtpPort === 465;
 const transporter: Transporter = nodemailer.createTransport({
   host: smtpHost,
   port: smtpPort,
-  secure: false,
+  secure: isSecure,
   auth: {
     user: process.env.SMTP_USER ?? "",
     pass: process.env.SMTP_PASSWORD ?? process.env.SMTP_PASS ?? "",
@@ -50,6 +50,13 @@ export async function sendMail({ to, subject, html, text }: MailOptions): Promis
       subject,
       html,
       text,
+      replyTo: process.env.SMTP_FROM,
+      headers: {
+        'X-Mailer': 'Allure Création Mailer',
+        'X-Priority': '3',
+        'Importance': 'Normal',
+        'X-MSMail-Priority': 'Normal',
+      },
     });
     logger.info({ to, subject, messageId: info.messageId }, "✅ Email envoyé avec succès");
   } catch (error) {

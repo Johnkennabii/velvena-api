@@ -156,11 +156,11 @@ export async function generateContractPDF(
     : contract.signed_at
     ? `
     <div class="signatures">
-      <p><strong>Signé électroniquement conformément à l'article 1367 du Code civil.</strong></p>
+      <p style="font-size: 11px;"><strong>Signé électroniquement conformément à l'article 1367 du Code civil.</strong></p>
       <div class="signature-metadata">
-        <p><strong>Signé électroniquement par :</strong> ${customerFullName}</p>
-        <p><strong>Adresse e-mail :</strong> ${customer.email || "Non renseignée"}</p>
-        <p><strong>Date et heure de signature :</strong> ${
+        <p><strong>Signataire :</strong> ${customerFullName}</p>
+        <p><strong>E-mail :</strong> ${customer.email || "Non renseigné"}</p>
+        <p><strong>Date/Heure :</strong> ${
           contract.signed_at
             ? new Date(contract.signed_at).toLocaleString("fr-FR", {
                 day: "2-digit",
@@ -169,11 +169,11 @@ export async function generateContractPDF(
                 hour: "2-digit",
                 minute: "2-digit"
               })
-            : "Date inconnue"
+            : "Non disponible"
         }</p>
-        <p><strong>Localisation de la signature :</strong> ${contract.signature_location || "Non disponible"}</p>
-        <p><strong>Adresse IP :</strong> ${contract.signature_ip || "Non disponible"}</p>
-        <p><strong>Référence unique de signature :</strong> ${contract.signature_reference || "Non disponible"}</p>
+        <p><strong>Localisation :</strong> ${contract.signature_location || "Non disponible"}</p>
+        <p><strong>IP :</strong> ${contract.signature_ip || "Non disponible"}</p>
+        <p><strong>Référence :</strong> ${contract.signature_reference || "Non disponible"}</p>
       </div>
     </div>`
     : "";
@@ -528,16 +528,26 @@ const forfaitJournalierClauses = `
       }
       .signature-metadata {
         margin-top: 12px;
-        padding: 16px;
+        padding: 12px 16px;
         background-color: #f9fafb;
         border-left: 4px solid #3b82f6;
         border-radius: 4px;
+        max-width: 100%;
+        box-sizing: border-box;
+        page-break-inside: avoid;
       }
       .signature-metadata p {
-        margin: 8px 0;
-        font-size: 11px;
+        margin: 6px 0;
+        font-size: 9px;
         color: #374151;
-        line-height: 1.5;
+        line-height: 1.4;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+      }
+      .signature-metadata strong {
+        font-size: 9px;
+        font-weight: 600;
       }
       table.dress-table {
         width: 100%;

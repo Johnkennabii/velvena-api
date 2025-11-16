@@ -320,18 +320,64 @@ export const generateSignatureLink = async (req, res) => {
             link: url,
             expires: expiresAtFormatted,
         }, "🔗 Lien de signature généré avec succès");
-        // ✉️ Préparation de l’email
+        // ✉️ Préparation de l'email
+        const customerFirstName = contract.customer?.firstname?.trim() || "";
+        const customerLasttName = contract.customer?.lastname?.trim() || "";
         const mailOptions = {
             from: process.env.SMTP_FROM,
             to: email,
-            subject: "Signature électronique de votre contrat Allure-Création",
+            subject: "Signature électronique de votre contrat – Allure Création",
             html: `
-        <p>Bonjour,</p>
-        <p>Vous pouvez signer électroniquement votre contrat Allure-Création en cliquant sur le lien ci-dessous :</p>
-        <p><a href="${url}">${url}</a></p>
-        <p>Ce lien expirera le <strong>${expiresAtFormatted}</strong>.</p>
-        <p>Merci de votre confiance,<br/>L'équipe Allure-Création</p>
-      `,
+    <p>Bonjour ${customerLasttName || ""} ${customerFirstName || ""},</p>
+
+    <p>
+      Votre contrat Allure Création est prêt. Vous pouvez désormais procéder à sa 
+      <strong>signature électronique</strong> en suivant les étapes ci-dessous :
+    </p>
+
+    <ol>
+      <li>Cliquez sur le bouton ou le lien de signature ci-dessous.</li>
+      <li>Vérifiez attentivement toutes les informations du contrat.</li>
+      <li>Cochez la case de validation pour confirmer votre accord.</li>
+      <li>Validez la signature électronique.</li>
+    </ol>
+
+    <p>
+      Votre lien de signature est disponible ici :<br/>
+      <a href="${url}" style="color:#1d4ed8;">${url}</a>
+    </p>
+
+    <p style="text-align:center; margin:24px 0;">
+      <a href="${url}"
+         style="
+           display:inline-block;
+           padding:12px 20px;
+           background:#111827;
+           color:#ffffff;
+           text-decoration:none;
+           border-radius:6px;
+           font-weight:600;
+         "
+         target="_blank"
+      >
+        Signer mon contrat
+      </a>
+    </p>
+
+    <p>
+      <strong>⚠️ Attention :</strong> ce lien expirera le <strong>${expiresAtFormatted}</strong>.
+      Passé ce délai, le contrat devra être régénéré.
+    </p>
+
+    <p>
+      Si vous rencontrez une difficulté, vous pouvez répondre à cet email ou contacter notre équipe.
+    </p>
+
+    <p>
+      Merci de votre confiance,<br/>
+      <strong>L'équipe Allure Création</strong>
+    </p>
+  `,
         };
         logger.info({ to: email }, "📤 Envoi de l’e-mail de signature en cours...");
         // ✅ Réponse immédiate à l’API
