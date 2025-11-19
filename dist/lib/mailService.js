@@ -35,30 +35,82 @@ export async function getEmails(mailboxType = "INBOX", limit = 50, offset = 0) {
     return new Promise((resolve, reject) => {
         const imap = createImapConnection();
         const emails = [];
+        let timeoutId;
+        // Timeout de 45 secondes
+        timeoutId = setTimeout(() => {
+            try {
+                imap.destroy();
+            }
+            catch (e) {
+                // Ignore
+            }
+            reject(new Error("Timeout lors de la récupération des emails"));
+        }, 45000);
         imap.once("ready", () => {
             // Cherche la boîte mail correspondante
             findMailbox(imap, mailboxType, (err, mailboxName) => {
                 if (err) {
-                    imap.end();
+                    clearTimeout(timeoutId);
+                    try {
+                        imap.end();
+                    }
+                    catch (e) {
+                        // Ignore
+                    }
                     return reject(err);
                 }
                 imap.openBox(mailboxName, true, (err, box) => {
                     if (err) {
-                        imap.end();
+                        clearTimeout(timeoutId);
+                        try {
+                            imap.end();
+                        }
+                        catch (e) {
+                            // Ignore
+                        }
                         return reject(err);
                     }
                     const total = box.messages.total;
                     if (total === 0) {
-                        imap.end();
+                        clearTimeout(timeoutId);
+                        try {
+                            imap.end();
+                        }
+                        catch (e) {
+                            // Ignore
+                        }
                         return resolve([]);
                     }
                     // Calcul de la plage de messages à récupérer
                     const start = Math.max(1, total - offset - limit + 1);
                     const end = Math.max(1, total - offset);
                     if (start > end) {
-                        imap.end();
+                        clearTimeout(timeoutId);
+                        try {
+                            imap.end();
+                        }
+                        catch (e) {
+                            // Ignore
+                        }
                         return resolve([]);
                     }
+                    const expectedMessages = end - start + 1;
+                    let processedMessages = 0;
+                    let fetchEnded = false;
+                    const checkComplete = () => {
+                        if (fetchEnded && processedMessages === expectedMessages) {
+                            clearTimeout(timeoutId);
+                            // Tri par date décroissante (plus récent en premier)
+                            emails.sort((a, b) => b.date.getTime() - a.date.getTime());
+                            try {
+                                imap.end();
+                            }
+                            catch (e) {
+                                // Ignore
+                            }
+                            resolve(emails);
+                        }
+                    };
                     const fetch = imap.seq.fetch(`${start}:${end}`, {
                         bodies: "",
                         struct: true,
@@ -78,34 +130,52 @@ export async function getEmails(mailboxType = "INBOX", limit = 50, offset = 0) {
                         });
                         msg.once("end", () => {
                             simpleParser(buffer, (err, parsed) => {
-                                if (err || !parsed) {
-                                    logger.error({ err, seqno }, "Erreur de parsing email");
-                                    return;
+                                processedMessages++;
+                                if (!err && parsed) {
+                                    emails.push(parseEmailMessage(parsed, uid, flags));
                                 }
-                                emails.push(parseEmailMessage(parsed, uid, flags));
+                                else {
+                                    logger.error({ err, seqno }, "Erreur de parsing email");
+                                }
+                                checkComplete();
                             });
                         });
                     });
                     fetch.once("error", (err) => {
-                        imap.end();
+                        clearTimeout(timeoutId);
+                        try {
+                            imap.end();
+                        }
+                        catch (e) {
+                            // Ignore
+                        }
                         reject(err);
                     });
                     fetch.once("end", () => {
-                        imap.end();
+                        fetchEnded = true;
+                        checkComplete();
                     });
                 });
             });
         });
         imap.once("error", (err) => {
+            clearTimeout(timeoutId);
             logger.error({ err }, "Erreur de connexion IMAP");
+            try {
+                imap.destroy();
+            }
+            catch (e) {
+                // Ignore
+            }
             reject(err);
         });
-        imap.once("end", () => {
-            // Tri par date décroissante (plus récent en premier)
-            emails.sort((a, b) => b.date.getTime() - a.date.getTime());
-            resolve(emails);
-        });
-        imap.connect();
+        try {
+            imap.connect();
+        }
+        catch (err) {
+            clearTimeout(timeoutId);
+            reject(err);
+        }
     });
 }
 /**
@@ -345,7 +415,7 @@ export async function getMailboxes() {
     return new Promise((resolve, reject) => {
         const imap = createImapConnection();
         let timeoutId;
-        // Timeout de 15 secondes pour l'opération complète
+        // Timeout de 30 secondes pour l'opération complète (plus long car on ouvre chaque boîte)
         timeoutId = setTimeout(() => {
             try {
                 imap.destroy();
@@ -354,38 +424,71 @@ export async function getMailboxes() {
                 // Ignore les erreurs de destroy
             }
             reject(new Error("Timeout lors de la récupération des boîtes mail"));
-        }, 15000);
+        }, 30000);
         imap.once("ready", () => {
             imap.getBoxes((err, boxes) => {
-                clearTimeout(timeoutId);
-                // Ferme immédiatement la connexion
-                try {
-                    imap.end();
-                }
-                catch (e) {
-                    // Ignore
-                }
                 if (err) {
+                    clearTimeout(timeoutId);
                     logger.error({ err }, "Erreur lors de getBoxes");
+                    try {
+                        imap.end();
+                    }
+                    catch (e) { }
                     return reject(err);
                 }
                 const boxNames = Object.keys(boxes);
-                // Retourne seulement les boîtes principales sans les ouvrir
-                const mainMailboxes = [];
                 // Boîtes principales à chercher (en respectant les noms Gandi)
                 const mainBoxNames = ["INBOX", "Sent", "Trash", "Junk", "Drafts"];
+                const mainMailboxes = [];
+                // Liste des boîtes existantes à ouvrir
+                const boxesToOpen = [];
                 for (const mainName of mainBoxNames) {
                     const foundBox = boxNames.find(name => name.toLowerCase() === mainName.toLowerCase());
                     if (foundBox && boxes[foundBox]) {
-                        mainMailboxes.push({
-                            name: foundBox,
-                            displayName: getDisplayName(foundBox),
-                            total: 0, // On ne compte pas les messages pour éviter le timeout
-                            new: 0,
-                        });
+                        boxesToOpen.push(foundBox);
                     }
                 }
-                resolve(mainMailboxes);
+                // Fonction pour ouvrir chaque boîte et récupérer les comptes
+                let processedBoxes = 0;
+                const openNextBox = (index) => {
+                    if (index >= boxesToOpen.length) {
+                        // Toutes les boîtes ont été traitées
+                        clearTimeout(timeoutId);
+                        try {
+                            imap.end();
+                        }
+                        catch (e) { }
+                        resolve(mainMailboxes);
+                        return;
+                    }
+                    const boxName = boxesToOpen[index]; // Non-null assertion car on a vérifié index < length
+                    imap.openBox(boxName, true, (openErr, box) => {
+                        if (openErr) {
+                            logger.warn({ boxName, err: openErr }, "Erreur lors de l'ouverture de la boîte");
+                            // Ajoute la boîte avec des comptes à 0 en cas d'erreur
+                            mainMailboxes.push({
+                                name: boxName,
+                                displayName: getDisplayName(boxName),
+                                total: 0,
+                                new: 0,
+                            });
+                        }
+                        else {
+                            // Récupère les vrais comptes
+                            mainMailboxes.push({
+                                name: boxName,
+                                displayName: getDisplayName(boxName),
+                                total: box.messages.total || 0,
+                                new: box.messages.new || 0,
+                            });
+                        }
+                        processedBoxes++;
+                        // Passe à la boîte suivante
+                        openNextBox(index + 1);
+                    });
+                };
+                // Commence le traitement
+                openNextBox(0);
             });
         });
         imap.once("error", (err) => {
