@@ -486,7 +486,7 @@ const mailOptions = {
           <tr>
             <td style="padding-top:28px; font-size:14px; color:#374151; line-height:1.6;">
               Si vous avez la moindre question ou rencontrez une difficulté, 
-              vous pouvez répondre directement à cet email.<br><br>
+              vous pouvez répondre directement par voie téléphonique.<br><br>
               Merci de votre confiance,<br>
               <strong>L'équipe Allure Création</strong>
             </td>

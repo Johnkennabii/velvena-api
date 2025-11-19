@@ -31,7 +31,7 @@ import contractsRoutes from "./routes/contractRoutes/contractRoutes.js";
 import contractsFullViewRoutes from "./routes/contractRoutes/contractRoutes.js";
 
 import notificationRoute from "./routes/notifications.js";
-
+import mailRoutes from "./routes/mailRoutes.js";
 
 import {
   getContractSignLink,
@@ -122,7 +122,8 @@ app.use("/contracts/full-view", contractsFullViewRoutes);
 app.get("/sign-links/:token", getContractSignLink);
 app.post("/sign-links/:token/sign", signContractViaLink);
 
-app.use("/notifications", notificationRoute); 
+app.use("/notifications", notificationRoute);
+app.use("/mails", mailRoutes);
 
 // ✅ Route racine
 app.get("/", (req: Request, res: Response) => {

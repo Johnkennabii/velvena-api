@@ -306,7 +306,7 @@ export const generateSignatureLink = async (req, res) => {
         });
         logger.info({ contractId: id, previousStatus: contract.status, newStatus: updatedContract.status }, "📝 Statut du contrat mis à jour en attente de signature");
         const baseUrl = "https://app.allure-creation.fr";
-        const url = new URL(`/sign/${signLink.token}`, baseUrl).toString();
+        const url = new URL(`/sign-links/${signLink.token}`, baseUrl).toString();
         const expiresAtFormatted = signLink.expires_at.toLocaleString("fr-FR", {
             day: "2-digit",
             month: "2-digit",
@@ -328,55 +328,100 @@ export const generateSignatureLink = async (req, res) => {
             to: email,
             subject: "Signature électronique de votre contrat – Allure Création",
             html: `
-    <p>Bonjour ${customerLastName || ""} ${customerFirstName || ""},</p>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f7f7f7; padding:40px 0; font-family:Arial, sans-serif;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:white; padding:32px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
 
-    <p>
-      Votre contrat Allure Création est prêt. Vous pouvez désormais procéder à sa 
-      <strong>signature électronique</strong> en suivant les étapes ci-dessous :
-    </p>
+          <!-- HEADER -->
+          <tr>
+            <td style="text-align:center; padding-bottom:20px;">
+              <h2 style="margin:0; font-size:22px; color:#111827;">
+                Signature électronique – Allure Création
+              </h2>
+              <p style="margin:6px 0 0; color:#6b7280; font-size:14px;">
+                Contrat à signer en ligne
+              </p>
+            </td>
+          </tr>
 
-    <ol>
-      <li>Cliquez sur le bouton ou le lien de signature ci-dessous.</li>
-      <li>Vérifiez attentivement toutes les informations du contrat.</li>
-      <li>Cochez la case de validation pour confirmer votre accord.</li>
-      <li>Validez la signature électronique.</li>
-    </ol>
+          <!-- INTRO -->
+          <tr>
+            <td style="font-size:15px; color:#374151; line-height:1.6;">
+              Bonjour ${customerLastName || ""} ${customerFirstName || ""},<br><br>
+              Votre contrat Allure Création est prêt. Vous pouvez désormais procéder à sa
+              <strong>signature électronique</strong> en suivant les étapes ci-dessous.
+            </td>
+          </tr>
 
-    <p>
-      Votre lien de signature est disponible ici :<br/>
-      <a href="${url}" style="color:#1d4ed8;">${url}</a>
-    </p>
+          <!-- STEPS -->
+          <tr>
+            <td style="padding:20px 0;">
+              <div style="background:#f3f4f6; padding:16px; border-radius:8px; color:#374151; font-size:14px; line-height:1.6;">
+                <strong>Étapes à suivre :</strong>
+                <ol style="margin:12px 0 0 18px; padding:0;">
+                  <li>Cliquez sur le lien ou le bouton ci-dessous.</li>
+                  <li>Vérifiez attentivement les informations du contrat.</li>
+                  <li>Cochez la case de validation pour confirmer votre accord.</li>
+                  <li>Validez votre signature électronique.</li>
+                </ol>
+              </div>
+            </td>
+          </tr>
 
-    <p style="text-align:center; margin:24px 0;">
-      <a href="${url}"
-         style="
-           display:inline-block;
-           padding:12px 20px;
-           background:#111827;
-           color:#ffffff;
-           text-decoration:none;
-           border-radius:6px;
-           font-weight:600;
-         "
-         target="_blank"
-      >
-        Signer mon contrat
-      </a>
-    </p>
+          <!-- BUTTON -->
+          <tr>
+            <td style="text-align:center; padding:20px 0;">
+              <a href="${url}"
+                 style="
+                   display:inline-block;
+                   padding:12px 24px;
+                   background:#111827;
+                   color:white;
+                   text-decoration:none;
+                   border-radius:6px;
+                   font-size:15px;
+                   font-weight:bold;
+                 "
+                 target="_blank"
+              >
+                Signer mon contrat
+              </a>
+            </td>
+          </tr>
 
-    <p>
-      <strong>⚠️ Attention :</strong> ce lien expirera le <strong>${expiresAtFormatted}</strong>.
-      Passé ce délai, le contrat devra être régénéré.
-    </p>
+          <!-- RAW URL -->
+          <tr>
+            <td style="font-size:13px; color:#6b7280; text-align:center; padding-bottom:20px;">
+              Si le bouton ne fonctionne pas, utilisez ce lien :<br>
+              <a href="${url}" style="color:#2563eb;">${url}</a>
+            </td>
+          </tr>
 
-    <p>
-      Si vous rencontrez une difficulté, vous pouvez répondre à cet email ou contacter notre équipe.
-    </p>
+          <!-- EXPIRATION -->
+          <tr>
+            <td>
+              <div style="background:#fff7ed; border:1px solid #fed7aa; padding:16px; border-radius:8px; font-size:14px; color:#9a3412;">
+                ⚠️ <strong>Important :</strong> ce lien expirera le <strong>${expiresAtFormatted}</strong>.<br>
+                Au-delà de cette date, un nouveau lien devra être généré.
+              </div>
+            </td>
+          </tr>
 
-    <p>
-      Merci de votre confiance,<br/>
-      <strong>L'équipe Allure Création</strong>
-    </p>
+          <!-- FOOTER -->
+          <tr>
+            <td style="padding-top:28px; font-size:14px; color:#374151; line-height:1.6;">
+              Si vous avez la moindre question ou rencontrez une difficulté, 
+              vous pouvez répondre directement par voie téléphonique.<br><br>
+              Merci de votre confiance,<br>
+              <strong>L'équipe Allure Création</strong>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
   `,
         };
         logger.info({ to: email }, "📤 Envoi de l’e-mail de signature en cours...");

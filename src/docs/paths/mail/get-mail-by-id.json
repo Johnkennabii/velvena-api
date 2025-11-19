@@ -1,0 +1,69 @@
+{
+  "/mails/{mailbox}/{uid}": {
+    "get": {
+      "tags": ["Mail"],
+      "summary": "Récupère un email spécifique",
+      "description": "Récupère les détails complets d'un email par son UID",
+      "operationId": "getMailById",
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "mailbox",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "enum": ["inbox", "sent", "trash", "spam"]
+          },
+          "description": "Type de boîte mail"
+        },
+        {
+          "name": "uid",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          },
+          "description": "UID de l'email"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Email récupéré avec succès",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/EmailMessage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "UID invalide"
+        },
+        "404": {
+          "description": "Email non trouvé"
+        },
+        "401": {
+          "description": "Non autorisé"
+        },
+        "500": {
+          "description": "Erreur serveur"
+        }
+      }
+    }
+  }
+}

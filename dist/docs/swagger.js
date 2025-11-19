@@ -31,6 +31,8 @@ import customersPath from "./paths/customer/index.js";
 import customersSchemas from "./components/schemas/customer/index.js";
 import rolesPath from "./paths/roles/index.js";
 import rolessSchemas from "./components/schemas/roles/index.js";
+import mailPath from "./paths/mail/index.js";
+import mailSchemas from "./components/schemas/mail/index.js";
 console.log("✅ AUTH PATHS LOADED:", Object.keys(contractTypesPath));
 export const swaggerDocument = {
     openapi: "3.0.3",
@@ -60,6 +62,7 @@ export const swaggerDocument = {
         { name: "Profiles", description: "Endpoints related to profiles management" },
         { name: "Customers", description: "Endpoints related to customers management" },
         { name: "Roles", description: "Endpoints related to roles management" },
+        { name: "Mail", description: "Endpoints related to email management (IMAP/SMTP)" },
     ],
     paths: {
         ...userAuthPath,
@@ -78,6 +81,7 @@ export const swaggerDocument = {
         ...profilesPath,
         ...customersPath,
         ...rolesPath,
+        ...mailPath,
     },
     components: {
         schemas: {
@@ -97,6 +101,7 @@ export const swaggerDocument = {
             ...profilesSchemas,
             ...customersSchemas,
             ...rolessSchemas,
+            ...mailSchemas,
         },
         securitySchemes: {
             bearerAuth: {

@@ -1,0 +1,42 @@
+import type { Request, Response } from "express";
+/**
+ * Récupère les emails d'une boîte mail
+ * GET /mails/:mailbox?limit=50&offset=0
+ */
+export declare function getMailsFromMailbox(req: Request, res: Response): Promise<void>;
+/**
+ * Récupère un email spécifique par son UID
+ * GET /mails/:mailbox/:uid
+ */
+export declare function getMailById(req: Request, res: Response): Promise<void>;
+/**
+ * Supprime un email (le déplace vers la corbeille)
+ * DELETE /mails/:mailbox/:uid
+ */
+export declare function deleteMail(req: Request, res: Response): Promise<void>;
+/**
+ * Supprime définitivement un email
+ * DELETE /mails/:mailbox/:uid/permanent
+ */
+export declare function permanentlyDeleteMail(req: Request, res: Response): Promise<void>;
+/**
+ * Marque un email comme lu
+ * PATCH /mails/:mailbox/:uid/read
+ */
+export declare function markMailAsRead(req: Request, res: Response): Promise<void>;
+/**
+ * Marque un email comme non lu
+ * PATCH /mails/:mailbox/:uid/unread
+ */
+export declare function markMailAsUnread(req: Request, res: Response): Promise<void>;
+/**
+ * Récupère la liste des boîtes mail
+ * GET /mails/mailboxes
+ */
+export declare function listMailboxes(req: Request, res: Response): Promise<void>;
+/**
+ * Envoie un email
+ * POST /mails/send
+ */
+export declare function sendMail(req: Request, res: Response): Promise<void>;
+//# sourceMappingURL=mailController.d.ts.map

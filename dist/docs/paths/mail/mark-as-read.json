@@ -1,0 +1,67 @@
+{
+  "/mails/{mailbox}/{uid}/read": {
+    "patch": {
+      "tags": ["Mail"],
+      "summary": "Marque un email comme lu",
+      "description": "Marque un email comme lu en ajoutant le flag \\Seen",
+      "operationId": "markMailAsRead",
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "mailbox",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "enum": ["inbox", "sent", "trash", "spam"]
+          },
+          "description": "Type de boîte mail"
+        },
+        {
+          "name": "uid",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          },
+          "description": "UID de l'email"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Email marqué comme lu",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "message": {
+                    "type": "string",
+                    "example": "Email marqué comme lu"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "UID invalide"
+        },
+        "401": {
+          "description": "Non autorisé"
+        },
+        "500": {
+          "description": "Erreur serveur"
+        }
+      }
+    }
+  }
+}

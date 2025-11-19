@@ -48,7 +48,10 @@ import customersSchemas from "./components/schemas/customer/index.js";
 
 
 import rolesPath from "./paths/roles/index.js" ;
-import rolessSchemas from "./components/schemas/roles/index.js"; 
+import rolessSchemas from "./components/schemas/roles/index.js";
+
+import mailPath from "./paths/mail/index.js" ;
+import mailSchemas from "./components/schemas/mail/index.js";
 
 console.log("✅ AUTH PATHS LOADED:", Object.keys(contractTypesPath));
 
@@ -64,7 +67,7 @@ export const swaggerDocument = {
     { url: "http://localhost:4000", description: "Local Development Server" },
   ],
   tags: [
-    { name: "Auth", description: "Authentication and user session endpoints" }, 
+    { name: "Auth", description: "Authentication and user session endpoints" },
     { name: "Contracts", description: "Endpoints related to contract management" },
     { name: "Contract Types", description: "Endpoints related to contract type management" },
     { name: "Contract Packages", description: "Endpoints related to contract package management" },
@@ -80,6 +83,7 @@ export const swaggerDocument = {
     { name: "Profiles", description: "Endpoints related to profiles management" },
     { name: "Customers", description: "Endpoints related to customers management" },
     { name: "Roles", description: "Endpoints related to roles management" },
+    { name: "Mail", description: "Endpoints related to email management (IMAP/SMTP)" },
   ],
   paths: {
     ...userAuthPath,
@@ -98,6 +102,7 @@ export const swaggerDocument = {
     ...profilesPath,
     ...customersPath,
     ...rolesPath,
+    ...mailPath,
   },
   components: {
     schemas: {
@@ -117,6 +122,7 @@ export const swaggerDocument = {
       ...profilesSchemas,
       ...customersSchemas,
       ...rolessSchemas,
+      ...mailSchemas,
     },
     securitySchemes: {
       bearerAuth: {
