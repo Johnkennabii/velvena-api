@@ -586,19 +586,47 @@ export async function getMailboxes(): Promise<MailboxInfo[]> {
                 total: 0,
                 new: 0,
               });
+              processedBoxes++;
+              openNextBox(index + 1);
             } else {
-              // Récupère les vrais comptes
-              mainMailboxes.push({
-                name: boxName,
-                displayName: getDisplayName(boxName),
-                total: box.messages.total || 0,
-                new: box.messages.new || 0,
-              });
-            }
+              const total = box.messages.total || 0;
 
-            processedBoxes++;
-            // Passe à la boîte suivante
-            openNextBox(index + 1);
+              // Recherche les messages non lus (UNSEEN)
+              if (total === 0) {
+                mainMailboxes.push({
+                  name: boxName,
+                  displayName: getDisplayName(boxName),
+                  total: 0,
+                  new: 0,
+                });
+                processedBoxes++;
+                openNextBox(index + 1);
+              } else {
+                imap.search(['UNSEEN'], (searchErr: Error | null, unseenUids: number[]) => {
+                  if (searchErr) {
+                    logger.warn({ boxName, err: searchErr }, "Erreur lors de la recherche UNSEEN");
+                    // En cas d'erreur, on met 0 pour les non lus
+                    mainMailboxes.push({
+                      name: boxName,
+                      displayName: getDisplayName(boxName),
+                      total,
+                      new: 0,
+                    });
+                  } else {
+                    // Nombre réel de messages non lus
+                    mainMailboxes.push({
+                      name: boxName,
+                      displayName: getDisplayName(boxName),
+                      total,
+                      new: unseenUids.length,
+                    });
+                  }
+
+                  processedBoxes++;
+                  openNextBox(index + 1);
+                });
+              }
+            }
           });
         };
 

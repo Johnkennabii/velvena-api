@@ -2,20 +2,39 @@ import { getEmails, getEmailByUid, deleteEmail, permanentlyDeleteEmail, markAsRe
 import pino from "pino";
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 /**
+ * Normalise le nom d'une boîte mail
+ */
+function normalizeMailboxType(mailbox) {
+    const normalized = mailbox.toLowerCase();
+    switch (normalized) {
+        case "inbox":
+            return "INBOX";
+        case "sent":
+            return "Sent";
+        case "trash":
+            return "Trash";
+        case "spam":
+        case "junk":
+            return "Spam";
+        default:
+            return null;
+    }
+}
+/**
  * Récupère les emails d'une boîte mail
  * GET /mails/:mailbox?limit=50&offset=0
  */
 export async function getMailsFromMailbox(req, res) {
     try {
-        const mailboxType = (req.params.mailbox || "INBOX").toUpperCase();
+        const mailboxParam = req.params.mailbox || "inbox";
+        const mailboxType = normalizeMailboxType(mailboxParam);
         const limit = Number.parseInt(req.query.limit, 10) || 50;
         const offset = Number.parseInt(req.query.offset, 10) || 0;
         // Validation du type de boîte mail
-        const validMailboxTypes = ["INBOX", "Sent", "Trash", "Spam"];
-        if (!validMailboxTypes.includes(mailboxType)) {
+        if (!mailboxType) {
             res.status(400).json({
                 success: false,
-                error: "Type de boîte mail invalide. Valeurs acceptées : INBOX, Sent, Trash, Spam",
+                error: "Type de boîte mail invalide. Valeurs acceptées : inbox, sent, trash, spam, junk",
             });
             return;
         }
@@ -46,8 +65,16 @@ export async function getMailsFromMailbox(req, res) {
  */
 export async function getMailById(req, res) {
     try {
-        const mailboxType = (req.params.mailbox || "INBOX").toUpperCase();
+        const mailboxParam = req.params.mailbox || "inbox";
+        const mailboxType = normalizeMailboxType(mailboxParam);
         const uidParam = req.params.uid;
+        if (!mailboxType) {
+            res.status(400).json({
+                success: false,
+                error: "Type de boîte mail invalide",
+            });
+            return;
+        }
         if (!uidParam) {
             res.status(400).json({
                 success: false,
@@ -92,8 +119,16 @@ export async function getMailById(req, res) {
  */
 export async function deleteMail(req, res) {
     try {
-        const mailboxType = (req.params.mailbox || "INBOX").toUpperCase();
+        const mailboxParam = req.params.mailbox || "inbox";
+        const mailboxType = normalizeMailboxType(mailboxParam);
         const uidParam = req.params.uid;
+        if (!mailboxType) {
+            res.status(400).json({
+                success: false,
+                error: "Type de boîte mail invalide",
+            });
+            return;
+        }
         if (!uidParam) {
             res.status(400).json({
                 success: false,
@@ -131,8 +166,16 @@ export async function deleteMail(req, res) {
  */
 export async function permanentlyDeleteMail(req, res) {
     try {
-        const mailboxType = (req.params.mailbox || "INBOX").toUpperCase();
+        const mailboxParam = req.params.mailbox || "inbox";
+        const mailboxType = normalizeMailboxType(mailboxParam);
         const uidParam = req.params.uid;
+        if (!mailboxType) {
+            res.status(400).json({
+                success: false,
+                error: "Type de boîte mail invalide",
+            });
+            return;
+        }
         if (!uidParam) {
             res.status(400).json({
                 success: false,
@@ -170,8 +213,16 @@ export async function permanentlyDeleteMail(req, res) {
  */
 export async function markMailAsRead(req, res) {
     try {
-        const mailboxType = (req.params.mailbox || "INBOX").toUpperCase();
+        const mailboxParam = req.params.mailbox || "inbox";
+        const mailboxType = normalizeMailboxType(mailboxParam);
         const uidParam = req.params.uid;
+        if (!mailboxType) {
+            res.status(400).json({
+                success: false,
+                error: "Type de boîte mail invalide",
+            });
+            return;
+        }
         if (!uidParam) {
             res.status(400).json({
                 success: false,
@@ -209,8 +260,16 @@ export async function markMailAsRead(req, res) {
  */
 export async function markMailAsUnread(req, res) {
     try {
-        const mailboxType = (req.params.mailbox || "INBOX").toUpperCase();
+        const mailboxParam = req.params.mailbox || "inbox";
+        const mailboxType = normalizeMailboxType(mailboxParam);
         const uidParam = req.params.uid;
+        if (!mailboxType) {
+            res.status(400).json({
+                success: false,
+                error: "Type de boîte mail invalide",
+            });
+            return;
+        }
         if (!uidParam) {
             res.status(400).json({
                 success: false,
