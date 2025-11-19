@@ -7,7 +7,7 @@ const MAILBOX_MAPPING = {
     INBOX: ["INBOX"],
     Sent: ["Sent", "[Gmail]/Sent Mail", "Sent Items"],
     Trash: ["Trash", "[Gmail]/Trash", "Deleted Items", "Corbeille"],
-    Spam: ["Spam", "[Gmail]/Spam", "Junk", "Courrier indésirable"],
+    Spam: ["Junk", "Spam", "[Gmail]/Spam", "Courrier indésirable"],
 };
 /**
  * Crée une connexion IMAP
@@ -19,7 +19,13 @@ function createImapConnection() {
         host: process.env.IMAP_HOST || "mail.gandi.net",
         port: Number.parseInt(process.env.IMAP_PORT || "993", 10),
         tls: true,
-        tlsOptions: { rejectUnauthorized: true },
+        tlsOptions: {
+            rejectUnauthorized: true,
+            minVersion: 'TLSv1.2'
+        },
+        authTimeout: 10000, // 10 secondes pour l'authentification
+        connTimeout: 10000, // 10 secondes pour la connexion
+        keepalive: false,
     });
 }
 /**
@@ -338,45 +344,68 @@ export async function markAsUnread(uid, mailboxType = "INBOX") {
 export async function getMailboxes() {
     return new Promise((resolve, reject) => {
         const imap = createImapConnection();
-        const mailboxes = [];
+        let timeoutId;
+        // Timeout de 15 secondes pour l'opération complète
+        timeoutId = setTimeout(() => {
+            try {
+                imap.destroy();
+            }
+            catch (e) {
+                // Ignore les erreurs de destroy
+            }
+            reject(new Error("Timeout lors de la récupération des boîtes mail"));
+        }, 15000);
         imap.once("ready", () => {
             imap.getBoxes((err, boxes) => {
-                if (err) {
+                clearTimeout(timeoutId);
+                // Ferme immédiatement la connexion
+                try {
                     imap.end();
+                }
+                catch (e) {
+                    // Ignore
+                }
+                if (err) {
+                    logger.error({ err }, "Erreur lors de getBoxes");
                     return reject(err);
                 }
                 const boxNames = Object.keys(boxes);
-                let processed = 0;
-                if (boxNames.length === 0) {
-                    imap.end();
-                    return resolve([]);
+                // Retourne seulement les boîtes principales sans les ouvrir
+                const mainMailboxes = [];
+                // Boîtes principales à chercher (en respectant les noms Gandi)
+                const mainBoxNames = ["INBOX", "Sent", "Trash", "Junk", "Drafts"];
+                for (const mainName of mainBoxNames) {
+                    const foundBox = boxNames.find(name => name.toLowerCase() === mainName.toLowerCase());
+                    if (foundBox && boxes[foundBox]) {
+                        mainMailboxes.push({
+                            name: foundBox,
+                            displayName: getDisplayName(foundBox),
+                            total: 0, // On ne compte pas les messages pour éviter le timeout
+                            new: 0,
+                        });
+                    }
                 }
-                for (const boxName of boxNames) {
-                    imap.openBox(boxName, true, (err, box) => {
-                        processed++;
-                        if (!err && box) {
-                            mailboxes.push({
-                                name: boxName,
-                                displayName: getDisplayName(boxName),
-                                total: box.messages.total,
-                                new: box.messages.new,
-                            });
-                        }
-                        if (processed === boxNames.length) {
-                            imap.end();
-                        }
-                    });
-                }
+                resolve(mainMailboxes);
             });
         });
         imap.once("error", (err) => {
+            clearTimeout(timeoutId);
             logger.error({ err }, "Erreur de connexion IMAP");
+            try {
+                imap.destroy();
+            }
+            catch (e) {
+                // Ignore
+            }
             reject(err);
         });
-        imap.once("end", () => {
-            resolve(mailboxes);
-        });
-        imap.connect();
+        try {
+            imap.connect();
+        }
+        catch (err) {
+            clearTimeout(timeoutId);
+            reject(err);
+        }
     });
 }
 /**
@@ -504,9 +533,9 @@ function getDisplayName(mailboxName) {
         "[Gmail]/Trash": "Corbeille",
         "Deleted Items": "Corbeille",
         Corbeille: "Corbeille",
+        Junk: "Courrier indésirable",
         Spam: "Courrier indésirable",
         "[Gmail]/Spam": "Courrier indésirable",
-        Junk: "Courrier indésirable",
         "Courrier indésirable": "Courrier indésirable",
         Drafts: "Brouillons",
         "[Gmail]/Drafts": "Brouillons",
