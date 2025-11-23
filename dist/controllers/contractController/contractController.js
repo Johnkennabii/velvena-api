@@ -719,14 +719,19 @@ export const uploadSignedContractPdf = async (req, res) => {
 export const downloadSignedContract = async (req, res) => {
     try {
         const { contractId, token } = req.params;
-        logger.info({ contractId, token }, "📥 Requête de téléchargement du contrat signé");
+        logger.info({ contractId, token }, "📥 [DOWNLOAD] Requête de téléchargement du contrat signé");
+        console.log("📥 [DOWNLOAD] Requête reçue:", { contractId, token });
         if (!contractId || !token) {
+            logger.warn("⚠️ [DOWNLOAD] Paramètres manquants");
+            console.log("⚠️ [DOWNLOAD] Paramètres manquants:", { contractId, token });
             return res.status(400).json({
                 success: false,
                 error: "Contract ID et token sont requis"
             });
         }
         // 🔍 Récupération du contrat
+        logger.info({ contractId }, "🔍 [DOWNLOAD] Recherche du contrat dans la base de données");
+        console.log("🔍 [DOWNLOAD] Recherche du contrat:", contractId);
         const contract = await prisma.contract.findUnique({
             where: { id: contractId },
             select: {
@@ -738,15 +743,50 @@ export const downloadSignedContract = async (req, res) => {
             },
         });
         if (!contract) {
-            logger.warn({ contractId }, "❌ Contrat introuvable");
+            logger.warn({ contractId }, "❌ [DOWNLOAD] Contrat introuvable");
+            console.log("❌ [DOWNLOAD] Contrat introuvable:", contractId);
             return res.status(404).json({
                 success: false,
                 error: "Contrat introuvable"
             });
         }
+        logger.info({
+            contractId,
+            contractNumber: contract.contract_number,
+            status: contract.status,
+            hasSignatureRef: !!contract.signature_reference,
+            hasPdf: !!contract.signed_pdf_url
+        }, "✅ [DOWNLOAD] Contrat trouvé");
+        console.log("✅ [DOWNLOAD] Contrat trouvé:", {
+            id: contract.id,
+            number: contract.contract_number,
+            status: contract.status,
+            signature_reference: contract.signature_reference,
+            signed_pdf_url: contract.signed_pdf_url
+        });
         // 🔐 Vérification du token
+        logger.info({
+            providedToken: token,
+            storedToken: contract.signature_reference,
+            match: contract.signature_reference === token
+        }, "🔐 [DOWNLOAD] Comparaison des tokens");
+        console.log("🔐 [DOWNLOAD] Comparaison des tokens:", {
+            providedToken: token,
+            storedToken: contract.signature_reference,
+            match: contract.signature_reference === token,
+            providedTokenType: typeof token,
+            storedTokenType: typeof contract.signature_reference
+        });
         if (contract.signature_reference !== token) {
-            logger.warn({ contractId, token }, "⚠️ Token invalide");
+            logger.warn({
+                contractId,
+                providedToken: token,
+                expectedToken: contract.signature_reference
+            }, "⚠️ [DOWNLOAD] Token invalide");
+            console.log("⚠️ [DOWNLOAD] Token invalide - Comparaison détaillée:");
+            console.log("  - Token fourni:", token);
+            console.log("  - Token attendu:", contract.signature_reference);
+            console.log("  - Match:", contract.signature_reference === token);
             return res.status(403).json({
                 success: false,
                 error: "Token invalide"
@@ -754,7 +794,8 @@ export const downloadSignedContract = async (req, res) => {
         }
         // 📄 Vérification de l'existence du PDF signé
         if (!contract.signed_pdf_url) {
-            logger.warn({ contractId }, "⚠️ Aucun PDF signé disponible");
+            logger.warn({ contractId }, "⚠️ [DOWNLOAD] Aucun PDF signé disponible");
+            console.log("⚠️ [DOWNLOAD] Aucun PDF signé disponible pour:", contractId);
             return res.status(404).json({
                 success: false,
                 error: "Aucun PDF signé disponible pour ce contrat"
@@ -764,12 +805,14 @@ export const downloadSignedContract = async (req, res) => {
             contractId,
             contractNumber: contract.contract_number,
             pdfUrl: contract.signed_pdf_url
-        }, "✅ Redirection vers le PDF signé");
+        }, "✅ [DOWNLOAD] Redirection vers le PDF signé");
+        console.log("✅ [DOWNLOAD] Redirection vers le PDF:", contract.signed_pdf_url);
         // 🔄 Redirection vers l'URL du PDF
         res.redirect(contract.signed_pdf_url);
     }
     catch (error) {
-        logger.error({ error }, "🔥 Erreur lors du téléchargement du contrat signé");
+        logger.error({ error }, "🔥 [DOWNLOAD] Erreur lors du téléchargement du contrat signé");
+        console.error("🔥 [DOWNLOAD] Erreur:", error);
         res.status(500).json({
             success: false,
             error: "Erreur interne lors du téléchargement du contrat"
