@@ -6,7 +6,7 @@ import prisma from "../../lib/prisma.js";
 import { v4 as uuidv4 } from "uuid";
 import pino from "pino";
 import { sendMail } from "../../lib/mailer.js";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import multer from "multer";
 import { generateContractPDF } from "../../lib/generateContractPDF.js";
 import { compressPdfBuffer } from "../../lib/pdfCompression.js";
@@ -28,6 +28,19 @@ const bucketUrlPrefix = `https://${hetznerBucket}.hel1.your-objectstorage.com/`;
 if (!process.env.HETZNER_BUCKET) {
   logger.warn("⚠️ HETZNER_BUCKET not set, defaulting to 'media-allure-creation'");
 }
+
+const extractBucketKey = (fullUrl?: string | null) => {
+  if (!fullUrl) return null;
+  if (fullUrl.startsWith(bucketUrlPrefix)) {
+    return fullUrl.slice(bucketUrlPrefix.length);
+  }
+  try {
+    const parsed = new URL(fullUrl);
+    return parsed.pathname.replace(/^\/+/, "");
+  } catch {
+    return null;
+  }
+};
 
 const signedPdfUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 export const uploadSignedPdfMiddleware = signedPdfUpload.single("file");
@@ -749,6 +762,19 @@ export const uploadSignedContractPdf = async (req: Request, res: Response) => {
     const contract = await prisma.contract.findUnique({ where: { id } });
     if (!contract) {
       return res.status(404).json({ success: false, error: "Contrat introuvable" });
+    }
+    const previousKey = extractBucketKey(contract.signed_pdf_url);
+    if (previousKey && previousKey.startsWith(`${CONTRACTS_FOLDER}/${id}/signed_`) && !previousKey.includes("signed_upload_")) {
+      try {
+        await s3.send(
+          new DeleteObjectCommand({
+            Bucket: hetznerBucket,
+            Key: previousKey,
+          })
+        );
+      } catch (deleteError) {
+        logger.warn({ deleteError, key: previousKey }, "⚠️ Impossible de supprimer l'ancien PDF signé");
+      }
     }
 
     const file = (req as Request & { file?: Express.Multer.File }).file;
