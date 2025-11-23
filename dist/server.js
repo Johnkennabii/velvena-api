@@ -25,6 +25,7 @@ import contractsRoutes from "./routes/contractRoutes/contractRoutes.js";
 import contractsFullViewRoutes from "./routes/contractRoutes/contractRoutes.js";
 import notificationRoute from "./routes/notifications.js";
 import mailRoutes from "./routes/mailRoutes.js";
+import emailRoutes from "./routes/emailRoutes.js";
 import { getContractSignLink, signContractViaLink, } from "./controllers/contractController/contractController.js";
 // 🧩 1️⃣ Création de ton app Express
 const app = express();
@@ -94,6 +95,7 @@ app.get("/sign-links/:token", getContractSignLink);
 app.post("/sign-links/:token/sign", signContractViaLink);
 app.use("/notifications", notificationRoute);
 app.use("/mails", mailRoutes);
+app.use("/emails", emailRoutes);
 // ✅ Route racine
 app.get("/", (req, res) => {
     res.json({ success: true, message: "Allure Creation API is running 🚀" });

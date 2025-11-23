@@ -59,4 +59,9 @@ export declare function moveMailToFolder(req: Request, res: Response): Promise<v
  * GET /mails/:mailbox/:uid/attachments/:index
  */
 export declare function downloadAttachment(req: Request, res: Response): Promise<void>;
+/**
+ * Télécharge une pièce jointe via UID + boîte mail fournie en query string.
+ * GET /emails/:emailId/attachments/:index?mailbox=inbox
+ */
+export declare function downloadAttachmentByEmailId(req: Request, res: Response): Promise<void>;
 //# sourceMappingURL=mailController.d.ts.map

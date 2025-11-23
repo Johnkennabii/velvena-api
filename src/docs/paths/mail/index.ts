@@ -19,6 +19,7 @@ const sendMail = loadJson("./send-mail.json");
 const addFlag = loadJson("./add-flag.json");
 const removeFlag = loadJson("./remove-flag.json");
 const moveEmail = loadJson("./move-email.json");
+const downloadAttachmentByEmailId = loadJson("./download-email-attachment.json");
 
 export default {
   ...getMailboxes,
@@ -32,4 +33,5 @@ export default {
   ...addFlag,
   ...removeFlag,
   ...moveEmail,
+  ...downloadAttachmentByEmailId,
 };

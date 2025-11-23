@@ -711,3 +711,82 @@ export async function downloadAttachment(req: Request, res: Response): Promise<v
     });
   }
 }
+
+/**
+ * Télécharge une pièce jointe via UID + boîte mail fournie en query string.
+ * GET /emails/:emailId/attachments/:index?mailbox=inbox
+ */
+export async function downloadAttachmentByEmailId(req: Request, res: Response): Promise<void> {
+  try {
+    const { emailId, index: indexParam } = req.params;
+    const mailboxQuery = (req.query.mailbox as string | undefined) || "inbox";
+    const mailboxType = normalizeMailboxType(mailboxQuery);
+
+    if (!mailboxType) {
+      res.status(400).json({
+        success: false,
+        error: "Type de boîte mail invalide",
+      });
+      return;
+    }
+
+    if (!emailId) {
+      res.status(400).json({
+        success: false,
+        error: "emailId requis",
+      });
+      return;
+    }
+
+    if (!indexParam) {
+      res.status(400).json({
+        success: false,
+        error: "Index de la pièce jointe requis",
+      });
+      return;
+    }
+
+    const uid = Number.parseInt(emailId, 10);
+    if (Number.isNaN(uid)) {
+      res.status(400).json({
+        success: false,
+        error: "emailId doit être un entier (UID IMAP)",
+      });
+      return;
+    }
+
+    const index = Number.parseInt(indexParam, 10);
+    if (Number.isNaN(index)) {
+      res.status(400).json({
+        success: false,
+        error: "Index invalide",
+      });
+      return;
+    }
+
+    logger.info({ mailboxType, uid, index }, "Téléchargement d'une PJ via /emails/:emailId");
+
+    const attachment = await getEmailAttachment(uid, index, mailboxType);
+
+    if (!attachment) {
+      res.status(404).json({
+        success: false,
+        error: "Pièce jointe non trouvée",
+      });
+      return;
+    }
+
+    res.setHeader("Content-Type", attachment.contentType);
+    res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(attachment.filename)}"`);
+    res.setHeader("Content-Length", attachment.content.length);
+
+    res.send(attachment.content);
+  } catch (error) {
+    logger.error({ error }, "Erreur lors du téléchargement de la pièce jointe via /emails");
+    res.status(500).json({
+      success: false,
+      error: "Erreur lors du téléchargement de la pièce jointe",
+      details: error instanceof Error ? error.message : "Erreur inconnue",
+    });
+  }
+}
