@@ -4,7 +4,7 @@ import prisma from "../../lib/prisma.js";
 import { v4 as uuidv4 } from "uuid";
 import pino from "pino";
 import { sendMail } from "../../lib/mailer.js";
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import multer from "multer";
 import { generateContractPDF } from "../../lib/generateContractPDF.js";
 import { compressPdfBuffer } from "../../lib/pdfCompression.js";
@@ -25,20 +25,6 @@ const bucketUrlPrefix = `https://${hetznerBucket}.hel1.your-objectstorage.com/`;
 if (!process.env.HETZNER_BUCKET) {
     logger.warn("⚠️ HETZNER_BUCKET not set, defaulting to 'media-allure-creation'");
 }
-const extractBucketKey = (fullUrl) => {
-    if (!fullUrl)
-        return null;
-    if (fullUrl.startsWith(bucketUrlPrefix)) {
-        return fullUrl.slice(bucketUrlPrefix.length);
-    }
-    try {
-        const parsed = new URL(fullUrl);
-        return parsed.pathname.replace(/^\/+/, "");
-    }
-    catch {
-        return null;
-    }
-};
 const signedPdfUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 export const uploadSignedPdfMiddleware = signedPdfUpload.single("file");
 // 📌 Get all contracts
@@ -664,17 +650,36 @@ export const uploadSignedContractPdf = async (req, res) => {
         if (!contract) {
             return res.status(404).json({ success: false, error: "Contrat introuvable" });
         }
-        const previousKey = extractBucketKey(contract.signed_pdf_url);
-        if (previousKey && previousKey.startsWith(`${CONTRACTS_FOLDER}/${id}/signed_`) && !previousKey.includes("signed_upload_")) {
-            try {
-                await s3.send(new DeleteObjectCommand({
-                    Bucket: hetznerBucket,
-                    Key: previousKey,
-                }));
+        // 🧹 Suppression de TOUS les PDFs automatiques (signed_*.pdf non-upload) du dossier
+        try {
+            const contractFolder = `${CONTRACTS_FOLDER}/${id}/`;
+            const listCommand = new ListObjectsV2Command({
+                Bucket: hetznerBucket,
+                Prefix: contractFolder,
+            });
+            const listResponse = await s3.send(listCommand);
+            const filesToDelete = listResponse.Contents?.filter(obj => {
+                const key = obj.Key || "";
+                return key.includes("/signed_") && !key.includes("/signed_upload_");
+            }) || [];
+            if (filesToDelete.length > 0) {
+                logger.info({ count: filesToDelete.length, files: filesToDelete.map(f => f.Key) }, "🗑️ Suppression des PDFs automatiques");
+                for (const file of filesToDelete) {
+                    try {
+                        await s3.send(new DeleteObjectCommand({
+                            Bucket: hetznerBucket,
+                            Key: file.Key,
+                        }));
+                        logger.info({ key: file.Key }, "✅ PDF automatique supprimé");
+                    }
+                    catch (deleteError) {
+                        logger.warn({ deleteError, key: file.Key }, "⚠️ Impossible de supprimer un PDF automatique");
+                    }
+                }
             }
-            catch (deleteError) {
-                logger.warn({ deleteError, key: previousKey }, "⚠️ Impossible de supprimer l'ancien PDF signé");
-            }
+        }
+        catch (listError) {
+            logger.warn({ listError, contractId: id }, "⚠️ Impossible de lister les fichiers du dossier contrat");
         }
         const file = req.file;
         if (!file) {
@@ -708,6 +713,67 @@ export const uploadSignedContractPdf = async (req, res) => {
     catch (error) {
         logger.error({ error }, "🔥 Erreur upload PDF signé");
         res.status(500).json({ success: false, error: "Erreur interne lors du stockage du PDF" });
+    }
+};
+// ✅ GET /contracts/download/:contractId/:token (PUBLIC - téléchargement du PDF signé)
+export const downloadSignedContract = async (req, res) => {
+    try {
+        const { contractId, token } = req.params;
+        logger.info({ contractId, token }, "📥 Requête de téléchargement du contrat signé");
+        if (!contractId || !token) {
+            return res.status(400).json({
+                success: false,
+                error: "Contract ID et token sont requis"
+            });
+        }
+        // 🔍 Récupération du contrat
+        const contract = await prisma.contract.findUnique({
+            where: { id: contractId },
+            select: {
+                id: true,
+                contract_number: true,
+                signed_pdf_url: true,
+                signature_reference: true,
+                status: true,
+            },
+        });
+        if (!contract) {
+            logger.warn({ contractId }, "❌ Contrat introuvable");
+            return res.status(404).json({
+                success: false,
+                error: "Contrat introuvable"
+            });
+        }
+        // 🔐 Vérification du token
+        if (contract.signature_reference !== token) {
+            logger.warn({ contractId, token }, "⚠️ Token invalide");
+            return res.status(403).json({
+                success: false,
+                error: "Token invalide"
+            });
+        }
+        // 📄 Vérification de l'existence du PDF signé
+        if (!contract.signed_pdf_url) {
+            logger.warn({ contractId }, "⚠️ Aucun PDF signé disponible");
+            return res.status(404).json({
+                success: false,
+                error: "Aucun PDF signé disponible pour ce contrat"
+            });
+        }
+        logger.info({
+            contractId,
+            contractNumber: contract.contract_number,
+            pdfUrl: contract.signed_pdf_url
+        }, "✅ Redirection vers le PDF signé");
+        // 🔄 Redirection vers l'URL du PDF
+        res.redirect(contract.signed_pdf_url);
+    }
+    catch (error) {
+        logger.error({ error }, "🔥 Erreur lors du téléchargement du contrat signé");
+        res.status(500).json({
+            success: false,
+            error: "Erreur interne lors du téléchargement du contrat"
+        });
     }
 };
 //# sourceMappingURL=contractController.js.map

@@ -16,10 +16,16 @@ import {
   signContractViaLink,
   generateContractPdfManually,
   uploadSignedContractPdf,
-  uploadSignedPdfMiddleware
+  uploadSignedPdfMiddleware,
+  downloadSignedContract
 } from "../../controllers/contractController/contractController.js";
 
 const router = Router();
+
+// ⚠️ Routes publiques (AVANT le middleware d'authentification)
+router.get("/download/:contractId/:token", downloadSignedContract);
+
+// 🔒 Middleware d'authentification pour les routes protégées
 router.use(authMiddleware);
 
 router.get("/", getAllContracts);

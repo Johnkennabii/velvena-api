@@ -823,3 +823,73 @@ export const uploadSignedContractPdf = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: "Erreur interne lors du stockage du PDF" });
   }
 };
+
+// ✅ GET /contracts/download/:contractId/:token (PUBLIC - téléchargement du PDF signé)
+export const downloadSignedContract = async (req: Request, res: Response) => {
+  try {
+    const { contractId, token } = req.params;
+
+    logger.info({ contractId, token }, "📥 Requête de téléchargement du contrat signé");
+
+    if (!contractId || !token) {
+      return res.status(400).json({
+        success: false,
+        error: "Contract ID et token sont requis"
+      });
+    }
+
+    // 🔍 Récupération du contrat
+    const contract = await prisma.contract.findUnique({
+      where: { id: contractId },
+      select: {
+        id: true,
+        contract_number: true,
+        signed_pdf_url: true,
+        signature_reference: true,
+        status: true,
+      },
+    });
+
+    if (!contract) {
+      logger.warn({ contractId }, "❌ Contrat introuvable");
+      return res.status(404).json({
+        success: false,
+        error: "Contrat introuvable"
+      });
+    }
+
+    // 🔐 Vérification du token
+    if (contract.signature_reference !== token) {
+      logger.warn({ contractId, token }, "⚠️ Token invalide");
+      return res.status(403).json({
+        success: false,
+        error: "Token invalide"
+      });
+    }
+
+    // 📄 Vérification de l'existence du PDF signé
+    if (!contract.signed_pdf_url) {
+      logger.warn({ contractId }, "⚠️ Aucun PDF signé disponible");
+      return res.status(404).json({
+        success: false,
+        error: "Aucun PDF signé disponible pour ce contrat"
+      });
+    }
+
+    logger.info({
+      contractId,
+      contractNumber: contract.contract_number,
+      pdfUrl: contract.signed_pdf_url
+    }, "✅ Redirection vers le PDF signé");
+
+    // 🔄 Redirection vers l'URL du PDF
+    res.redirect(contract.signed_pdf_url);
+
+  } catch (error) {
+    logger.error({ error }, "🔥 Erreur lors du téléchargement du contrat signé");
+    res.status(500).json({
+      success: false,
+      error: "Erreur interne lors du téléchargement du contrat"
+    });
+  }
+};

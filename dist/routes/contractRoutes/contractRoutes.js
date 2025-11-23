@@ -1,8 +1,11 @@
 // src/routes/contractRoutes/contractRoutes.ts
 import authMiddleware from "../../middleware/authMiddleware.js";
 import { Router } from "express";
-import { getAllContracts, getContractById, createContract, updateContract, softDeleteContract, restoreContract, hardDeleteContract, getContractsFullView, generateSignatureLink, getContractSignLink, signContractViaLink, generateContractPdfManually, uploadSignedContractPdf, uploadSignedPdfMiddleware } from "../../controllers/contractController/contractController.js";
+import { getAllContracts, getContractById, createContract, updateContract, softDeleteContract, restoreContract, hardDeleteContract, getContractsFullView, generateSignatureLink, getContractSignLink, signContractViaLink, generateContractPdfManually, uploadSignedContractPdf, uploadSignedPdfMiddleware, downloadSignedContract } from "../../controllers/contractController/contractController.js";
 const router = Router();
+// ⚠️ Routes publiques (AVANT le middleware d'authentification)
+router.get("/download/:contractId/:token", downloadSignedContract);
+// 🔒 Middleware d'authentification pour les routes protégées
 router.use(authMiddleware);
 router.get("/", getAllContracts);
 // Support optional customer_id as query param

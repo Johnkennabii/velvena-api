@@ -13,4 +13,5 @@ export declare const getContractSignLink: (req: Request, res: Response) => Promi
 export declare const signContractViaLink: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const generateContractPdfManually: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const uploadSignedContractPdf: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const downloadSignedContract: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 //# sourceMappingURL=contractController.d.ts.map

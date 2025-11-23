@@ -17,6 +17,7 @@ const softDeleteContract = loadJson("./delete-contract-soft.json");
 const restoreContract = loadJson("./restore-contract.json");
 const generatePDF = loadJson("./generate-pdf.json");
 const uploadSignedPdf = loadJson("./upload-signed-pdf.json");
+const downloadSignedContract = loadJson("./download-signed-contract.json");
 const contract = {
     "/contracts": {
         get: getContract["/contracts"]?.get,
@@ -37,6 +38,7 @@ const contract = {
     ...hardDeleteContract,
     ...generatePDF,
     ...uploadSignedPdf,
+    ...downloadSignedContract,
 };
 export default contract;
 //# sourceMappingURL=index.js.map
