@@ -457,34 +457,67 @@ export async function permanentlyDeleteEmail(uid, mailboxType = "INBOX") {
 export async function markAsRead(uid, mailboxType = "INBOX") {
     return new Promise((resolve, reject) => {
         const imap = createImapConnection();
+        let timeoutId = null;
+        const clear = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        };
+        const safeEnd = () => {
+            try {
+                imap.end();
+            }
+            catch (e) {
+                // Ignore
+            }
+        };
+        timeoutId = setTimeout(() => {
+            try {
+                imap.destroy();
+            }
+            catch (e) {
+                // Ignore
+            }
+            reject(new Error("Timeout lors du marquage comme lu"));
+        }, 30000);
         imap.once("ready", () => {
             findMailbox(imap, mailboxType, (err, mailboxName) => {
                 if (err) {
-                    imap.end();
+                    clear();
+                    safeEnd();
                     return reject(err);
                 }
                 imap.openBox(mailboxName, false, (err) => {
                     if (err) {
-                        imap.end();
+                        clear();
+                        safeEnd();
                         return reject(err);
                     }
                     imap.addFlags([uid], ["\\Seen"], (err) => {
                         if (err) {
-                            imap.end();
+                            clear();
+                            safeEnd();
                             return reject(err);
                         }
                         logger.info({ uid, mailbox: mailboxName }, "Email marqué comme lu");
-                        imap.end();
+                        clear();
+                        safeEnd();
+                        resolve();
                     });
                 });
             });
         });
         imap.once("error", (err) => {
             logger.error({ err }, "Erreur de connexion IMAP");
+            clear();
+            try {
+                imap.destroy();
+            }
+            catch (e) {
+                // Ignore
+            }
             reject(err);
-        });
-        imap.once("end", () => {
-            resolve();
         });
         imap.connect();
     });
@@ -495,34 +528,67 @@ export async function markAsRead(uid, mailboxType = "INBOX") {
 export async function markAsUnread(uid, mailboxType = "INBOX") {
     return new Promise((resolve, reject) => {
         const imap = createImapConnection();
+        let timeoutId = null;
+        const clear = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        };
+        const safeEnd = () => {
+            try {
+                imap.end();
+            }
+            catch (e) {
+                // Ignore
+            }
+        };
+        timeoutId = setTimeout(() => {
+            try {
+                imap.destroy();
+            }
+            catch (e) {
+                // Ignore
+            }
+            reject(new Error("Timeout lors du marquage comme non lu"));
+        }, 30000);
         imap.once("ready", () => {
             findMailbox(imap, mailboxType, (err, mailboxName) => {
                 if (err) {
-                    imap.end();
+                    clear();
+                    safeEnd();
                     return reject(err);
                 }
                 imap.openBox(mailboxName, false, (err) => {
                     if (err) {
-                        imap.end();
+                        clear();
+                        safeEnd();
                         return reject(err);
                     }
                     imap.delFlags([uid], ["\\Seen"], (err) => {
                         if (err) {
-                            imap.end();
+                            clear();
+                            safeEnd();
                             return reject(err);
                         }
                         logger.info({ uid, mailbox: mailboxName }, "Email marqué comme non lu");
-                        imap.end();
+                        clear();
+                        safeEnd();
+                        resolve();
                     });
                 });
             });
         });
         imap.once("error", (err) => {
             logger.error({ err }, "Erreur de connexion IMAP");
+            clear();
+            try {
+                imap.destroy();
+            }
+            catch (e) {
+                // Ignore
+            }
             reject(err);
-        });
-        imap.once("end", () => {
-            resolve();
         });
         imap.connect();
     });
@@ -683,68 +749,72 @@ export async function sendEmail(to, subject, html, text) {
 export async function addFlag(uid, flag, mailboxType = "INBOX") {
     return new Promise((resolve, reject) => {
         const imap = createImapConnection();
-        let timeoutId;
+        let timeoutId = null;
+        const clear = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        };
+        const safeEnd = () => {
+            try {
+                imap.end();
+            }
+            catch (e) {
+                // Ignore
+            }
+        };
         timeoutId = setTimeout(() => {
             try {
                 imap.destroy();
             }
-            catch (e) { }
+            catch (e) {
+                // Ignore
+            }
             reject(new Error("Timeout lors de l'ajout du flag"));
         }, 30000);
         imap.once("ready", () => {
             findMailbox(imap, mailboxType, (err, mailboxName) => {
                 if (err) {
-                    clearTimeout(timeoutId);
-                    try {
-                        imap.end();
-                    }
-                    catch (e) { }
+                    clear();
+                    safeEnd();
                     return reject(err);
                 }
                 imap.openBox(mailboxName, false, (err) => {
                     if (err) {
-                        clearTimeout(timeoutId);
-                        try {
-                            imap.end();
-                        }
-                        catch (e) { }
+                        clear();
+                        safeEnd();
                         return reject(err);
                     }
                     imap.addFlags([uid], [flag], (err) => {
-                        clearTimeout(timeoutId);
+                        clear();
                         if (err) {
-                            try {
-                                imap.end();
-                            }
-                            catch (e) { }
+                            safeEnd();
                             return reject(err);
                         }
                         logger.info({ uid, flag, mailbox: mailboxName }, "Flag ajouté à l'email");
-                        try {
-                            imap.end();
-                        }
-                        catch (e) { }
+                        safeEnd();
+                        resolve();
                     });
                 });
             });
         });
         imap.once("error", (err) => {
-            clearTimeout(timeoutId);
+            clear();
             logger.error({ err }, "Erreur de connexion IMAP");
             try {
                 imap.destroy();
             }
-            catch (e) { }
+            catch (e) {
+                // Ignore
+            }
             reject(err);
-        });
-        imap.once("end", () => {
-            resolve();
         });
         try {
             imap.connect();
         }
         catch (err) {
-            clearTimeout(timeoutId);
+            clear();
             reject(err);
         }
     });
@@ -755,68 +825,72 @@ export async function addFlag(uid, flag, mailboxType = "INBOX") {
 export async function removeFlag(uid, flag, mailboxType = "INBOX") {
     return new Promise((resolve, reject) => {
         const imap = createImapConnection();
-        let timeoutId;
+        let timeoutId = null;
+        const clear = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        };
+        const safeEnd = () => {
+            try {
+                imap.end();
+            }
+            catch (e) {
+                // Ignore
+            }
+        };
         timeoutId = setTimeout(() => {
             try {
                 imap.destroy();
             }
-            catch (e) { }
+            catch (e) {
+                // Ignore
+            }
             reject(new Error("Timeout lors du retrait du flag"));
         }, 30000);
         imap.once("ready", () => {
             findMailbox(imap, mailboxType, (err, mailboxName) => {
                 if (err) {
-                    clearTimeout(timeoutId);
-                    try {
-                        imap.end();
-                    }
-                    catch (e) { }
+                    clear();
+                    safeEnd();
                     return reject(err);
                 }
                 imap.openBox(mailboxName, false, (err) => {
                     if (err) {
-                        clearTimeout(timeoutId);
-                        try {
-                            imap.end();
-                        }
-                        catch (e) { }
+                        clear();
+                        safeEnd();
                         return reject(err);
                     }
                     imap.delFlags([uid], [flag], (err) => {
-                        clearTimeout(timeoutId);
+                        clear();
                         if (err) {
-                            try {
-                                imap.end();
-                            }
-                            catch (e) { }
+                            safeEnd();
                             return reject(err);
                         }
                         logger.info({ uid, flag, mailbox: mailboxName }, "Flag retiré de l'email");
-                        try {
-                            imap.end();
-                        }
-                        catch (e) { }
+                        safeEnd();
+                        resolve();
                     });
                 });
             });
         });
         imap.once("error", (err) => {
-            clearTimeout(timeoutId);
+            clear();
             logger.error({ err }, "Erreur de connexion IMAP");
             try {
                 imap.destroy();
             }
-            catch (e) { }
+            catch (e) {
+                // Ignore
+            }
             reject(err);
-        });
-        imap.once("end", () => {
-            resolve();
         });
         try {
             imap.connect();
         }
         catch (err) {
-            clearTimeout(timeoutId);
+            clear();
             reject(err);
         }
     });
@@ -945,78 +1019,79 @@ export async function getEmailAttachment(uid, attachmentIndex, mailboxType = "IN
 export async function moveEmail(uid, fromMailboxType, toMailboxType) {
     return new Promise((resolve, reject) => {
         const imap = createImapConnection();
-        let timeoutId;
+        let timeoutId = null;
+        const clear = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        };
+        const safeEnd = () => {
+            try {
+                imap.end();
+            }
+            catch (e) {
+                // Ignore
+            }
+        };
         timeoutId = setTimeout(() => {
             try {
                 imap.destroy();
             }
-            catch (e) { }
+            catch (e) {
+                // Ignore
+            }
             reject(new Error("Timeout lors du déplacement de l'email"));
         }, 30000);
         imap.once("ready", () => {
             findMailbox(imap, fromMailboxType, (err, sourceMailbox) => {
                 if (err) {
-                    clearTimeout(timeoutId);
-                    try {
-                        imap.end();
-                    }
-                    catch (e) { }
+                    clear();
+                    safeEnd();
                     return reject(err);
                 }
                 findMailbox(imap, toMailboxType, (err, targetMailbox) => {
                     if (err) {
-                        clearTimeout(timeoutId);
-                        try {
-                            imap.end();
-                        }
-                        catch (e) { }
+                        clear();
+                        safeEnd();
                         return reject(err);
                     }
                     imap.openBox(sourceMailbox, false, (err) => {
                         if (err) {
-                            clearTimeout(timeoutId);
-                            try {
-                                imap.end();
-                            }
-                            catch (e) { }
+                            clear();
+                            safeEnd();
                             return reject(err);
                         }
                         imap.move([uid], targetMailbox, (err) => {
-                            clearTimeout(timeoutId);
+                            clear();
                             if (err) {
-                                try {
-                                    imap.end();
-                                }
-                                catch (e) { }
+                                safeEnd();
                                 return reject(err);
                             }
                             logger.info({ uid, from: sourceMailbox, to: targetMailbox }, "Email déplacé");
-                            try {
-                                imap.end();
-                            }
-                            catch (e) { }
+                            safeEnd();
+                            resolve();
                         });
                     });
                 });
             });
         });
         imap.once("error", (err) => {
-            clearTimeout(timeoutId);
+            clear();
             logger.error({ err }, "Erreur de connexion IMAP");
             try {
                 imap.destroy();
             }
-            catch (e) { }
+            catch (e) {
+                // Ignore
+            }
             reject(err);
-        });
-        imap.once("end", () => {
-            resolve();
         });
         try {
             imap.connect();
         }
         catch (err) {
-            clearTimeout(timeoutId);
+            clear();
             reject(err);
         }
     });
