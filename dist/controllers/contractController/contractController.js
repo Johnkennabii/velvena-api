@@ -7,6 +7,7 @@ import { sendMail } from "../../lib/mailer.js";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import multer from "multer";
 import { generateContractPDF } from "../../lib/generateContractPDF.js";
+import { compressPdfBuffer } from "../../lib/pdfCompression.js";
 import { io } from "../../server.js";
 import { emitAndStoreNotification } from "../../utils/notifications.js";
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
@@ -656,12 +657,14 @@ export const uploadSignedContractPdf = async (req, res) => {
         if (file.mimetype !== "application/pdf") {
             return res.status(400).json({ success: false, error: "Le fichier doit être un PDF" });
         }
+        const { buffer: payload, encoding } = await compressPdfBuffer(file.buffer);
         const key = `${CONTRACTS_FOLDER}/${id}/signed_upload_${Date.now()}.pdf`;
         await s3.send(new PutObjectCommand({
             Bucket: hetznerBucket,
             Key: key,
-            Body: file.buffer,
+            Body: payload,
             ContentType: "application/pdf",
+            ContentEncoding: encoding,
         }));
         const pdfUrl = `${bucketUrlPrefix}${key}`;
         const updated = await prisma.contract.update({

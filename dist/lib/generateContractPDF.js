@@ -3,6 +3,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3, hetznerBucket } from "./hetzner.js";
 import logger from "./logger.js";
 import { generateContractPDFWithPdfLib } from "./pdfGenerator.js";
+import { compressPdfBuffer } from "./pdfCompression.js";
 export async function generateContractPDF(token, contractId, existingContract, options = {}) {
     // 🔹 Récupère les données depuis ton API si aucun contrat n'est fourni
     let contractPayload = existingContract;
@@ -668,18 +669,21 @@ export async function generateContractPDF(token, contractId, existingContract, o
         browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
         const page = await browser.newPage();
         await page.setContent(html, { waitUntil: "load" });
-        const pdfBuffer = await page.pdf({
+        const pdfData = await page.pdf({
             format: "A4",
             printBackground: true,
             margin: { top: "25mm", bottom: "25mm", left: "20mm", right: "20mm" },
         });
+        const pdfBuffer = Buffer.isBuffer(pdfData) ? pdfData : Buffer.from(pdfData);
+        const { buffer: payload, encoding } = await compressPdfBuffer(pdfBuffer);
         // ☁️ Upload vers Hetzner
         const pdfKey = `contracts/${contractId}/signed_${Date.now()}.pdf`;
         await s3.send(new PutObjectCommand({
             Bucket: hetznerBucket,
             Key: pdfKey,
-            Body: pdfBuffer,
+            Body: payload,
             ContentType: "application/pdf",
+            ContentEncoding: encoding,
         }));
         return `https://${hetznerBucket}.hel1.your-objectstorage.com/${pdfKey}`;
     }

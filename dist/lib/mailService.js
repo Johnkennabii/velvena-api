@@ -247,43 +247,83 @@ export async function getEmailByUid(uid, mailboxType = "INBOX") {
 export async function deleteEmail(uid, mailboxType = "INBOX") {
     return new Promise((resolve, reject) => {
         const imap = createImapConnection();
+        let timeoutId;
+        // Timeout de 30 secondes
+        timeoutId = setTimeout(() => {
+            try {
+                imap.destroy();
+            }
+            catch (e) {
+                // Ignore
+            }
+            reject(new Error("Timeout lors de la suppression de l'email"));
+        }, 30000);
         imap.once("ready", () => {
             findMailbox(imap, mailboxType, (err, sourceMailbox) => {
                 if (err) {
-                    imap.end();
+                    clearTimeout(timeoutId);
+                    try {
+                        imap.end();
+                    }
+                    catch (e) { }
                     return reject(err);
                 }
                 findMailbox(imap, "Trash", (err, trashMailbox) => {
                     if (err) {
-                        imap.end();
+                        clearTimeout(timeoutId);
+                        try {
+                            imap.end();
+                        }
+                        catch (e) { }
                         return reject(err);
                     }
                     imap.openBox(sourceMailbox, false, (err) => {
                         if (err) {
-                            imap.end();
+                            clearTimeout(timeoutId);
+                            try {
+                                imap.end();
+                            }
+                            catch (e) { }
                             return reject(err);
                         }
                         // Déplace vers la corbeille
                         imap.move([uid], trashMailbox, (err) => {
+                            clearTimeout(timeoutId);
                             if (err) {
-                                imap.end();
+                                try {
+                                    imap.end();
+                                }
+                                catch (e) { }
                                 return reject(err);
                             }
                             logger.info({ uid, from: sourceMailbox, to: trashMailbox }, "Email déplacé vers la corbeille");
-                            imap.end();
+                            try {
+                                imap.end();
+                            }
+                            catch (e) { }
+                            // Résoudre immédiatement après le move
+                            resolve();
                         });
                     });
                 });
             });
         });
         imap.once("error", (err) => {
+            clearTimeout(timeoutId);
             logger.error({ err }, "Erreur de connexion IMAP");
+            try {
+                imap.destroy();
+            }
+            catch (e) { }
             reject(err);
         });
-        imap.once("end", () => {
-            resolve();
-        });
-        imap.connect();
+        try {
+            imap.connect();
+        }
+        catch (err) {
+            clearTimeout(timeoutId);
+            reject(err);
+        }
     });
 }
 /**

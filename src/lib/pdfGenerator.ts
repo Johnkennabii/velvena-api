@@ -1,6 +1,7 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3, hetznerBucket } from "./hetzner.js";
+import { compressPdfBuffer } from "./pdfCompression.js";
 
 type PdfLibOptions = {
   includeSignatureBlock?: boolean;
@@ -360,14 +361,17 @@ export async function generateContractPDFWithPdfLib(contract: any, options: PdfL
   // ☁️ Upload vers Hetzner
   // -----------------------
   const pdfBytes = await pdfDoc.save();
+  const rawBuffer = Buffer.from(pdfBytes);
+  const { buffer: payload, encoding } = await compressPdfBuffer(rawBuffer);
   const pdfKey = `contracts/${contract.id}/signed_${Date.now()}.pdf`;
 
   await s3.send(
     new PutObjectCommand({
       Bucket: hetznerBucket,
       Key: pdfKey,
-      Body: Buffer.from(pdfBytes),
+      Body: payload,
       ContentType: "application/pdf",
+      ContentEncoding: encoding,
     })
   );
 
