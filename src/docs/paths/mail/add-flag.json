@@ -13,7 +13,7 @@
           "description": "Type de boîte mail",
           "schema": {
             "type": "string",
-            "enum": ["inbox", "sent", "trash", "spam"],
+            "enum": ["inbox", "sent", "trash", "spam", "drafts"],
             "example": "inbox"
           }
         },

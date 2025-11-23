@@ -17,7 +17,7 @@
           "required": true,
           "schema": {
             "type": "string",
-            "enum": ["inbox", "sent", "trash", "spam"]
+            "enum": ["inbox", "sent", "trash", "spam", "drafts"]
           },
           "description": "Type de boîte mail (insensible à la casse)"
         },
