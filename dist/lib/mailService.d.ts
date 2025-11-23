@@ -34,7 +34,7 @@ export type MailboxType = "INBOX" | "Sent" | "Trash" | "Spam";
  */
 export declare function getEmails(mailboxType?: MailboxType, limit?: number, offset?: number): Promise<EmailMessage[]>;
 /**
- * Récupère un email spécifique par son UID
+ * Récupère un email spécifique par son UID avec TOUS les détails (HTML, texte, pièces jointes)
  */
 export declare function getEmailByUid(uid: number, mailboxType?: MailboxType): Promise<EmailMessage | null>;
 /**
@@ -61,4 +61,17 @@ export declare function getMailboxes(): Promise<MailboxInfo[]>;
  * Envoie un email
  */
 export declare function sendEmail(to: string | string[], subject: string, html?: string, text?: string): Promise<void>;
+/**
+ * Ajoute un flag à un email
+ * Flags IMAP standards: \Seen, \Answered, \Flagged, \Deleted, \Draft
+ */
+export declare function addFlag(uid: number, flag: string, mailboxType?: MailboxType): Promise<void>;
+/**
+ * Retire un flag d'un email
+ */
+export declare function removeFlag(uid: number, flag: string, mailboxType?: MailboxType): Promise<void>;
+/**
+ * Déplace un email d'une boîte mail vers une autre
+ */
+export declare function moveEmail(uid: number, fromMailboxType: MailboxType, toMailboxType: MailboxType): Promise<void>;
 //# sourceMappingURL=mailService.d.ts.map

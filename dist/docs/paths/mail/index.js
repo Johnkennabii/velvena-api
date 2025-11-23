@@ -12,6 +12,9 @@ const deleteMailPermanent = loadJson("./delete-mail-permanent.json");
 const markAsRead = loadJson("./mark-as-read.json");
 const markAsUnread = loadJson("./mark-as-unread.json");
 const sendMail = loadJson("./send-mail.json");
+const addFlag = loadJson("./add-flag.json");
+const removeFlag = loadJson("./remove-flag.json");
+const moveEmail = loadJson("./move-email.json");
 export default {
     ...getMailboxes,
     ...getMails,
@@ -21,5 +24,8 @@ export default {
     ...markAsRead,
     ...markAsUnread,
     ...sendMail,
+    ...addFlag,
+    ...removeFlag,
+    ...moveEmail,
 };
 //# sourceMappingURL=index.js.map

@@ -179,25 +179,44 @@ export async function getEmails(mailboxType = "INBOX", limit = 50, offset = 0) {
     });
 }
 /**
- * Récupère un email spécifique par son UID
+ * Récupère un email spécifique par son UID avec TOUS les détails (HTML, texte, pièces jointes)
  */
 export async function getEmailByUid(uid, mailboxType = "INBOX") {
     return new Promise((resolve, reject) => {
         const imap = createImapConnection();
         let email = null;
+        let timeoutId;
+        // Timeout de 30 secondes
+        timeoutId = setTimeout(() => {
+            try {
+                imap.destroy();
+            }
+            catch (e) {
+                // Ignore
+            }
+            reject(new Error("Timeout lors de la récupération de l'email"));
+        }, 30000);
         imap.once("ready", () => {
             findMailbox(imap, mailboxType, (err, mailboxName) => {
                 if (err) {
-                    imap.end();
+                    clearTimeout(timeoutId);
+                    try {
+                        imap.end();
+                    }
+                    catch (e) { }
                     return reject(err);
                 }
                 imap.openBox(mailboxName, true, (err) => {
                     if (err) {
-                        imap.end();
+                        clearTimeout(timeoutId);
+                        try {
+                            imap.end();
+                        }
+                        catch (e) { }
                         return reject(err);
                     }
                     const fetch = imap.fetch([uid], {
-                        bodies: "",
+                        bodies: "", // Récupère le corps complet
                         struct: true,
                     });
                     fetch.on("message", (msg) => {
@@ -215,30 +234,55 @@ export async function getEmailByUid(uid, mailboxType = "INBOX") {
                             simpleParser(buffer, (err, parsed) => {
                                 if (err || !parsed) {
                                     logger.error({ err, uid }, "Erreur de parsing email");
-                                    return;
+                                    clearTimeout(timeoutId);
+                                    try {
+                                        imap.end();
+                                    }
+                                    catch (e) { }
+                                    return reject(err || new Error("Parsing failed"));
                                 }
                                 email = parseEmailMessage(parsed, uid, flags);
+                                logger.info({ uid, hasHtml: !!email.html, hasText: !!email.text }, "Email complet récupéré");
                             });
                         });
                     });
                     fetch.once("error", (err) => {
-                        imap.end();
+                        clearTimeout(timeoutId);
+                        try {
+                            imap.end();
+                        }
+                        catch (e) { }
                         reject(err);
                     });
                     fetch.once("end", () => {
-                        imap.end();
+                        clearTimeout(timeoutId);
+                        try {
+                            imap.end();
+                        }
+                        catch (e) { }
                     });
                 });
             });
         });
         imap.once("error", (err) => {
+            clearTimeout(timeoutId);
             logger.error({ err }, "Erreur de connexion IMAP");
+            try {
+                imap.destroy();
+            }
+            catch (e) { }
             reject(err);
         });
         imap.once("end", () => {
             resolve(email);
         });
-        imap.connect();
+        try {
+            imap.connect();
+        }
+        catch (err) {
+            clearTimeout(timeoutId);
+            reject(err);
+        }
     });
 }
 /**
@@ -596,6 +640,233 @@ export async function sendEmail(to, subject, html, text) {
         mailOptions.text = text;
     }
     await sendMail(mailOptions);
+}
+/**
+ * Ajoute un flag à un email
+ * Flags IMAP standards: \Seen, \Answered, \Flagged, \Deleted, \Draft
+ */
+export async function addFlag(uid, flag, mailboxType = "INBOX") {
+    return new Promise((resolve, reject) => {
+        const imap = createImapConnection();
+        let timeoutId;
+        timeoutId = setTimeout(() => {
+            try {
+                imap.destroy();
+            }
+            catch (e) { }
+            reject(new Error("Timeout lors de l'ajout du flag"));
+        }, 30000);
+        imap.once("ready", () => {
+            findMailbox(imap, mailboxType, (err, mailboxName) => {
+                if (err) {
+                    clearTimeout(timeoutId);
+                    try {
+                        imap.end();
+                    }
+                    catch (e) { }
+                    return reject(err);
+                }
+                imap.openBox(mailboxName, false, (err) => {
+                    if (err) {
+                        clearTimeout(timeoutId);
+                        try {
+                            imap.end();
+                        }
+                        catch (e) { }
+                        return reject(err);
+                    }
+                    imap.addFlags([uid], [flag], (err) => {
+                        clearTimeout(timeoutId);
+                        if (err) {
+                            try {
+                                imap.end();
+                            }
+                            catch (e) { }
+                            return reject(err);
+                        }
+                        logger.info({ uid, flag, mailbox: mailboxName }, "Flag ajouté à l'email");
+                        try {
+                            imap.end();
+                        }
+                        catch (e) { }
+                    });
+                });
+            });
+        });
+        imap.once("error", (err) => {
+            clearTimeout(timeoutId);
+            logger.error({ err }, "Erreur de connexion IMAP");
+            try {
+                imap.destroy();
+            }
+            catch (e) { }
+            reject(err);
+        });
+        imap.once("end", () => {
+            resolve();
+        });
+        try {
+            imap.connect();
+        }
+        catch (err) {
+            clearTimeout(timeoutId);
+            reject(err);
+        }
+    });
+}
+/**
+ * Retire un flag d'un email
+ */
+export async function removeFlag(uid, flag, mailboxType = "INBOX") {
+    return new Promise((resolve, reject) => {
+        const imap = createImapConnection();
+        let timeoutId;
+        timeoutId = setTimeout(() => {
+            try {
+                imap.destroy();
+            }
+            catch (e) { }
+            reject(new Error("Timeout lors du retrait du flag"));
+        }, 30000);
+        imap.once("ready", () => {
+            findMailbox(imap, mailboxType, (err, mailboxName) => {
+                if (err) {
+                    clearTimeout(timeoutId);
+                    try {
+                        imap.end();
+                    }
+                    catch (e) { }
+                    return reject(err);
+                }
+                imap.openBox(mailboxName, false, (err) => {
+                    if (err) {
+                        clearTimeout(timeoutId);
+                        try {
+                            imap.end();
+                        }
+                        catch (e) { }
+                        return reject(err);
+                    }
+                    imap.delFlags([uid], [flag], (err) => {
+                        clearTimeout(timeoutId);
+                        if (err) {
+                            try {
+                                imap.end();
+                            }
+                            catch (e) { }
+                            return reject(err);
+                        }
+                        logger.info({ uid, flag, mailbox: mailboxName }, "Flag retiré de l'email");
+                        try {
+                            imap.end();
+                        }
+                        catch (e) { }
+                    });
+                });
+            });
+        });
+        imap.once("error", (err) => {
+            clearTimeout(timeoutId);
+            logger.error({ err }, "Erreur de connexion IMAP");
+            try {
+                imap.destroy();
+            }
+            catch (e) { }
+            reject(err);
+        });
+        imap.once("end", () => {
+            resolve();
+        });
+        try {
+            imap.connect();
+        }
+        catch (err) {
+            clearTimeout(timeoutId);
+            reject(err);
+        }
+    });
+}
+/**
+ * Déplace un email d'une boîte mail vers une autre
+ */
+export async function moveEmail(uid, fromMailboxType, toMailboxType) {
+    return new Promise((resolve, reject) => {
+        const imap = createImapConnection();
+        let timeoutId;
+        timeoutId = setTimeout(() => {
+            try {
+                imap.destroy();
+            }
+            catch (e) { }
+            reject(new Error("Timeout lors du déplacement de l'email"));
+        }, 30000);
+        imap.once("ready", () => {
+            findMailbox(imap, fromMailboxType, (err, sourceMailbox) => {
+                if (err) {
+                    clearTimeout(timeoutId);
+                    try {
+                        imap.end();
+                    }
+                    catch (e) { }
+                    return reject(err);
+                }
+                findMailbox(imap, toMailboxType, (err, targetMailbox) => {
+                    if (err) {
+                        clearTimeout(timeoutId);
+                        try {
+                            imap.end();
+                        }
+                        catch (e) { }
+                        return reject(err);
+                    }
+                    imap.openBox(sourceMailbox, false, (err) => {
+                        if (err) {
+                            clearTimeout(timeoutId);
+                            try {
+                                imap.end();
+                            }
+                            catch (e) { }
+                            return reject(err);
+                        }
+                        imap.move([uid], targetMailbox, (err) => {
+                            clearTimeout(timeoutId);
+                            if (err) {
+                                try {
+                                    imap.end();
+                                }
+                                catch (e) { }
+                                return reject(err);
+                            }
+                            logger.info({ uid, from: sourceMailbox, to: targetMailbox }, "Email déplacé");
+                            try {
+                                imap.end();
+                            }
+                            catch (e) { }
+                        });
+                    });
+                });
+            });
+        });
+        imap.once("error", (err) => {
+            clearTimeout(timeoutId);
+            logger.error({ err }, "Erreur de connexion IMAP");
+            try {
+                imap.destroy();
+            }
+            catch (e) { }
+            reject(err);
+        });
+        imap.once("end", () => {
+            resolve();
+        });
+        try {
+            imap.connect();
+        }
+        catch (err) {
+            clearTimeout(timeoutId);
+            reject(err);
+        }
+    });
 }
 // ============================================
 // Fonctions utilitaires

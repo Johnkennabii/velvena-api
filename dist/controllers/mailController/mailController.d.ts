@@ -39,4 +39,19 @@ export declare function listMailboxes(req: Request, res: Response): Promise<void
  * POST /mails/send
  */
 export declare function sendMail(req: Request, res: Response): Promise<void>;
+/**
+ * Ajoute un flag à un email
+ * PATCH /mails/:mailbox/:uid/flag/add
+ */
+export declare function addMailFlag(req: Request, res: Response): Promise<void>;
+/**
+ * Retire un flag d'un email
+ * PATCH /mails/:mailbox/:uid/flag/remove
+ */
+export declare function removeMailFlag(req: Request, res: Response): Promise<void>;
+/**
+ * Déplace un email d'un dossier à un autre
+ * PATCH /mails/:mailbox/:uid/move
+ */
+export declare function moveMailToFolder(req: Request, res: Response): Promise<void>;
 //# sourceMappingURL=mailController.d.ts.map

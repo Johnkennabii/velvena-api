@@ -8,6 +8,9 @@ import {
   markAsUnread,
   getMailboxes,
   sendEmail,
+  addFlag,
+  removeFlag,
+  moveEmail,
   type MailboxType,
 } from "../../lib/mailService.js";
 import pino from "pino";
@@ -417,6 +420,205 @@ export async function sendMail(req: Request, res: Response): Promise<void> {
     res.status(500).json({
       success: false,
       error: "Erreur lors de l'envoi de l'email",
+      details: error instanceof Error ? error.message : "Erreur inconnue",
+    });
+  }
+}
+
+/**
+ * Ajoute un flag à un email
+ * PATCH /mails/:mailbox/:uid/flag/add
+ */
+export async function addMailFlag(req: Request, res: Response): Promise<void> {
+  try {
+    const mailboxParam = req.params.mailbox || "inbox";
+    const mailboxType = normalizeMailboxType(mailboxParam);
+    const uidParam = req.params.uid;
+    const { flag } = req.body;
+
+    if (!mailboxType) {
+      res.status(400).json({
+        success: false,
+        error: "Type de boîte mail invalide",
+      });
+      return;
+    }
+
+    if (!uidParam) {
+      res.status(400).json({
+        success: false,
+        error: "UID requis",
+      });
+      return;
+    }
+
+    if (!flag) {
+      res.status(400).json({
+        success: false,
+        error: "Flag requis (ex: \\Flagged, \\Answered)",
+      });
+      return;
+    }
+
+    const uid = Number.parseInt(uidParam, 10);
+
+    if (isNaN(uid)) {
+      res.status(400).json({
+        success: false,
+        error: "UID invalide",
+      });
+      return;
+    }
+
+    logger.info({ mailboxType, uid, flag }, "Ajout d'un flag à l'email");
+
+    await addFlag(uid, flag, mailboxType);
+
+    res.status(200).json({
+      success: true,
+      message: `Flag ${flag} ajouté avec succès`,
+    });
+  } catch (error) {
+    logger.error({ error }, "Erreur lors de l'ajout du flag");
+    res.status(500).json({
+      success: false,
+      error: "Erreur lors de l'ajout du flag",
+      details: error instanceof Error ? error.message : "Erreur inconnue",
+    });
+  }
+}
+
+/**
+ * Retire un flag d'un email
+ * PATCH /mails/:mailbox/:uid/flag/remove
+ */
+export async function removeMailFlag(req: Request, res: Response): Promise<void> {
+  try {
+    const mailboxParam = req.params.mailbox || "inbox";
+    const mailboxType = normalizeMailboxType(mailboxParam);
+    const uidParam = req.params.uid;
+    const { flag } = req.body;
+
+    if (!mailboxType) {
+      res.status(400).json({
+        success: false,
+        error: "Type de boîte mail invalide",
+      });
+      return;
+    }
+
+    if (!uidParam) {
+      res.status(400).json({
+        success: false,
+        error: "UID requis",
+      });
+      return;
+    }
+
+    if (!flag) {
+      res.status(400).json({
+        success: false,
+        error: "Flag requis (ex: \\Flagged, \\Answered)",
+      });
+      return;
+    }
+
+    const uid = Number.parseInt(uidParam, 10);
+
+    if (isNaN(uid)) {
+      res.status(400).json({
+        success: false,
+        error: "UID invalide",
+      });
+      return;
+    }
+
+    logger.info({ mailboxType, uid, flag }, "Retrait d'un flag de l'email");
+
+    await removeFlag(uid, flag, mailboxType);
+
+    res.status(200).json({
+      success: true,
+      message: `Flag ${flag} retiré avec succès`,
+    });
+  } catch (error) {
+    logger.error({ error }, "Erreur lors du retrait du flag");
+    res.status(500).json({
+      success: false,
+      error: "Erreur lors du retrait du flag",
+      details: error instanceof Error ? error.message : "Erreur inconnue",
+    });
+  }
+}
+
+/**
+ * Déplace un email d'un dossier à un autre
+ * PATCH /mails/:mailbox/:uid/move
+ */
+export async function moveMailToFolder(req: Request, res: Response): Promise<void> {
+  try {
+    const fromMailboxParam = req.params.mailbox || "inbox";
+    const fromMailboxType = normalizeMailboxType(fromMailboxParam);
+    const uidParam = req.params.uid;
+    const { toMailbox } = req.body;
+
+    if (!fromMailboxType) {
+      res.status(400).json({
+        success: false,
+        error: "Type de boîte mail source invalide",
+      });
+      return;
+    }
+
+    if (!uidParam) {
+      res.status(400).json({
+        success: false,
+        error: "UID requis",
+      });
+      return;
+    }
+
+    if (!toMailbox) {
+      res.status(400).json({
+        success: false,
+        error: "Boîte mail de destination requise (toMailbox)",
+      });
+      return;
+    }
+
+    const toMailboxType = normalizeMailboxType(toMailbox);
+
+    if (!toMailboxType) {
+      res.status(400).json({
+        success: false,
+        error: "Type de boîte mail destination invalide",
+      });
+      return;
+    }
+
+    const uid = Number.parseInt(uidParam, 10);
+
+    if (isNaN(uid)) {
+      res.status(400).json({
+        success: false,
+        error: "UID invalide",
+      });
+      return;
+    }
+
+    logger.info({ fromMailboxType, toMailboxType, uid }, "Déplacement d'un email");
+
+    await moveEmail(uid, fromMailboxType, toMailboxType);
+
+    res.status(200).json({
+      success: true,
+      message: `Email déplacé de ${fromMailboxType} vers ${toMailboxType}`,
+    });
+  } catch (error) {
+    logger.error({ error }, "Erreur lors du déplacement de l'email");
+    res.status(500).json({
+      success: false,
+      error: "Erreur lors du déplacement de l'email",
       details: error instanceof Error ? error.message : "Erreur inconnue",
     });
   }
