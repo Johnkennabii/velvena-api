@@ -421,36 +421,67 @@ export async function permanentlyDeleteEmail(
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const imap = createImapConnection();
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    const clear = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
+
+    const safeEnd = () => {
+      try {
+        imap.end();
+      } catch (e) {
+        // Ignore
+      }
+    };
+
+    timeoutId = setTimeout(() => {
+      try {
+        imap.destroy();
+      } catch (e) {
+        // Ignore
+      }
+      reject(new Error("Timeout lors de la suppression définitive de l'email"));
+    }, 30000);
 
     imap.once("ready", () => {
       findMailbox(imap, mailboxType, (err, mailboxName) => {
         if (err) {
-          imap.end();
+          clear();
+          safeEnd();
           return reject(err);
         }
 
         imap.openBox(mailboxName, false, (err) => {
           if (err) {
-            imap.end();
+            clear();
+            safeEnd();
             return reject(err);
           }
 
           // Marque comme supprimé
           imap.addFlags([uid], ["\\Deleted"], (err) => {
             if (err) {
-              imap.end();
+              clear();
+              safeEnd();
               return reject(err);
             }
 
             // Expunge pour supprimer définitivement
             imap.expunge((err) => {
               if (err) {
-                imap.end();
+                clear();
+                safeEnd();
                 return reject(err);
               }
 
               logger.info({ uid, mailbox: mailboxName }, "Email supprimé définitivement");
-              imap.end();
+              clear();
+              safeEnd();
+              resolve();
             });
           });
         });
@@ -459,11 +490,13 @@ export async function permanentlyDeleteEmail(
 
     imap.once("error", (err: Error) => {
       logger.error({ err }, "Erreur de connexion IMAP");
+      clear();
+      try {
+        imap.destroy();
+      } catch (e) {
+        // Ignore
+      }
       reject(err);
-    });
-
-    imap.once("end", () => {
-      resolve();
     });
 
     imap.connect();
