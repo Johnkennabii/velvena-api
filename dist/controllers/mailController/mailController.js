@@ -1,4 +1,4 @@
-import { getEmails, getEmailByUid, deleteEmail, permanentlyDeleteEmail, markAsRead, markAsUnread, getMailboxes, sendEmail, addFlag, removeFlag, moveEmail, } from "../../lib/mailService.js";
+import { getEmails, getEmailByUid, deleteEmail, permanentlyDeleteEmail, markAsRead, markAsUnread, getMailboxes, sendEmail, addFlag, removeFlag, moveEmail, getEmailAttachment, } from "../../lib/mailService.js";
 import pino from "pino";
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 /**
@@ -16,6 +16,9 @@ function normalizeMailboxType(mailbox) {
         case "spam":
         case "junk":
             return "Spam";
+        case "drafts":
+        case "brouillons":
+            return "Drafts";
         default:
             return null;
     }
@@ -34,7 +37,7 @@ export async function getMailsFromMailbox(req, res) {
         if (!mailboxType) {
             res.status(400).json({
                 success: false,
-                error: "Type de boîte mail invalide. Valeurs acceptées : inbox, sent, trash, spam, junk",
+                error: "Type de boîte mail invalide. Valeurs acceptées : inbox, sent, trash, spam, junk, drafts",
             });
             return;
         }
@@ -530,6 +533,78 @@ export async function moveMailToFolder(req, res) {
         res.status(500).json({
             success: false,
             error: "Erreur lors du déplacement de l'email",
+            details: error instanceof Error ? error.message : "Erreur inconnue",
+        });
+    }
+}
+/**
+ * Télécharge une pièce jointe d'un email
+ * GET /mails/:mailbox/:uid/attachments/:index
+ */
+export async function downloadAttachment(req, res) {
+    try {
+        const mailboxParam = req.params.mailbox || "inbox";
+        const mailboxType = normalizeMailboxType(mailboxParam);
+        const uidParam = req.params.uid;
+        const indexParam = req.params.index;
+        if (!mailboxType) {
+            res.status(400).json({
+                success: false,
+                error: "Type de boîte mail invalide",
+            });
+            return;
+        }
+        if (!uidParam) {
+            res.status(400).json({
+                success: false,
+                error: "UID requis",
+            });
+            return;
+        }
+        if (!indexParam) {
+            res.status(400).json({
+                success: false,
+                error: "Index de la pièce jointe requis",
+            });
+            return;
+        }
+        const uid = Number.parseInt(uidParam, 10);
+        const index = Number.parseInt(indexParam, 10);
+        if (isNaN(uid)) {
+            res.status(400).json({
+                success: false,
+                error: "UID invalide",
+            });
+            return;
+        }
+        if (isNaN(index)) {
+            res.status(400).json({
+                success: false,
+                error: "Index invalide",
+            });
+            return;
+        }
+        logger.info({ mailboxType, uid, index }, "Téléchargement d'une pièce jointe");
+        const attachment = await getEmailAttachment(uid, index, mailboxType);
+        if (!attachment) {
+            res.status(404).json({
+                success: false,
+                error: "Pièce jointe non trouvée",
+            });
+            return;
+        }
+        // Configuration des headers pour le téléchargement
+        res.setHeader('Content-Type', attachment.contentType);
+        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(attachment.filename)}"`);
+        res.setHeader('Content-Length', attachment.content.length);
+        res.send(attachment.content);
+        logger.info({ uid, index, filename: attachment.filename }, "Pièce jointe envoyée avec succès");
+    }
+    catch (error) {
+        logger.error({ error }, "Erreur lors du téléchargement de la pièce jointe");
+        res.status(500).json({
+            success: false,
+            error: "Erreur lors du téléchargement de la pièce jointe",
             details: error instanceof Error ? error.message : "Erreur inconnue",
         });
     }

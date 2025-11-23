@@ -13,7 +13,7 @@
           "description": "Type de boîte mail source",
           "schema": {
             "type": "string",
-            "enum": ["inbox", "sent", "trash", "spam"],
+            "enum": ["inbox", "sent", "trash", "spam", "drafts"],
             "example": "inbox"
           }
         },
@@ -39,7 +39,7 @@
                 "toMailbox": {
                   "type": "string",
                   "description": "Boîte mail de destination",
-                  "enum": ["inbox", "sent", "trash", "spam"],
+                  "enum": ["inbox", "sent", "trash", "spam", "drafts"],
                   "example": "spam"
                 }
               }

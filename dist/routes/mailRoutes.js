@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getMailsFromMailbox, getMailById, deleteMail, permanentlyDeleteMail, markMailAsRead, markMailAsUnread, listMailboxes, sendMail, addMailFlag, removeMailFlag, moveMailToFolder, } from "../controllers/mailController/mailController.js";
+import { getMailsFromMailbox, getMailById, deleteMail, permanentlyDeleteMail, markMailAsRead, markMailAsUnread, listMailboxes, sendMail, addMailFlag, removeMailFlag, moveMailToFolder, downloadAttachment, } from "../controllers/mailController/mailController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 const router = Router();
 // Liste des boîtes mail disponibles

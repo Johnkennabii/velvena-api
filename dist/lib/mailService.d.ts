@@ -28,7 +28,7 @@ export interface MailboxInfo {
     total: number;
     new: number;
 }
-export type MailboxType = "INBOX" | "Sent" | "Trash" | "Spam";
+export type MailboxType = "INBOX" | "Sent" | "Trash" | "Spam" | "Drafts";
 /**
  * Récupère les emails d'une boîte mail
  */
@@ -70,6 +70,14 @@ export declare function addFlag(uid: number, flag: string, mailboxType?: Mailbox
  * Retire un flag d'un email
  */
 export declare function removeFlag(uid: number, flag: string, mailboxType?: MailboxType): Promise<void>;
+/**
+ * Récupère une pièce jointe spécifique d'un email par son index
+ */
+export declare function getEmailAttachment(uid: number, attachmentIndex: number, mailboxType?: MailboxType): Promise<{
+    filename: string;
+    contentType: string;
+    content: Buffer;
+} | null>;
 /**
  * Déplace un email d'une boîte mail vers une autre
  */

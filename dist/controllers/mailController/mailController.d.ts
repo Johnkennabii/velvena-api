@@ -54,4 +54,9 @@ export declare function removeMailFlag(req: Request, res: Response): Promise<voi
  * PATCH /mails/:mailbox/:uid/move
  */
 export declare function moveMailToFolder(req: Request, res: Response): Promise<void>;
+/**
+ * Télécharge une pièce jointe d'un email
+ * GET /mails/:mailbox/:uid/attachments/:index
+ */
+export declare function downloadAttachment(req: Request, res: Response): Promise<void>;
 //# sourceMappingURL=mailController.d.ts.map

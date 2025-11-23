@@ -11,6 +11,7 @@ import {
   addMailFlag,
   removeMailFlag,
   moveMailToFolder,
+  downloadAttachment,
 } from "../controllers/mailController/mailController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 

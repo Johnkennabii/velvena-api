@@ -8,6 +8,7 @@ const MAILBOX_MAPPING = {
     Sent: ["Sent", "[Gmail]/Sent Mail", "Sent Items"],
     Trash: ["Trash", "[Gmail]/Trash", "Deleted Items", "Corbeille"],
     Spam: ["Junk", "Spam", "[Gmail]/Spam", "Courrier indésirable"],
+    Drafts: ["Drafts", "[Gmail]/Drafts", "Brouillons"],
 };
 /**
  * Crée une connexion IMAP
@@ -787,6 +788,124 @@ export async function removeFlag(uid, flag, mailboxType = "INBOX") {
     });
 }
 /**
+ * Récupère une pièce jointe spécifique d'un email par son index
+ */
+export async function getEmailAttachment(uid, attachmentIndex, mailboxType = "INBOX") {
+    return new Promise((resolve, reject) => {
+        const imap = createImapConnection();
+        let timeoutId;
+        timeoutId = setTimeout(() => {
+            try {
+                imap.destroy();
+            }
+            catch (e) { }
+            reject(new Error("Timeout lors de la récupération de la pièce jointe"));
+        }, 30000);
+        imap.once("ready", () => {
+            findMailbox(imap, mailboxType, (err, mailboxName) => {
+                if (err) {
+                    clearTimeout(timeoutId);
+                    try {
+                        imap.end();
+                    }
+                    catch (e) { }
+                    return reject(err);
+                }
+                imap.openBox(mailboxName, true, (err) => {
+                    if (err) {
+                        clearTimeout(timeoutId);
+                        try {
+                            imap.end();
+                        }
+                        catch (e) { }
+                        return reject(err);
+                    }
+                    const fetch = imap.fetch([uid], {
+                        bodies: "",
+                        struct: true,
+                    });
+                    fetch.on("message", (msg) => {
+                        let buffer = "";
+                        msg.on("body", (stream) => {
+                            stream.on("data", (chunk) => {
+                                buffer += chunk.toString("utf8");
+                            });
+                        });
+                        msg.once("end", () => {
+                            simpleParser(buffer, (err, parsed) => {
+                                clearTimeout(timeoutId);
+                                if (err || !parsed) {
+                                    logger.error({ err, uid }, "Erreur de parsing email pour PJ");
+                                    try {
+                                        imap.end();
+                                    }
+                                    catch (e) { }
+                                    return reject(err || new Error("Parsing failed"));
+                                }
+                                const attachments = parsed.attachments || [];
+                                if (attachmentIndex < 0 || attachmentIndex >= attachments.length) {
+                                    logger.warn({ uid, attachmentIndex, total: attachments.length }, "Index de PJ invalide");
+                                    try {
+                                        imap.end();
+                                    }
+                                    catch (e) { }
+                                    return resolve(null);
+                                }
+                                const attachment = attachments[attachmentIndex];
+                                if (!attachment) {
+                                    logger.warn({ uid, attachmentIndex }, "Pièce jointe non trouvée");
+                                    try {
+                                        imap.end();
+                                    }
+                                    catch (e) { }
+                                    return resolve(null);
+                                }
+                                logger.info({ uid, filename: attachment.filename, size: attachment.size }, "Pièce jointe récupérée");
+                                try {
+                                    imap.end();
+                                }
+                                catch (e) { }
+                                resolve({
+                                    filename: attachment.filename || "attachment",
+                                    contentType: attachment.contentType,
+                                    content: attachment.content,
+                                });
+                            });
+                        });
+                    });
+                    fetch.once("error", (err) => {
+                        clearTimeout(timeoutId);
+                        try {
+                            imap.end();
+                        }
+                        catch (e) { }
+                        reject(err);
+                    });
+                });
+            });
+        });
+        imap.once("error", (err) => {
+            clearTimeout(timeoutId);
+            logger.error({ err }, "Erreur de connexion IMAP");
+            try {
+                imap.destroy();
+            }
+            catch (e) { }
+            reject(err);
+        });
+        imap.once("end", () => {
+            // Résolution déjà gérée dans le fetch
+        });
+        try {
+            imap.connect();
+        }
+        catch (err) {
+            clearTimeout(timeoutId);
+            reject(err);
+        }
+    });
+}
+/**
  * Déplace un email d'une boîte mail vers une autre
  */
 export async function moveEmail(uid, fromMailboxType, toMailboxType) {
@@ -941,7 +1060,8 @@ function findMailbox(imap, mailboxType, callback) {
         if (err) {
             return callback(err, "");
         }
-        const boxNames = Object.keys(boxes);
+        const entries = flattenMailboxEntries(boxes);
+        const boxNames = entries.map((entry) => entry.name);
         const possibleNames = MAILBOX_MAPPING[mailboxType];
         // Cherche une correspondance exacte
         for (const possibleName of possibleNames) {
@@ -957,11 +1077,24 @@ function findMailbox(imap, mailboxType, callback) {
             }
         }
         // Par défaut, utilise INBOX ou la première boîte disponible
-        const defaultBox = boxNames.includes("INBOX")
-            ? "INBOX"
-            : boxNames[0] || "INBOX";
+        const defaultBox = entries.find((entry) => entry.name === "INBOX" && entry.selectable)?.name ??
+            entries.find((entry) => entry.selectable)?.name ??
+            "INBOX";
         callback(null, defaultBox);
     });
+}
+function flattenMailboxEntries(boxes, parent = "", parentDelimiter = "/") {
+    const entries = [];
+    for (const [name, info] of Object.entries(boxes)) {
+        const delimiter = info.delimiter ?? parentDelimiter ?? "/";
+        const fullName = parent ? `${parent}${delimiter}${name}` : name;
+        const selectable = !(info.attribs || []).includes("\\Noselect");
+        entries.push({ name: fullName, selectable });
+        if (info.children) {
+            entries.push(...flattenMailboxEntries(info.children, fullName, delimiter));
+        }
+    }
+    return entries;
 }
 /**
  * Retourne un nom d'affichage pour une boîte mail
@@ -982,6 +1115,7 @@ function getDisplayName(mailboxName) {
         "Courrier indésirable": "Courrier indésirable",
         Drafts: "Brouillons",
         "[Gmail]/Drafts": "Brouillons",
+        Brouillons: "Brouillons",
     };
     return mapping[mailboxName] || mailboxName;
 }
