@@ -805,10 +805,53 @@ export const downloadSignedContract = async (req, res) => {
             contractId,
             contractNumber: contract.contract_number,
             pdfUrl: contract.signed_pdf_url
-        }, "✅ [DOWNLOAD] Redirection vers le PDF signé");
-        console.log("✅ [DOWNLOAD] Redirection vers le PDF:", contract.signed_pdf_url);
-        // 🔄 Redirection vers l'URL du PDF
-        res.redirect(contract.signed_pdf_url);
+        }, "✅ [DOWNLOAD] Téléchargement du PDF depuis Hetzner");
+        console.log("✅ [DOWNLOAD] Téléchargement du PDF:", contract.signed_pdf_url);
+        // 📥 Téléchargement du PDF depuis Hetzner et proxy vers le client
+        try {
+            const response = await fetch(contract.signed_pdf_url);
+            if (!response.ok) {
+                logger.error({
+                    status: response.status,
+                    statusText: response.statusText,
+                    url: contract.signed_pdf_url
+                }, "❌ [DOWNLOAD] Erreur lors du téléchargement du PDF depuis Hetzner");
+                console.error("❌ [DOWNLOAD] Erreur Hetzner:", response.status, response.statusText);
+                return res.status(response.status).json({
+                    success: false,
+                    error: "Erreur lors du téléchargement du PDF"
+                });
+            }
+            // Récupération du buffer du PDF
+            const pdfBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(pdfBuffer);
+            logger.info({
+                contractId,
+                pdfSize: buffer.length
+            }, "✅ [DOWNLOAD] PDF récupéré, envoi au client");
+            console.log("✅ [DOWNLOAD] PDF récupéré, taille:", buffer.length, "octets");
+            // Configuration des headers pour le téléchargement
+            const filename = `contrat_${contract.contract_number}_signe.pdf`;
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+            res.setHeader('Content-Length', buffer.length);
+            res.setHeader('Cache-Control', 'private, max-age=3600');
+            // Envoi du PDF
+            res.send(buffer);
+            logger.info({ contractId, filename }, "✅ [DOWNLOAD] PDF envoyé avec succès");
+            console.log("✅ [DOWNLOAD] PDF envoyé avec succès:", filename);
+        }
+        catch (fetchError) {
+            logger.error({
+                error: fetchError,
+                url: contract.signed_pdf_url
+            }, "🔥 [DOWNLOAD] Erreur lors de la récupération du PDF depuis Hetzner");
+            console.error("🔥 [DOWNLOAD] Erreur fetch:", fetchError);
+            return res.status(500).json({
+                success: false,
+                error: "Erreur lors de la récupération du PDF"
+            });
+        }
     }
     catch (error) {
         logger.error({ error }, "🔥 [DOWNLOAD] Erreur lors du téléchargement du contrat signé");

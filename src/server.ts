@@ -78,7 +78,6 @@ app.use(
       "https://allure-creation.fr",
       "https://app.allure-creation.fr",
       "https://api.allure-creation.fr",
-      "medias-allure-creation.hel1.your-objectstorage.com",
     ],
     credentials: true,
   })
