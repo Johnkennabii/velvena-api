@@ -1,7 +1,7 @@
 {
   "/mails/{mailbox}/{uid}": {
     "get": {
-      "tags": ["Mail"],
+      "tags": ["Mails"],
       "summary": "Récupère un email spécifique",
       "description": "Récupère les détails complets d'un email par son UID",
       "operationId": "getMailById",
@@ -56,6 +56,69 @@
         },
         "404": {
           "description": "Email non trouvé"
+        },
+        "401": {
+          "description": "Non autorisé"
+        },
+        "500": {
+          "description": "Erreur serveur"
+        }
+      }
+    },
+    "delete": {
+      "tags": ["Mail"],
+      "summary": "Supprime un email (déplace vers la corbeille)",
+      "description": "Déplace un email vers la corbeille. L'email peut être restauré ultérieurement.",
+      "operationId": "deleteMail",
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "mailbox",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "enum": ["inbox", "sent", "trash", "spam", "drafts"]
+          },
+          "description": "Type de boîte mail"
+        },
+        {
+          "name": "uid",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          },
+          "description": "UID de l'email à supprimer"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Email déplacé vers la corbeille",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "message": {
+                    "type": "string",
+                    "example": "Email déplacé vers la corbeille"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "UID invalide"
         },
         "401": {
           "description": "Non autorisé"

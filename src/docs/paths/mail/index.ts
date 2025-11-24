@@ -10,8 +10,7 @@ const loadJson = (filename: string) =>
 
 const getMailboxes = loadJson("./get-mailboxes.json");
 const getMails = loadJson("./get-mails.json");
-const getMailById = loadJson("./get-mail-by-id.json");
-const deleteMail = loadJson("./delete-mail.json");
+const mailById = loadJson("./get-mail-by-id.json"); // Contient GET et DELETE
 const deleteMailPermanent = loadJson("./delete-mail-permanent.json");
 const markAsRead = loadJson("./mark-as-read.json");
 const markAsUnread = loadJson("./mark-as-unread.json");
@@ -24,8 +23,7 @@ const downloadAttachmentByEmailId = loadJson("./download-email-attachment.json")
 export default {
   ...getMailboxes,
   ...getMails,
-  ...getMailById,
-  ...deleteMail,
+  ...mailById,
   ...deleteMailPermanent,
   ...markAsRead,
   ...markAsUnread,

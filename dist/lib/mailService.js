@@ -187,35 +187,58 @@ export async function getEmailByUid(uid, mailboxType = "INBOX") {
     return new Promise((resolve, reject) => {
         const imap = createImapConnection();
         let email = null;
-        let timeoutId;
-        // Timeout de 30 secondes
-        timeoutId = setTimeout(() => {
+        let timeoutId = null;
+        let finished = false;
+        const clear = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        };
+        const safeEnd = () => {
+            try {
+                imap.end();
+            }
+            catch (e) {
+                // Ignore
+            }
+        };
+        const safeDestroy = () => {
             try {
                 imap.destroy();
             }
             catch (e) {
                 // Ignore
             }
-            reject(new Error("Timeout lors de la récupération de l'email"));
-        }, 30000);
+        };
+        const finishResolve = (value) => {
+            if (finished)
+                return;
+            finished = true;
+            clear();
+            safeEnd();
+            resolve(value);
+        };
+        const finishReject = (err) => {
+            if (finished)
+                return;
+            finished = true;
+            clear();
+            safeDestroy();
+            reject(err);
+        };
+        // Timeout de 45 secondes (PJ volumineuses)
+        timeoutId = setTimeout(() => {
+            finishReject(new Error("Timeout lors de la récupération de l'email"));
+        }, 45000);
         imap.once("ready", () => {
             findMailbox(imap, mailboxType, (err, mailboxName) => {
                 if (err) {
-                    clearTimeout(timeoutId);
-                    try {
-                        imap.end();
-                    }
-                    catch (e) { }
-                    return reject(err);
+                    return finishReject(err);
                 }
                 imap.openBox(mailboxName, true, (err) => {
                     if (err) {
-                        clearTimeout(timeoutId);
-                        try {
-                            imap.end();
-                        }
-                        catch (e) { }
-                        return reject(err);
+                        return finishReject(err);
                     }
                     const fetch = imap.fetch([uid], {
                         bodies: "", // Récupère le corps complet
@@ -236,54 +259,34 @@ export async function getEmailByUid(uid, mailboxType = "INBOX") {
                             simpleParser(buffer, (err, parsed) => {
                                 if (err || !parsed) {
                                     logger.error({ err, uid }, "Erreur de parsing email");
-                                    clearTimeout(timeoutId);
-                                    try {
-                                        imap.end();
-                                    }
-                                    catch (e) { }
-                                    return reject(err || new Error("Parsing failed"));
+                                    return finishReject(err || new Error("Parsing failed"));
                                 }
                                 email = parseEmailMessage(parsed, uid, flags);
                                 logger.info({ uid, hasHtml: !!email.html, hasText: !!email.text }, "Email complet récupéré");
+                                finishResolve(email);
                             });
                         });
                     });
                     fetch.once("error", (err) => {
-                        clearTimeout(timeoutId);
-                        try {
-                            imap.end();
-                        }
-                        catch (e) { }
-                        reject(err);
+                        finishReject(err);
                     });
                     fetch.once("end", () => {
-                        clearTimeout(timeoutId);
-                        try {
-                            imap.end();
+                        if (!finished) {
+                            finishResolve(email);
                         }
-                        catch (e) { }
                     });
                 });
             });
         });
         imap.once("error", (err) => {
-            clearTimeout(timeoutId);
             logger.error({ err }, "Erreur de connexion IMAP");
-            try {
-                imap.destroy();
-            }
-            catch (e) { }
-            reject(err);
-        });
-        imap.once("end", () => {
-            resolve(email);
+            finishReject(err);
         });
         try {
             imap.connect();
         }
         catch (err) {
-            clearTimeout(timeoutId);
-            reject(err);
+            finishReject(err);
         }
     });
 }
