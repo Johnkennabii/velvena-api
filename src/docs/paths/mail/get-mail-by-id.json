@@ -1,7 +1,7 @@
 {
   "/mails/{mailbox}/{uid}": {
     "get": {
-      "tags": ["Mail"],
+      "tags": ["Mails"],
       "summary": "Récupère un email spécifique",
       "description": "Récupère les détails complets d'un email par son UID",
       "operationId": "getMailById",
