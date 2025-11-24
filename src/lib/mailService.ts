@@ -306,14 +306,13 @@ export async function getEmailByUid(
             return finishReject(err);
           }
 
+          // fetch utilise des UIDs par défaut (pas seq.fetch)
           const fetch = imap.fetch(
             [uid],
             {
               bodies: "", // Récupère le corps complet
               struct: true,
-              markSeen: false,
-              uid: true,
-            } as any
+            }
           );
 
           fetch.on("message", (msg) => {

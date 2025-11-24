@@ -240,11 +240,10 @@ export async function getEmailByUid(uid, mailboxType = "INBOX") {
                     if (err) {
                         return finishReject(err);
                     }
+                    // fetch utilise des UIDs par défaut (pas seq.fetch)
                     const fetch = imap.fetch([uid], {
                         bodies: "", // Récupère le corps complet
                         struct: true,
-                        markSeen: false,
-                        uid: true,
                     });
                     fetch.on("message", (msg) => {
                         let buffer = "";
