@@ -3,6 +3,7 @@ import { simpleParser } from "mailparser";
 import type { ParsedMail } from "mailparser";
 import pino from "pino";
 import { sendMail } from "./mailer.js";
+import MailComposer from "nodemailer/lib/mail-composer/index.js";
 
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 
@@ -35,6 +36,15 @@ export interface MailboxInfo {
 export type MailboxType = "INBOX" | "Sent" | "Trash" | "Spam" | "Drafts";
 
 type MailboxEntry = { name: string; selectable: boolean };
+type MailComposerOptions = {
+  from: string;
+  to: string;
+  subject: string;
+  html?: string;
+  text?: string;
+  replyTo?: string;
+  headers?: Record<string, string>;
+};
 
 const MAILBOX_MAPPING: Record<MailboxType, string[]> = {
   INBOX: ["INBOX"],
@@ -812,6 +822,7 @@ export async function sendEmail(
   text?: string
 ): Promise<void> {
   const toAddress = Array.isArray(to) ? to.join(", ") : to;
+  const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER || "";
   const mailOptions: { to: string; subject: string; html?: string; text?: string } = {
     to: toAddress,
     subject,
@@ -825,7 +836,27 @@ export async function sendEmail(
     mailOptions.text = text;
   }
 
+  const composerPayload: MailComposerOptions = {
+    from: fromAddress,
+    to: toAddress,
+    subject,
+    ...(html ? { html } : {}),
+    ...(text ? { text } : {}),
+    ...(process.env.SMTP_FROM ? { replyTo: process.env.SMTP_FROM } : {}),
+  };
+
+  const rawMessage = await buildRawMime(composerPayload).catch((err) => {
+    logger.warn({ err }, "⚠️ Impossible de générer le MIME pour la copie Sent; envoi SMTP seul");
+    return null;
+  });
+
   await sendMail(mailOptions);
+
+  if (rawMessage) {
+    await appendToMailbox(rawMessage, "Sent").catch((err) => {
+      logger.warn({ err }, "⚠️ Email envoyé mais copie Sent non ajoutée");
+    });
+  }
 }
 
 /**
@@ -1343,6 +1374,97 @@ function flattenMailboxEntries(
   }
 
   return entries;
+}
+
+async function buildRawMime(options: MailComposerOptions): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const composer = new MailComposer({
+      ...options,
+      date: new Date(),
+      headers: {
+        "X-Mailer": "Allure Création Mailer",
+        "X-Priority": "3",
+        Importance: "Normal",
+        "X-MSMail-Priority": "Normal",
+        ...(options.headers || {}),
+      },
+    });
+
+    composer.compile().build((err: Error | null, message: Buffer) => {
+      if (err) return reject(err);
+      resolve(message);
+    });
+  });
+}
+
+async function appendToMailbox(rawMessage: Buffer, mailboxType: MailboxType = "Sent"): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const imap = createImapConnection();
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    const clear = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
+
+    const safeEnd = () => {
+      try {
+        imap.end();
+      } catch (e) {
+        // Ignore
+      }
+    };
+
+    timeoutId = setTimeout(() => {
+      try {
+        imap.destroy();
+      } catch (e) {
+        // Ignore
+      }
+      reject(new Error("Timeout lors de la copie dans la boîte mail"));
+    }, 30000);
+
+    imap.once("ready", () => {
+      findMailbox(imap, mailboxType, (err, mailboxName) => {
+        if (err) {
+          clear();
+          safeEnd();
+          return reject(err);
+        }
+
+        imap.append(rawMessage, { mailbox: mailboxName, flags: ["\\Seen"] }, (appendErr) => {
+          clear();
+          if (appendErr) {
+            safeEnd();
+            return reject(appendErr);
+          }
+          logger.info({ mailbox: mailboxName }, "Email copié dans la boîte envoyés");
+          safeEnd();
+          resolve();
+        });
+      });
+    });
+
+    imap.once("error", (err: Error) => {
+      clear();
+      logger.error({ err }, "Erreur IMAP lors de la copie Sent");
+      try {
+        imap.destroy();
+      } catch (e) {
+        // Ignore
+      }
+      reject(err);
+    });
+
+    try {
+      imap.connect();
+    } catch (err) {
+      clear();
+      reject(err);
+    }
+  });
 }
 
 /**
