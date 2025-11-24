@@ -290,10 +290,10 @@ export async function getEmailByUid(
       reject(err);
     };
 
-    // Timeout de 45 secondes (PJ volumineuses)
+    // Timeout de 30 secondes (évite 504 nginx)
     timeoutId = setTimeout(() => {
       finishReject(new Error("Timeout lors de la récupération de l'email"));
-    }, 45000);
+    }, 30000);
 
     imap.once("ready", () => {
       findMailbox(imap, mailboxType, (err, mailboxName) => {
@@ -306,10 +306,15 @@ export async function getEmailByUid(
             return finishReject(err);
           }
 
-          const fetch = imap.fetch([uid], {
-            bodies: "", // Récupère le corps complet
-            struct: true,
-          });
+          const fetch = imap.fetch(
+            [uid],
+            {
+              bodies: "", // Récupère le corps complet
+              struct: true,
+              markSeen: false,
+              uid: true,
+            } as any
+          );
 
           fetch.on("message", (msg) => {
             let buffer = "";

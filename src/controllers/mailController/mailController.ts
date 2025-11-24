@@ -122,7 +122,15 @@ export async function getMailById(req: Request, res: Response): Promise<void> {
 
     logger.info({ mailboxType, uid }, "Récupération d'un email");
 
-    const email = await getEmailByUid(uid, mailboxType);
+    const controllerTimeout = setTimeout(() => {
+      logger.warn({ mailboxType, uid }, "Timeout côté controller lors de la récupération d'un email");
+      return res.status(504).json({
+        success: false,
+        error: "Timeout lors de la récupération de l'email",
+      });
+    }, 30000);
+
+    const email = await getEmailByUid(uid, mailboxType).finally(() => clearTimeout(controllerTimeout));
 
     if (!email) {
       res.status(404).json({
