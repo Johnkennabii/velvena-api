@@ -10090,6 +10090,44 @@
                     "description": "Destinataire(s) de l'email",
                     "example": "destinataire@example.com"
                   },
+                  "cc": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "format": "email"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "email"
+                        }
+                      }
+                    ],
+                    "description": "Destinataire(s) en copie",
+                    "example": [
+                      "copie@example.com"
+                    ]
+                  },
+                  "bcc": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "format": "email"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "email"
+                        }
+                      }
+                    ],
+                    "description": "Destinataire(s) en copie cachée",
+                    "example": [
+                      "copie-cachee@example.com"
+                    ]
+                  },
                   "subject": {
                     "type": "string",
                     "description": "Sujet de l'email",

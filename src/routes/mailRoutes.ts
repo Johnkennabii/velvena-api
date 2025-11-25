@@ -7,6 +7,8 @@ import {
   markMailAsRead,
   markMailAsUnread,
   listMailboxes,
+  listMailFoldersController,
+  createMailFolderController,
   sendMail,
   addMailFlag,
   removeMailFlag,
@@ -19,6 +21,12 @@ const router = Router();
 
 // Liste des boîtes mail disponibles
 router.get("/mailboxes", authMiddleware, listMailboxes);
+
+// Liste tous les dossiers IMAP
+router.get("/folders", authMiddleware, listMailFoldersController);
+
+// Création d'un dossier IMAP
+router.post("/folders", authMiddleware, createMailFolderController);
 
 // Récupère les emails d'une boîte mail spécifique
 // Exemple: GET /mails/inbox?limit=50&offset=0

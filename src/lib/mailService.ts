@@ -36,6 +36,18 @@ export interface MailboxInfo {
 export type MailboxType = "INBOX" | "Sent" | "Trash" | "Spam" | "Drafts";
 
 type MailboxEntry = { name: string; selectable: boolean };
+export type MailFolder = MailboxEntry;
+export type MailAttachmentInput = {
+  filename: string;
+  content: string;
+  contentType?: string;
+  encoding?: BufferEncoding;
+};
+export type NormalizedAttachment = {
+  filename: string;
+  content: Buffer;
+  contentType?: string;
+};
 type MailComposerOptions = {
   from: string;
   to: string;
@@ -45,6 +57,7 @@ type MailComposerOptions = {
   html?: string;
   text?: string;
   replyTo?: string;
+  attachments?: NormalizedAttachment[];
   headers?: Record<string, string>;
 };
 
@@ -846,6 +859,139 @@ export async function getMailboxes(): Promise<MailboxInfo[]> {
 }
 
 /**
+ * Liste tous les dossiers IMAP (plats)
+ */
+export async function listMailFolders(): Promise<MailFolder[]> {
+  return new Promise((resolve, reject) => {
+    const imap = createImapConnection();
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    const clear = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
+
+    const safeEnd = () => {
+      try {
+        imap.end();
+      } catch (e) {
+        // Ignore
+      }
+    };
+
+    timeoutId = setTimeout(() => {
+      try {
+        imap.destroy();
+      } catch (e) {
+        // Ignore
+      }
+      reject(new Error("Timeout lors de la récupération des dossiers"));
+    }, 20000);
+
+    imap.once("ready", () => {
+      imap.getBoxes((err, boxes) => {
+        if (err) {
+          clear();
+          safeEnd();
+          logger.error({ err }, "Erreur lors de getBoxes pour la liste des dossiers");
+          return reject(err);
+        }
+
+        const folders = flattenMailboxEntries(boxes);
+        clear();
+        safeEnd();
+        resolve(folders);
+      });
+    });
+
+    imap.once("error", (err: Error) => {
+      clear();
+      logger.error({ err }, "Erreur de connexion IMAP lors de listMailFolders");
+      try {
+        imap.destroy();
+      } catch (e) {
+        // Ignore
+      }
+      reject(err);
+    });
+
+    try {
+      imap.connect();
+    } catch (err) {
+      clear();
+      reject(err);
+    }
+  });
+}
+
+/**
+ * Crée un nouveau dossier IMAP
+ */
+export async function createMailFolder(folderName: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const imap = createImapConnection();
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    const clear = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
+
+    const safeEnd = () => {
+      try {
+        imap.end();
+      } catch (e) {
+        // Ignore
+      }
+    };
+
+    timeoutId = setTimeout(() => {
+      try {
+        imap.destroy();
+      } catch (e) {
+        // Ignore
+      }
+      reject(new Error("Timeout lors de la création du dossier"));
+    }, 20000);
+
+    imap.once("ready", () => {
+      imap.addBox(folderName, (err) => {
+        if (err) {
+          clear();
+          safeEnd();
+          return reject(err);
+        }
+        clear();
+        safeEnd();
+        resolve();
+      });
+    });
+
+    imap.once("error", (err: Error) => {
+      clear();
+      logger.error({ err }, "Erreur de connexion IMAP lors de createMailFolder");
+      try {
+        imap.destroy();
+      } catch (e) {
+        // Ignore
+      }
+      reject(err);
+    });
+
+    try {
+      imap.connect();
+    } catch (err) {
+      clear();
+      reject(err);
+    }
+  });
+}
+
+/**
  * Envoie un email
  */
 export async function sendEmail(
@@ -855,10 +1001,18 @@ export async function sendEmail(
   text?: string,
   cc?: string | string[],
   bcc?: string | string[],
+  attachments?: MailAttachmentInput[],
 ): Promise<void> {
   const toAddress = Array.isArray(to) ? to.join(", ") : to;
   const ccAddress = cc ? (Array.isArray(cc) ? cc.join(", ") : cc) : undefined;
   const bccAddress = bcc ? (Array.isArray(bcc) ? bcc.join(", ") : bcc) : undefined;
+  const normalizedAttachments: NormalizedAttachment[] | undefined = attachments
+    ? attachments.map((att) => ({
+        filename: att.filename,
+        content: Buffer.from(att.content, att.encoding || "base64"),
+        ...(att.contentType ? { contentType: att.contentType } : {}),
+      }))
+    : undefined;
   const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER || "";
   const mailOptions: {
     to: string;
@@ -867,6 +1021,7 @@ export async function sendEmail(
     subject: string;
     html?: string;
     text?: string;
+    attachments?: NormalizedAttachment[];
   } = {
     to: toAddress,
     ...(ccAddress ? { cc: ccAddress } : {}),
@@ -882,6 +1037,10 @@ export async function sendEmail(
     mailOptions.text = text;
   }
 
+  if (normalizedAttachments?.length) {
+    mailOptions.attachments = normalizedAttachments;
+  }
+
   const composerPayload: MailComposerOptions = {
     from: fromAddress,
     to: toAddress,
@@ -890,6 +1049,7 @@ export async function sendEmail(
     subject,
     ...(html ? { html } : {}),
     ...(text ? { text } : {}),
+    ...(normalizedAttachments?.length ? { attachments: normalizedAttachments } : {}),
     ...(process.env.SMTP_FROM ? { replyTo: process.env.SMTP_FROM } : {}),
   };
 

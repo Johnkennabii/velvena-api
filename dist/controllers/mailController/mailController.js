@@ -339,12 +339,33 @@ export async function listMailboxes(req, res) {
  */
 export async function sendMail(req, res) {
     try {
-        const { to, subject, html, text } = req.body;
+        const { to, cc, bcc, subject, html, text } = req.body;
         // Validation
         if (!to || !subject) {
             res.status(400).json({
                 success: false,
-                error: "Les champs 'to' et 'subject' sont requis",
+                error: "Les champs 'to' (string | string[]) et 'subject' sont requis",
+            });
+            return;
+        }
+        if (typeof to !== "string" && !Array.isArray(to)) {
+            res.status(400).json({
+                success: false,
+                error: "Le champ 'to' doit être une chaîne ou un tableau d'adresses email",
+            });
+            return;
+        }
+        if (cc !== undefined && typeof cc !== "string" && !Array.isArray(cc)) {
+            res.status(400).json({
+                success: false,
+                error: "Le champ optionnel 'cc' doit être une chaîne ou un tableau d'adresses email",
+            });
+            return;
+        }
+        if (bcc !== undefined && typeof bcc !== "string" && !Array.isArray(bcc)) {
+            res.status(400).json({
+                success: false,
+                error: "Le champ optionnel 'bcc' doit être une chaîne ou un tableau d'adresses email",
             });
             return;
         }
@@ -355,8 +376,8 @@ export async function sendMail(req, res) {
             });
             return;
         }
-        logger.info({ to, subject }, "Envoi d'un email");
-        await sendEmail(to, subject, html, text);
+        logger.info({ to, cc, bcc, subject }, "Envoi d'un email");
+        await sendEmail(to, subject, html, text, cc, bcc);
         res.status(200).json({
             success: true,
             message: "Email envoyé avec succès",

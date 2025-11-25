@@ -60,7 +60,7 @@ export declare function getMailboxes(): Promise<MailboxInfo[]>;
 /**
  * Envoie un email
  */
-export declare function sendEmail(to: string | string[], subject: string, html?: string, text?: string): Promise<void>;
+export declare function sendEmail(to: string | string[], subject: string, html?: string, text?: string, cc?: string | string[], bcc?: string | string[]): Promise<void>;
 /**
  * Ajoute un flag à un email
  * Flags IMAP standards: \Seen, \Answered, \Flagged, \Deleted, \Draft

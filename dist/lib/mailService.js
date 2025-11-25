@@ -737,11 +737,15 @@ export async function getMailboxes() {
 /**
  * Envoie un email
  */
-export async function sendEmail(to, subject, html, text) {
+export async function sendEmail(to, subject, html, text, cc, bcc) {
     const toAddress = Array.isArray(to) ? to.join(", ") : to;
+    const ccAddress = cc ? (Array.isArray(cc) ? cc.join(", ") : cc) : undefined;
+    const bccAddress = bcc ? (Array.isArray(bcc) ? bcc.join(", ") : bcc) : undefined;
     const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER || "";
     const mailOptions = {
         to: toAddress,
+        ...(ccAddress ? { cc: ccAddress } : {}),
+        ...(bccAddress ? { bcc: bccAddress } : {}),
         subject,
     };
     if (html) {
@@ -753,6 +757,8 @@ export async function sendEmail(to, subject, html, text) {
     const composerPayload = {
         from: fromAddress,
         to: toAddress,
+        ...(ccAddress ? { cc: ccAddress } : {}),
+        ...(bccAddress ? { bcc: bccAddress } : {}),
         subject,
         ...(html ? { html } : {}),
         ...(text ? { text } : {}),
