@@ -39,6 +39,8 @@ type MailboxEntry = { name: string; selectable: boolean };
 type MailComposerOptions = {
   from: string;
   to: string;
+  cc?: string;
+  bcc?: string;
   subject: string;
   html?: string;
   text?: string;
@@ -307,15 +309,19 @@ export async function getEmailByUid(
           }
 
           // fetch utilise des UIDs par défaut (pas seq.fetch)
+          // Utilise une plage pour être compatible avec tous les serveurs IMAP
           const fetch = imap.fetch(
-            [uid],
+            `${uid}:${uid}`,
             {
               bodies: "", // Récupère le corps complet
               struct: true,
             }
           );
 
+          let messageReceived = false;
+
           fetch.on("message", (msg) => {
+            messageReceived = true;
             let buffer = "";
             let flags: string[] = [];
 
@@ -348,8 +354,9 @@ export async function getEmailByUid(
           });
 
           fetch.once("end", () => {
-            if (!finished) {
-              finishResolve(email);
+            // Si aucun message n'a été reçu, l'email n'existe pas
+            if (!finished && !messageReceived) {
+              finishResolve(null);
             }
           });
         });
@@ -845,12 +852,25 @@ export async function sendEmail(
   to: string | string[],
   subject: string,
   html?: string,
-  text?: string
+  text?: string,
+  cc?: string | string[],
+  bcc?: string | string[],
 ): Promise<void> {
   const toAddress = Array.isArray(to) ? to.join(", ") : to;
+  const ccAddress = cc ? (Array.isArray(cc) ? cc.join(", ") : cc) : undefined;
+  const bccAddress = bcc ? (Array.isArray(bcc) ? bcc.join(", ") : bcc) : undefined;
   const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER || "";
-  const mailOptions: { to: string; subject: string; html?: string; text?: string } = {
+  const mailOptions: {
+    to: string;
+    cc?: string;
+    bcc?: string;
+    subject: string;
+    html?: string;
+    text?: string;
+  } = {
     to: toAddress,
+    ...(ccAddress ? { cc: ccAddress } : {}),
+    ...(bccAddress ? { bcc: bccAddress } : {}),
     subject,
   };
 
@@ -865,6 +885,8 @@ export async function sendEmail(
   const composerPayload: MailComposerOptions = {
     from: fromAddress,
     to: toAddress,
+    ...(ccAddress ? { cc: ccAddress } : {}),
+    ...(bccAddress ? { bcc: bccAddress } : {}),
     subject,
     ...(html ? { html } : {}),
     ...(text ? { text } : {}),
@@ -1090,7 +1112,7 @@ export async function getEmailAttachment(
             return reject(err);
           }
 
-          const fetch = imap.fetch([uid], {
+          const fetch = imap.fetch(`${uid}:${uid}`, {
             bodies: "",
             struct: true,
           });

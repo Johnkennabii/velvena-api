@@ -241,11 +241,14 @@ export async function getEmailByUid(uid, mailboxType = "INBOX") {
                         return finishReject(err);
                     }
                     // fetch utilise des UIDs par défaut (pas seq.fetch)
-                    const fetch = imap.fetch([uid], {
+                    // Utilise une plage pour être compatible avec tous les serveurs IMAP
+                    const fetch = imap.fetch(`${uid}:${uid}`, {
                         bodies: "", // Récupère le corps complet
                         struct: true,
                     });
+                    let messageReceived = false;
                     fetch.on("message", (msg) => {
+                        messageReceived = true;
                         let buffer = "";
                         let flags = [];
                         msg.on("body", (stream) => {
@@ -272,8 +275,9 @@ export async function getEmailByUid(uid, mailboxType = "INBOX") {
                         finishReject(err);
                     });
                     fetch.once("end", () => {
-                        if (!finished) {
-                            finishResolve(email);
+                        // Si aucun message n'a été reçu, l'email n'existe pas
+                        if (!finished && !messageReceived) {
+                            finishResolve(null);
                         }
                     });
                 });
@@ -951,7 +955,7 @@ export async function getEmailAttachment(uid, attachmentIndex, mailboxType = "IN
                         catch (e) { }
                         return reject(err);
                     }
-                    const fetch = imap.fetch([uid], {
+                    const fetch = imap.fetch(`${uid}:${uid}`, {
                         bodies: "",
                         struct: true,
                     });

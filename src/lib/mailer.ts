@@ -25,7 +25,9 @@ const transporter: Transporter = nodemailer.createTransport({
 });
 
 interface MailOptions {
-  to: string;
+  to: string | string[];
+  cc?: string | string[];
+  bcc?: string | string[];
   subject: string;
   html?: string;
   text?: string;
@@ -41,12 +43,18 @@ interface MailOptions {
 });
 // ---------------------------------------------------
 
-export async function sendMail({ to, subject, html, text }: MailOptions): Promise<void> {
+export async function sendMail({ to, cc, bcc, subject, html, text }: MailOptions): Promise<void> {
+  const toList = Array.isArray(to) ? to.join(", ") : to;
+  const ccList = cc ? (Array.isArray(cc) ? cc.join(", ") : cc) : undefined;
+  const bccList = bcc ? (Array.isArray(bcc) ? bcc.join(", ") : bcc) : undefined;
+
   try {
-    logger.info({ to, subject }, "📤 Envoi d'email en cours...");
+    logger.info({ to: toList, cc: ccList, bcc: bccList, subject }, "📤 Envoi d'email en cours...");
     const info = await transporter.sendMail({
       from: process.env.SMTP_FROM,
-      to,
+      to: toList,
+      cc: ccList,
+      bcc: bccList,
       subject,
       html,
       text,
@@ -58,9 +66,9 @@ export async function sendMail({ to, subject, html, text }: MailOptions): Promis
         'X-MSMail-Priority': 'Normal',
       },
     });
-    logger.info({ to, subject, messageId: info.messageId }, "✅ Email envoyé avec succès");
+    logger.info({ to: toList, cc: ccList, bcc: bccList, subject, messageId: info.messageId }, "✅ Email envoyé avec succès");
   } catch (error) {
-    logger.error({ to, subject, err: error }, "❌ Échec de l'envoi d'email");
+    logger.error({ to: toList, cc: ccList, bcc: bccList, subject, err: error }, "❌ Échec de l'envoi d'email");
     throw error;
   }
 }
