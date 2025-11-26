@@ -30,6 +30,16 @@ export declare function markMailAsRead(req: Request, res: Response): Promise<voi
  */
 export declare function markMailAsUnread(req: Request, res: Response): Promise<void>;
 /**
+ * Liste tous les dossiers de la boîte mail
+ * GET /mails/folders
+ */
+export declare function listMailFoldersController(req: Request, res: Response): Promise<void>;
+/**
+ * Crée un dossier IMAP
+ * POST /mails/folders
+ */
+export declare function createMailFolderController(req: Request, res: Response): Promise<void>;
+/**
  * Récupère la liste des boîtes mail
  * GET /mails/mailboxes
  */

@@ -19,6 +19,7 @@ import {
   uploadSignedPdfMiddleware,
   downloadSignedContract
 } from "../../controllers/contractController/contractController.js";
+import { contractPermissionMiddleware } from "../../middleware/contractPermissionMiddleware.js";
 
 const router = Router();
 
@@ -40,13 +41,13 @@ router.get("/sign/:token", (req: Request, res: Response) => {
 });
 router.get("/:id", getContractById);
 router.post("/", createContract);
-router.put("/:id", updateContract);
-router.patch("/:id/restore", restoreContract);
-router.patch("/:id", softDeleteContract);
-router.delete("/:id/hard", hardDeleteContract);
-router.post("/:id/generate-signature", generateSignatureLink);
-router.post("/:id/generate-pdf", generateContractPdfManually);
-router.post("/:id/upload-signed-pdf", uploadSignedPdfMiddleware, uploadSignedContractPdf);
+router.put("/:id", contractPermissionMiddleware(), updateContract);
+router.patch("/:id/restore", contractPermissionMiddleware(), restoreContract);
+router.patch("/:id", contractPermissionMiddleware(), softDeleteContract);
+router.delete("/:id/hard", contractPermissionMiddleware(), hardDeleteContract);
+router.post("/:id/generate-signature", contractPermissionMiddleware(), generateSignatureLink);
+router.post("/:id/generate-pdf", contractPermissionMiddleware(), generateContractPdfManually);
+router.post("/:id/upload-signed-pdf", contractPermissionMiddleware(), uploadSignedPdfMiddleware, uploadSignedContractPdf);
 router.get("/sign-links/:token", getContractSignLink);
 router.post("/sign-links/:token/sign", signContractViaLink);
 

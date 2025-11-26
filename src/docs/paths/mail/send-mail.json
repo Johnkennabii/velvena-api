@@ -69,6 +69,35 @@
                   "description": "Destinataire(s) en copie cachée",
                   "example": ["copie-cachee@example.com"]
                 },
+                "attachments": {
+                  "type": "array",
+                  "description": "Liste des pièces jointes (contenu encodé en base64 par défaut)",
+                  "items": {
+                    "type": "object",
+                    "required": ["filename", "content"],
+                    "properties": {
+                      "filename": {
+                        "type": "string",
+                        "example": "document.pdf"
+                      },
+                      "content": {
+                        "type": "string",
+                        "description": "Contenu encodé (base64 par défaut)",
+                        "example": "JVBERi0xLjUKJcTl8uXrp/Og0MTGCjEgMCBvYmoKPDwvTGluZWFyaXplZCAxL0wgMzI1Nj..."
+                      },
+                      "contentType": {
+                        "type": "string",
+                        "description": "Type MIME optionnel",
+                        "example": "application/pdf"
+                      },
+                      "encoding": {
+                        "type": "string",
+                        "description": "Encodage du contenu (défaut: base64)",
+                        "example": "base64"
+                      }
+                    }
+                  }
+                },
                 "subject": {
                   "type": "string",
                   "description": "Sujet de l'email",

@@ -29,6 +29,22 @@ export interface MailboxInfo {
     new: number;
 }
 export type MailboxType = "INBOX" | "Sent" | "Trash" | "Spam" | "Drafts";
+type MailboxEntry = {
+    name: string;
+    selectable: boolean;
+};
+export type MailFolder = MailboxEntry;
+export type MailAttachmentInput = {
+    filename: string;
+    content: string;
+    contentType?: string;
+    encoding?: BufferEncoding;
+};
+export type NormalizedAttachment = {
+    filename: string;
+    content: Buffer;
+    contentType?: string;
+};
 /**
  * Récupère les emails d'une boîte mail
  */
@@ -58,9 +74,17 @@ export declare function markAsUnread(uid: number, mailboxType?: MailboxType): Pr
  */
 export declare function getMailboxes(): Promise<MailboxInfo[]>;
 /**
+ * Liste tous les dossiers IMAP (plats)
+ */
+export declare function listMailFolders(): Promise<MailFolder[]>;
+/**
+ * Crée un nouveau dossier IMAP
+ */
+export declare function createMailFolder(folderName: string): Promise<void>;
+/**
  * Envoie un email
  */
-export declare function sendEmail(to: string | string[], subject: string, html?: string, text?: string, cc?: string | string[], bcc?: string | string[]): Promise<void>;
+export declare function sendEmail(to: string | string[], subject: string, html?: string, text?: string, cc?: string | string[], bcc?: string | string[], attachments?: MailAttachmentInput[]): Promise<void>;
 /**
  * Ajoute un flag à un email
  * Flags IMAP standards: \Seen, \Answered, \Flagged, \Deleted, \Draft
@@ -82,4 +106,5 @@ export declare function getEmailAttachment(uid: number, attachmentIndex: number,
  * Déplace un email d'une boîte mail vers une autre
  */
 export declare function moveEmail(uid: number, fromMailboxType: MailboxType, toMailboxType: MailboxType): Promise<void>;
+export {};
 //# sourceMappingURL=mailService.d.ts.map

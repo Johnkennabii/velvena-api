@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --loader ts-node/esm --test \"tests/**/*.test.ts\"",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc && node scripts/copyDocs.js",
     "start": "node dist/server.js",

@@ -1,4 +1,4 @@
-import { getEmails, getEmailByUid, deleteEmail, permanentlyDeleteEmail, markAsRead, markAsUnread, getMailboxes, sendEmail, addFlag, removeFlag, moveEmail, getEmailAttachment, } from "../../lib/mailService.js";
+import { getEmails, getEmailByUid, deleteEmail, permanentlyDeleteEmail, markAsRead, markAsUnread, getMailboxes, sendEmail, addFlag, removeFlag, moveEmail, getEmailAttachment, listMailFolders, createMailFolder, } from "../../lib/mailService.js";
 import pino from "pino";
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 /**
@@ -312,6 +312,60 @@ export async function markMailAsUnread(req, res) {
     }
 }
 /**
+ * Liste tous les dossiers de la boîte mail
+ * GET /mails/folders
+ */
+export async function listMailFoldersController(req, res) {
+    try {
+        logger.info("Récupération de la liste des dossiers IMAP");
+        const folders = await listMailFolders();
+        res.status(200).json({
+            success: true,
+            data: folders,
+        });
+    }
+    catch (error) {
+        logger.error({ error }, "Erreur lors de la récupération des dossiers IMAP");
+        res.status(500).json({
+            success: false,
+            error: "Erreur lors de la récupération des dossiers",
+            details: error instanceof Error ? error.message : "Erreur inconnue",
+        });
+    }
+}
+/**
+ * Crée un dossier IMAP
+ * POST /mails/folders
+ */
+export async function createMailFolderController(req, res) {
+    try {
+        const { name } = req.body;
+        if (!name || typeof name !== "string" || !name.trim()) {
+            res.status(400).json({
+                success: false,
+                error: "Le champ 'name' est requis (string non vide)",
+            });
+            return;
+        }
+        const folderName = name.trim();
+        logger.info({ folderName }, "Création d'un dossier IMAP");
+        await createMailFolder(folderName);
+        res.status(201).json({
+            success: true,
+            message: "Dossier créé avec succès",
+            name: folderName,
+        });
+    }
+    catch (error) {
+        logger.error({ error }, "Erreur lors de la création du dossier IMAP");
+        res.status(500).json({
+            success: false,
+            error: "Erreur lors de la création du dossier",
+            details: error instanceof Error ? error.message : "Erreur inconnue",
+        });
+    }
+}
+/**
  * Récupère la liste des boîtes mail
  * GET /mails/mailboxes
  */
@@ -339,7 +393,7 @@ export async function listMailboxes(req, res) {
  */
 export async function sendMail(req, res) {
     try {
-        const { to, cc, bcc, subject, html, text } = req.body;
+        const { to, cc, bcc, subject, html, text, attachments } = req.body;
         // Validation
         if (!to || !subject) {
             res.status(400).json({
@@ -369,6 +423,22 @@ export async function sendMail(req, res) {
             });
             return;
         }
+        if (attachments !== undefined) {
+            const isArray = Array.isArray(attachments);
+            const isValid = isArray &&
+                attachments.every((att) => att &&
+                    typeof att.filename === "string" &&
+                    typeof att.content === "string" &&
+                    (att.contentType === undefined || typeof att.contentType === "string") &&
+                    (att.encoding === undefined || typeof att.encoding === "string"));
+            if (!isArray || !isValid) {
+                res.status(400).json({
+                    success: false,
+                    error: "Le champ optionnel 'attachments' doit être un tableau d'objets { filename, content(base64), contentType? }",
+                });
+                return;
+            }
+        }
         if (!html && !text) {
             res.status(400).json({
                 success: false,
@@ -376,8 +446,8 @@ export async function sendMail(req, res) {
             });
             return;
         }
-        logger.info({ to, cc, bcc, subject }, "Envoi d'un email");
-        await sendEmail(to, subject, html, text, cc, bcc);
+        logger.info({ to, cc, bcc, subject, attachments: attachments?.length || 0 }, "Envoi d'un email");
+        await sendEmail(to, subject, html, text, cc, bcc, attachments);
         res.status(200).json({
             success: true,
             message: "Email envoyé avec succès",

@@ -735,12 +735,145 @@ export async function getMailboxes() {
     });
 }
 /**
+ * Liste tous les dossiers IMAP (plats)
+ */
+export async function listMailFolders() {
+    return new Promise((resolve, reject) => {
+        const imap = createImapConnection();
+        let timeoutId = null;
+        const clear = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        };
+        const safeEnd = () => {
+            try {
+                imap.end();
+            }
+            catch (e) {
+                // Ignore
+            }
+        };
+        timeoutId = setTimeout(() => {
+            try {
+                imap.destroy();
+            }
+            catch (e) {
+                // Ignore
+            }
+            reject(new Error("Timeout lors de la récupération des dossiers"));
+        }, 20000);
+        imap.once("ready", () => {
+            imap.getBoxes((err, boxes) => {
+                if (err) {
+                    clear();
+                    safeEnd();
+                    logger.error({ err }, "Erreur lors de getBoxes pour la liste des dossiers");
+                    return reject(err);
+                }
+                const folders = flattenMailboxEntries(boxes);
+                clear();
+                safeEnd();
+                resolve(folders);
+            });
+        });
+        imap.once("error", (err) => {
+            clear();
+            logger.error({ err }, "Erreur de connexion IMAP lors de listMailFolders");
+            try {
+                imap.destroy();
+            }
+            catch (e) {
+                // Ignore
+            }
+            reject(err);
+        });
+        try {
+            imap.connect();
+        }
+        catch (err) {
+            clear();
+            reject(err);
+        }
+    });
+}
+/**
+ * Crée un nouveau dossier IMAP
+ */
+export async function createMailFolder(folderName) {
+    return new Promise((resolve, reject) => {
+        const imap = createImapConnection();
+        let timeoutId = null;
+        const clear = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        };
+        const safeEnd = () => {
+            try {
+                imap.end();
+            }
+            catch (e) {
+                // Ignore
+            }
+        };
+        timeoutId = setTimeout(() => {
+            try {
+                imap.destroy();
+            }
+            catch (e) {
+                // Ignore
+            }
+            reject(new Error("Timeout lors de la création du dossier"));
+        }, 20000);
+        imap.once("ready", () => {
+            imap.addBox(folderName, (err) => {
+                if (err) {
+                    clear();
+                    safeEnd();
+                    return reject(err);
+                }
+                clear();
+                safeEnd();
+                resolve();
+            });
+        });
+        imap.once("error", (err) => {
+            clear();
+            logger.error({ err }, "Erreur de connexion IMAP lors de createMailFolder");
+            try {
+                imap.destroy();
+            }
+            catch (e) {
+                // Ignore
+            }
+            reject(err);
+        });
+        try {
+            imap.connect();
+        }
+        catch (err) {
+            clear();
+            reject(err);
+        }
+    });
+}
+/**
  * Envoie un email
  */
-export async function sendEmail(to, subject, html, text, cc, bcc) {
+export async function sendEmail(to, subject, html, text, cc, bcc, attachments) {
     const toAddress = Array.isArray(to) ? to.join(", ") : to;
     const ccAddress = cc ? (Array.isArray(cc) ? cc.join(", ") : cc) : undefined;
     const bccAddress = bcc ? (Array.isArray(bcc) ? bcc.join(", ") : bcc) : undefined;
+    const normalizedAttachments = attachments
+        ? attachments.map((att) => ({
+            filename: att.filename,
+            content: Buffer.from(att.content, att.encoding || "base64"),
+            ...(att.contentType ? { contentType: att.contentType } : {}),
+        }))
+        : undefined;
     const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER || "";
     const mailOptions = {
         to: toAddress,
@@ -754,6 +887,9 @@ export async function sendEmail(to, subject, html, text, cc, bcc) {
     if (text) {
         mailOptions.text = text;
     }
+    if (normalizedAttachments?.length) {
+        mailOptions.attachments = normalizedAttachments;
+    }
     const composerPayload = {
         from: fromAddress,
         to: toAddress,
@@ -762,6 +898,7 @@ export async function sendEmail(to, subject, html, text, cc, bcc) {
         subject,
         ...(html ? { html } : {}),
         ...(text ? { text } : {}),
+        ...(normalizedAttachments?.length ? { attachments: normalizedAttachments } : {}),
         ...(process.env.SMTP_FROM ? { replyTo: process.env.SMTP_FROM } : {}),
     };
     const rawMessage = await buildRawMime(composerPayload).catch((err) => {

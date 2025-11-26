@@ -18,6 +18,7 @@ const docs = [
   loadJson("./mark-as-unread.json"),
   loadJson("./send-mail.json"),
   loadJson("./create-mail-folder.json"),
+  loadJson("./move-mail-folder.json"),
   loadJson("./add-flag.json"),
   loadJson("./remove-flag.json"),
   loadJson("./move-email.json"),

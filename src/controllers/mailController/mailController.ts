@@ -14,6 +14,7 @@ import {
   getEmailAttachment,
   listMailFolders,
   createMailFolder,
+  moveMailFolder,
   type MailboxType,
 } from "../../lib/mailService.js";
 import pino from "pino";
@@ -423,6 +424,52 @@ export async function createMailFolderController(req: Request, res: Response): P
     res.status(500).json({
       success: false,
       error: "Erreur lors de la création du dossier",
+      details: error instanceof Error ? error.message : "Erreur inconnue",
+    });
+  }
+}
+
+/**
+ * Déplace / renomme un dossier IMAP
+ * POST /mails/folders/move
+ */
+export async function moveMailFolderController(req: Request, res: Response): Promise<void> {
+  try {
+    const { from, to } = req.body;
+
+    if (!from || typeof from !== "string" || !from.trim()) {
+      res.status(400).json({
+        success: false,
+        error: "Le champ 'from' est requis (string non vide)",
+      });
+      return;
+    }
+
+    if (!to || typeof to !== "string" || !to.trim()) {
+      res.status(400).json({
+        success: false,
+        error: "Le champ 'to' est requis (string non vide)",
+      });
+      return;
+    }
+
+    const fromName = from.trim();
+    const toName = to.trim();
+
+    logger.info({ from: fromName, to: toName }, "Déplacement/renommage d'un dossier IMAP");
+    await moveMailFolder(fromName, toName);
+
+    res.status(200).json({
+      success: true,
+      message: "Dossier déplacé/renommé avec succès",
+      from: fromName,
+      to: toName,
+    });
+  } catch (error) {
+    logger.error({ error }, "Erreur lors du déplacement du dossier IMAP");
+    res.status(500).json({
+      success: false,
+      error: "Erreur lors du déplacement du dossier",
       details: error instanceof Error ? error.message : "Erreur inconnue",
     });
   }

@@ -9,6 +9,7 @@ import {
   listMailboxes,
   listMailFoldersController,
   createMailFolderController,
+  moveMailFolderController,
   sendMail,
   addMailFlag,
   removeMailFlag,
@@ -27,6 +28,9 @@ router.get("/folders", authMiddleware, listMailFoldersController);
 
 // Création d'un dossier IMAP
 router.post("/folders", authMiddleware, createMailFolderController);
+
+// Déplace / renomme un dossier IMAP
+router.post("/folders/move", authMiddleware, moveMailFolderController);
 
 // Récupère les emails d'une boîte mail spécifique
 // Exemple: GET /mails/inbox?limit=50&offset=0

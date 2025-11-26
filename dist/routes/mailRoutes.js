@@ -1,9 +1,13 @@
 import { Router } from "express";
-import { getMailsFromMailbox, getMailById, deleteMail, permanentlyDeleteMail, markMailAsRead, markMailAsUnread, listMailboxes, sendMail, addMailFlag, removeMailFlag, moveMailToFolder, downloadAttachment, } from "../controllers/mailController/mailController.js";
+import { getMailsFromMailbox, getMailById, deleteMail, permanentlyDeleteMail, markMailAsRead, markMailAsUnread, listMailboxes, listMailFoldersController, createMailFolderController, sendMail, addMailFlag, removeMailFlag, moveMailToFolder, downloadAttachment, } from "../controllers/mailController/mailController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 const router = Router();
 // Liste des boîtes mail disponibles
 router.get("/mailboxes", authMiddleware, listMailboxes);
+// Liste tous les dossiers IMAP
+router.get("/folders", authMiddleware, listMailFoldersController);
+// Création d'un dossier IMAP
+router.post("/folders", authMiddleware, createMailFolderController);
 // Récupère les emails d'une boîte mail spécifique
 // Exemple: GET /mails/inbox?limit=50&offset=0
 router.get("/:mailbox", authMiddleware, getMailsFromMailbox);

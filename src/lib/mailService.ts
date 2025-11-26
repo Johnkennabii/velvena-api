@@ -992,6 +992,71 @@ export async function createMailFolder(folderName: string): Promise<void> {
 }
 
 /**
+ * Renomme ou déplace un dossier IMAP (ancien chemin -> nouveau chemin)
+ */
+export async function moveMailFolder(fromName: string, toName: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const imap = createImapConnection();
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    const clear = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
+
+    const safeEnd = () => {
+      try {
+        imap.end();
+      } catch (e) {
+        // Ignore
+      }
+    };
+
+    timeoutId = setTimeout(() => {
+      try {
+        imap.destroy();
+      } catch (e) {
+        // Ignore
+      }
+      reject(new Error("Timeout lors du déplacement du dossier"));
+    }, 20000);
+
+    imap.once("ready", () => {
+      imap.renameBox(fromName, toName, (err) => {
+        if (err) {
+          clear();
+          safeEnd();
+          return reject(err);
+        }
+        clear();
+        safeEnd();
+        resolve();
+      });
+    });
+
+    imap.once("error", (err: Error) => {
+      clear();
+      logger.error({ err }, "Erreur de connexion IMAP lors de moveMailFolder");
+      try {
+        imap.destroy();
+      } catch (e) {
+        // Ignore
+      }
+      reject(err);
+    });
+
+    try {
+      imap.connect();
+    } catch (err) {
+      clear();
+      reject(err);
+    }
+  });
+}
+
+/**
  * Envoie un email
  */
 export async function sendEmail(
