@@ -1,5 +1,5 @@
 import type { Response } from "express";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import prisma from "../../lib/prisma.js";
 import type { AuthenticatedRequest } from "../../types/express.js";
 import pino from "../../lib/logger.js";
@@ -758,38 +758,34 @@ export const getDressesAvailability = async (req: AuthenticatedRequest, res: Res
     const effectiveStart = startDate ?? now;
     const effectiveEnd = endDate ?? null;
 
-    let whereClause = `
-      WHERE cf.deleted_at IS NULL
-        AND cf.status IN ('DRAFT', 'PENDING', 'SIGNED')
-    `;
+    const activeStatuses = ["DRAFT", "PENDING", "PENDING_SIGNATURE", "SIGNED", "SIGNED_ELECTRONICALLY"];
 
-    if (effectiveStart && effectiveEnd) {
-      whereClause += `
-        AND cf.start_datetime <= '${effectiveEnd.toISOString()}'
-        AND cf.end_datetime >= '${effectiveStart.toISOString()}'
-      `;
-    } else {
-      whereClause += `
-        AND cf.end_datetime >= '${effectiveStart.toISOString()}'
-      `;
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`cf.deleted_at IS NULL`,
+      Prisma.sql`cf.status IN (${Prisma.join(activeStatuses)})`,
+      Prisma.sql`cf.end_datetime >= ${effectiveStart.toISOString()}`,
+    ];
+
+    if (effectiveEnd) {
+      conditions.push(Prisma.sql`cf.start_datetime <= ${effectiveEnd.toISOString()}`);
     }
 
-    const occupiedQuery = `
+    const occupiedRows = await prisma.$queryRaw<
+      { dress_id: string; first_start: Date; last_end: Date }[]
+    >(Prisma.sql`
       SELECT
         d->>'id' AS dress_id,
         MIN(cf.start_datetime) AS first_start,
         MAX(cf.end_datetime) AS last_end
       FROM contracts_full_view cf,
            jsonb_array_elements(cf.dresses::jsonb) AS d
-      ${whereClause}
+      WHERE ${Prisma.join(conditions, Prisma.sql` AND `)}
       GROUP BY d->>'id'
-    `;
-
-    const occupiedRows = await prisma.$queryRawUnsafe<any[]>(occupiedQuery);
+    `);
 
     const occupiedById: Record<
       string,
-      { first_start: string; last_end: string }
+      { first_start: Date; last_end: Date }
     > = {};
     for (const row of occupiedRows) {
       occupiedById[row.dress_id] = {
