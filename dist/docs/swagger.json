@@ -9774,6 +9774,86 @@
         }
       }
     },
+    "/mails/folders/move": {
+      "post": {
+        "tags": [
+          "Mail"
+        ],
+        "summary": "Déplace ou renomme un dossier IMAP",
+        "description": "Renomme un dossier ou le déplace vers un nouveau chemin (exemple : from \"INBOX/Clients\" vers \"INBOX/Clients/Archives\").",
+        "operationId": "moveMailFolder",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "from",
+                  "to"
+                ],
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "description": "Chemin complet du dossier à déplacer/renommer",
+                    "example": "INBOX/Clients"
+                  },
+                  "to": {
+                    "type": "string",
+                    "description": "Nouveau chemin complet du dossier",
+                    "example": "INBOX/Clients/Archives"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Dossier déplacé/renommé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Dossier déplacé/renommé avec succès"
+                    },
+                    "from": {
+                      "type": "string",
+                      "example": "INBOX/Clients"
+                    },
+                    "to": {
+                      "type": "string",
+                      "example": "INBOX/Clients/Archives"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requête invalide"
+          },
+          "401": {
+            "description": "Non autorisé"
+          },
+          "500": {
+            "description": "Erreur serveur"
+          }
+        }
+      }
+    },
     "/mails/{mailbox}": {
       "get": {
         "tags": [
@@ -10250,6 +10330,38 @@
                     "example": [
                       "copie-cachee@example.com"
                     ]
+                  },
+                  "attachments": {
+                    "type": "array",
+                    "description": "Liste des pièces jointes (contenu encodé en base64 par défaut)",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "filename",
+                        "content"
+                      ],
+                      "properties": {
+                        "filename": {
+                          "type": "string",
+                          "example": "document.pdf"
+                        },
+                        "content": {
+                          "type": "string",
+                          "description": "Contenu encodé (base64 par défaut)",
+                          "example": "JVBERi0xLjUKJcTl8uXrp/Og0MTGCjEgMCBvYmoKPDwvTGluZWFyaXplZCAxL0wgMzI1Nj..."
+                        },
+                        "contentType": {
+                          "type": "string",
+                          "description": "Type MIME optionnel",
+                          "example": "application/pdf"
+                        },
+                        "encoding": {
+                          "type": "string",
+                          "description": "Encodage du contenu (défaut: base64)",
+                          "example": "base64"
+                        }
+                      }
+                    }
                   },
                   "subject": {
                     "type": "string",
