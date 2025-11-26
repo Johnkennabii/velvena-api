@@ -763,11 +763,11 @@ export const getDressesAvailability = async (req: AuthenticatedRequest, res: Res
     const conditions: Prisma.Sql[] = [
       Prisma.sql`cf.deleted_at IS NULL`,
       Prisma.sql`cf.status IN (${Prisma.join(activeStatuses)})`,
-      Prisma.sql`cf.end_datetime >= ${effectiveStart.toISOString()}`,
+      Prisma.sql`cf.end_datetime >= ${effectiveStart}`,
     ];
 
     if (effectiveEnd) {
-      conditions.push(Prisma.sql`cf.start_datetime <= ${effectiveEnd.toISOString()}`);
+      conditions.push(Prisma.sql`cf.start_datetime <= ${effectiveEnd}`);
     }
 
     const occupiedRows = await prisma.$queryRaw<

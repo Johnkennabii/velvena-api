@@ -614,7 +614,7 @@ export const getDressesAvailability = async (req, res) => {
         MAX(cf.end_datetime) AS last_end
       FROM contracts_full_view cf,
            jsonb_array_elements(cf.dresses::jsonb) AS d
-      WHERE ${Prisma.join(conditions, Prisma.sql ` AND `)}
+      WHERE ${Prisma.join(conditions, " AND ")}
       GROUP BY d->>'id'
     `);
         const occupiedById = {};
