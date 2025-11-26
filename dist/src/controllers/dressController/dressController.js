@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import prisma from "../../lib/prisma.js";
 import pino from "../../lib/logger.js";
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
@@ -597,32 +598,25 @@ export const getDressesAvailability = async (req, res) => {
         const now = new Date();
         const effectiveStart = startDate ?? now;
         const effectiveEnd = endDate ?? null;
-        let whereClause = `
-      WHERE cf.deleted_at IS NULL
-        AND cf.status IN ('DRAFT', 'PENDING', 'SIGNED')
-    `;
-        if (effectiveStart && effectiveEnd) {
-            whereClause += `
-        AND cf.start_datetime <= '${effectiveEnd.toISOString()}'
-        AND cf.end_datetime >= '${effectiveStart.toISOString()}'
-      `;
+        const activeStatuses = ["DRAFT", "PENDING", "PENDING_SIGNATURE", "SIGNED", "SIGNED_ELECTRONICALLY"];
+        const conditions = [
+            Prisma.sql `cf.deleted_at IS NULL`,
+            Prisma.sql `cf.status IN (${Prisma.join(activeStatuses)})`,
+            Prisma.sql `cf.end_datetime >= ${effectiveStart.toISOString()}`,
+        ];
+        if (effectiveEnd) {
+            conditions.push(Prisma.sql `cf.start_datetime <= ${effectiveEnd.toISOString()}`);
         }
-        else {
-            whereClause += `
-        AND cf.end_datetime >= '${effectiveStart.toISOString()}'
-      `;
-        }
-        const occupiedQuery = `
+        const occupiedRows = await prisma.$queryRaw(Prisma.sql `
       SELECT
         d->>'id' AS dress_id,
         MIN(cf.start_datetime) AS first_start,
         MAX(cf.end_datetime) AS last_end
       FROM contracts_full_view cf,
            jsonb_array_elements(cf.dresses::jsonb) AS d
-      ${whereClause}
+      WHERE ${Prisma.join(conditions, Prisma.sql ` AND `)}
       GROUP BY d->>'id'
-    `;
-        const occupiedRows = await prisma.$queryRawUnsafe(occupiedQuery);
+    `);
         const occupiedById = {};
         for (const row of occupiedRows) {
             occupiedById[row.dress_id] = {
