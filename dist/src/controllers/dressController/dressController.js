@@ -602,21 +602,41 @@ export const getDressesAvailability = async (req, res) => {
         const conditions = [
             Prisma.sql `cf.deleted_at IS NULL`,
             Prisma.sql `cf.status IN (${Prisma.join(activeStatuses)})`,
-            Prisma.sql `cf.end_datetime >= ${effectiveStart.toISOString()}`,
+            Prisma.sql `cf.end_datetime >= ${effectiveStart}`,
         ];
         if (effectiveEnd) {
-            conditions.push(Prisma.sql `cf.start_datetime <= ${effectiveEnd.toISOString()}`);
+            conditions.push(Prisma.sql `cf.start_datetime <= ${effectiveEnd}`);
         }
-        const occupiedRows = await prisma.$queryRaw(Prisma.sql `
-      SELECT
-        d->>'id' AS dress_id,
-        MIN(cf.start_datetime) AS first_start,
-        MAX(cf.end_datetime) AS last_end
-      FROM contracts_full_view cf,
-           jsonb_array_elements(cf.dresses::jsonb) AS d
-      WHERE ${Prisma.join(conditions, " AND ")}
-      GROUP BY d->>'id'
-    `);
+        let occupiedRows = [];
+        console.log("🔍 BEFORE QUERY - effectiveStart:", effectiveStart, "effectiveEnd:", effectiveEnd);
+        try {
+            occupiedRows = await prisma.$queryRaw(Prisma.sql `
+        SELECT
+          d->>'id' AS dress_id,
+          MIN(cf.start_datetime) AS first_start,
+          MAX(cf.end_datetime) AS last_end
+        FROM contracts_full_view cf,
+             jsonb_array_elements(cf.dresses::jsonb) AS d
+        WHERE ${Prisma.join(conditions, " AND ")}
+        GROUP BY d->>'id'
+      `);
+            console.log("✅ QUERY SUCCESS - occupiedRows.length:", occupiedRows.length);
+        }
+        catch (error) {
+            console.log("❌ QUERY ERROR:", error);
+            pino.error({ error, conditions, effectiveStart, effectiveEnd }, "❌ Error in availability query");
+            // Return empty array on error - all dresses will appear available
+            occupiedRows = [];
+        }
+        console.log("📊 AFTER QUERY - occupiedRows:", JSON.stringify(occupiedRows));
+        pino.info({
+            occupiedRowsCount: occupiedRows.length,
+            occupiedRows: occupiedRows.map(r => ({
+                dress_id: r.dress_id,
+                first_start: r.first_start,
+                last_end: r.last_end
+            }))
+        }, "📋 Occupied rows from query");
         const occupiedById = {};
         for (const row of occupiedRows) {
             occupiedById[row.dress_id] = {
@@ -624,6 +644,10 @@ export const getDressesAvailability = async (req, res) => {
                 last_end: row.last_end,
             };
         }
+        pino.info({
+            occupiedByIdKeys: Object.keys(occupiedById),
+            occupiedByIdCount: Object.keys(occupiedById).length
+        }, "🗝️ Occupied dresses by ID map");
         const allDresses = await prisma.dress.findMany({
             where: { deleted_at: null },
             select: {
