@@ -1,0 +1,38 @@
+{
+  "/customers/{id}": {
+    "get": {
+      "tags": ["Customers"],
+      "summary": "Get customer by ID",
+      "description": "Retrieves one customer by its unique identifier.",
+      "operationId": "getCustomerById",
+      "security": [{ "bearerAuth": [] }],
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string", "format": "uuid" },
+          "description": "Customer ID"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "✅ Customer retrieved successfully",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/GetCustomerByIdResponse" }
+            }
+          }
+        },
+        "404": {
+          "description": "❌ Customer not found",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

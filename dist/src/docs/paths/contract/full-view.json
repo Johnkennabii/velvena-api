@@ -1,0 +1,171 @@
+{
+  "/contracts/full-view": {
+    "get": {
+      "tags": ["Contracts"],
+      "summary": "Get all contracts with full view details",
+      "description": "Retrieves a comprehensive list of all contracts with related data from the `contracts_full_view` SQL view. Optionally, you can filter the results by a specific customer using the `customer_id` query parameter or run a keyword search across contract numbers and customer identity fields via the `search` parameter. Each contract record contains financial data, package information, contract type, dresses, and addons.",
+      "operationId": "getContractsFullView",
+      "parameters": [
+        {
+          "name": "customer_id",
+          "in": "query",
+          "required": false,
+          "description": "Optional filter to retrieve only contracts belonging to a specific customer.",
+          "schema": {
+            "type": "string",
+            "format": "uuid",
+            "example": "135fb9e8-20c2-4874-8251-33e7ab0ddeb8"
+          }
+        },
+        {
+          "name": "search",
+          "in": "query",
+          "required": false,
+          "description": "Case-insensitive keyword matched against contract number, customer first name, last name, or email.",
+          "schema": {
+            "type": "string",
+            "example": "CTR-2025"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "✅ Successfully retrieved one or multiple contracts.",
+          "content": {
+            "application/json": {
+              "examples": {
+                "allContracts": {
+                  "summary": "Example response for all contracts",
+                  "value": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "a7b2c3d4-5678-90ab-cdef-1234567890ab",
+                        "contract_number": "CTR-2025-001",
+                        "start_datetime": "2025-03-15T10:00:00.000Z",
+                        "end_datetime": "2025-03-20T18:00:00.000Z",
+                        "status": "SIGNED",
+                        "deposit_payment_method": "card",
+                        "account_ht": 500.0,
+                        "account_ttc": 600.0,
+                        "account_paid_ht": 250.0,
+                        "account_paid_ttc": 300.0,
+                        "caution_ht": 200.0,
+                        "caution_ttc": 240.0,
+                        "total_price_ht": 700.0,
+                        "total_price_ttc": 840.0,
+                        "contract_type_name": "Location par jour",
+                        "package_name": null,
+                        "customer_id": "135fb9e8-20c2-4874-8251-33e7ab0ddeb8",
+                        "created_at": "2025-03-10T14:35:22.000Z",
+                        "updated_at": "2025-03-11T09:00:00.000Z"
+                      }
+                    ]
+                  }
+                },
+                "filteredByCustomer": {
+                  "summary": "Example response filtered by customer_id",
+                  "value": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "e25b321f-4b13-49e4-8d19-8b8edc6de71b",
+                        "contract_number": "CTR-2025-045",
+                        "start_datetime": "2025-04-01T09:00:00.000Z",
+                        "end_datetime": "2025-04-03T17:00:00.000Z",
+                        "status": "PENDING_SIGNATURE",
+                        "deposit_payment_method": "cash",
+                        "account_ht": 400.0,
+                        "account_ttc": 480.0,
+                        "account_paid_ht": 200.0,
+                        "account_paid_ttc": 240.0,
+                        "caution_ht": 100.0,
+                        "caution_ttc": 120.0,
+                        "total_price_ht": 500.0,
+                        "total_price_ttc": 600.0,
+                        "contract_type_name": "Forfait Mariage",
+                        "package_name": "Forfait Élégance",
+                        "customer_id": "135fb9e8-20c2-4874-8251-33e7ab0ddeb8",
+                        "created_at": "2025-04-01T11:00:00.000Z",
+                        "updated_at": "2025-04-02T10:30:00.000Z"
+                      }
+                    ]
+                  }
+                }
+              },
+              "schema": {
+                "type": "object",
+                "required": ["success", "data"],
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "data": {
+                    "type": "array",
+                    "description": "Array of contract records from the full view table.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "contract_number": { "type": "string" },
+                        "start_datetime": { "type": "string", "format": "date-time" },
+                        "end_datetime": { "type": "string", "format": "date-time" },
+                        "status": {
+                          "type": "string",
+                          "enum": ["PENDING_SIGNATURE", "SIGNED", "CANCELLED", "EXPIRED"],
+                          "example": "SIGNED"
+                        },
+                        "deposit_payment_method": {
+                          "type": "string",
+                          "enum": ["cash", "card", "transfer"],
+                          "example": "card"
+                        },
+                        "account_ht": { "type": "number", "example": 500.0 },
+                        "account_ttc": { "type": "number", "example": 600.0 },
+                        "account_paid_ht": { "type": "number", "example": 250.0 },
+                        "account_paid_ttc": { "type": "number", "example": 300.0 },
+                        "caution_ht": { "type": "number", "example": 200.0 },
+                        "caution_ttc": { "type": "number", "example": 240.0 },
+                        "caution_paid_ht": { "type": "number", "example": 0.0 },
+                        "caution_paid_ttc": { "type": "number", "example": 0.0 },
+                        "total_price_ht": { "type": "number", "example": 700.0 },
+                        "total_price_ttc": { "type": "number", "example": 840.0 },
+                        "contract_type_name": { "type": "string", "example": "Location par jour" },
+                        "package_name": { "type": ["string", "null"], "example": "Forfait Élégance" },
+                        "customer_id": { "type": "string", "format": "uuid" },
+                        "created_at": { "type": "string", "format": "date-time" },
+                        "updated_at": { "type": ["string", "null"], "format": "date-time" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error — failed to fetch data from `contracts_full_view`.",
+          "content": {
+            "application/json": {
+              "examples": {
+                "dbError": {
+                  "summary": "Database query failed",
+                  "value": {
+                    "success": false,
+                    "error": "Failed to fetch contracts_full_view"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    }
+  }
+}

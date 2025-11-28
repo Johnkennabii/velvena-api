@@ -1,0 +1,39 @@
+{
+  "/customers": {
+    "post": {
+      "tags": ["Customers"],
+      "summary": "Create a new customer",
+      "description": "Creates a new customer record.",
+      "operationId": "createCustomer",
+      "security": [{ "bearerAuth": [] }],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/CreateCustomerRequest" },
+            "example": {
+              "firstname": "Emma",
+              "lastname": "Dupont",
+              "email": "emma.dupont@email.fr",
+              "phone": "+33612345678",
+              "country": "France",
+              "city": "Paris",
+              "address": "10 Rue de Rivoli",
+              "postal_code": "75001"
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "✅ Customer successfully created",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateCustomerResponse" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "title": "Generate Signature",
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "string",
+      "description": "Data to be signed"
+    },
+    "privateKey": {
+      "type": "string",
+      "description": "Private key used for signing"
+    }
+  },
+  "required": ["data", "privateKey"],
+  "additionalProperties": false
+}

@@ -1,0 +1,68 @@
+{
+  "/mails/folders": {
+    "post": {
+      "tags": ["Mail"],
+      "summary": "Crée un nouveau dossier IMAP",
+      "description": "Crée un dossier (ou sous-dossier) sur la boîte mail. Fournir le chemin complet si nécessaire (ex: \"INBOX/Clients\").",
+      "operationId": "createMailFolder",
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": ["name"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Nom ou chemin complet du dossier à créer",
+                  "example": "INBOX/Clients"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Dossier créé avec succès",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "message": {
+                    "type": "string",
+                    "example": "Dossier créé avec succès"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "INBOX/Clients"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Requête invalide"
+        },
+        "401": {
+          "description": "Non autorisé"
+        },
+        "500": {
+          "description": "Erreur serveur"
+        }
+      }
+    }
+  }
+}

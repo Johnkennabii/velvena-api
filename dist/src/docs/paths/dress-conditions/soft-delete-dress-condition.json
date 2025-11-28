@@ -1,0 +1,58 @@
+{
+  "/dress-conditions/{id}": {
+    "patch": {
+      "tags": ["Dresses - Conditions"],
+      "summary": "Soft delete a dress condition",
+      "description": "Marks a dress condition as deleted by setting `deleted_at` and `deleted_by`. The record remains for audit purposes.",
+      "operationId": "softDeleteDressCondition",
+      "security": [
+        { "bearerAuth": [] }
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string", "format": "uuid" },
+          "description": "ID of the condition to soft delete."
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "✅ Dress condition soft deleted successfully",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SoftDeleteDressConditionResponse" },
+              "examples": {
+                "success": {
+                  "value": {
+                    "success": true,
+                    "data": {
+                      "id": "7b83a4d0-d662-42e2-9351-f5c80cb0cc43",
+                      "name": "Bon état",
+                      "deleted_by": "a91c8e7a-5f0d-4fa2-8fcb-92694b0b7b45",
+                      "deleted_at": "2025-10-09T22:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Error while soft deleting dress condition",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+              "examples": {
+                "serverError": {
+                  "value": { "success": false, "error": "Failed to soft delete condition" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

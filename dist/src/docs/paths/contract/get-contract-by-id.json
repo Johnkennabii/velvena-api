@@ -1,0 +1,162 @@
+{
+      "/contracts/{id}": {
+    "get": {
+      "tags": ["Contracts"],
+      "summary": "Get contract by ID",
+      "description": "Retrieves one contract by its ID, including all related entities such as customer, contract type, package, addons, dresses, and electronic signature link.",
+      "operationId": "getContractById",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string", "format": "uuid" },
+          "description": "UUID of the contract to retrieve."
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "✅ Successfully retrieved the contract",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["success", "data"],
+                "properties": {
+                  "success": { "type": "boolean", "example": true },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "string", "format": "uuid" },
+                      "contract_number": { "type": "string" },
+                      "status": {
+                        "type": "string",
+                        "enum": ["DRAFT", "PENDING_SIGNATURE", "SIGNED", "CANCELLED", "EXPIRED"],
+                        "example": "SIGNED"
+                      },
+                      "start_datetime": { "type": "string", "format": "date-time" },
+                      "end_datetime": { "type": "string", "format": "date-time" },
+                      "deposit_payment_method": {
+                        "type": "string",
+                        "enum": ["cash", "card", "transfer"],
+                        "example": "card"
+                      },
+                      "account_ht": { "type": "number", "example": 400.0 },
+                      "account_ttc": { "type": "number", "example": 480.0 },
+                      "caution_ht": { "type": "number", "example": 100.0 },
+                      "caution_ttc": { "type": "number", "example": 120.0 },
+                      "total_price_ht": { "type": "number", "example": 500.0 },
+                      "total_price_ttc": { "type": "number", "example": 600.0 },
+                      "customer": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string", "format": "uuid" },
+                          "firstname": { "type": "string", "example": "Emma" },
+                          "lastname": { "type": "string", "example": "Dupont" },
+                          "email": { "type": "string", "format": "email", "example": "emma.dupont@email.fr" },
+                          "phone": { "type": "string", "example": "+33612345678" }
+                        }
+                      },
+                      "contract_type": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string", "format": "uuid" },
+                          "name": { "type": "string", "example": "Location par jour" }
+                        }
+                      },
+                      "package": {
+                        "type": ["object", "null"],
+                        "properties": {
+                          "id": { "type": "string", "format": "uuid" },
+                          "name": { "type": "string", "example": "Forfait Élégance" },
+                          "price_ht": { "type": "number", "example": 500 },
+                          "price_ttc": { "type": "number", "example": 600 }
+                        }
+                      },
+                      "addon_links": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "addon": {
+                              "type": "object",
+                              "properties": {
+                                "id": { "type": "string", "format": "uuid" },
+                                "name": { "type": "string", "example": "Retouche coiffure" },
+                                "price_ttc": { "type": "number", "example": 80 },
+                                "included": { "type": "boolean", "example": false }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "dresses": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "dress": {
+                              "type": "object",
+                              "properties": {
+                                "id": { "type": "string", "format": "uuid" },
+                                "name": { "type": "string", "example": "Robe de mariée Élégance" },
+                                "price_per_day_ttc": { "type": "number", "example": 120 }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "sign_link": {
+                        "type": ["object", "null"],
+                        "description": "Electronic signature link associated with this contract.",
+                        "properties": {
+                          "token": { "type": "string", "example": "9c9a6b14-1e8e-48cd-bf8b-cb8dcf9df8d3" },
+                          "expires_at": { "type": "string", "format": "date-time" }
+                        }
+                      },
+                      "created_at": { "type": "string", "format": "date-time" },
+                      "updated_at": { "type": ["string", "null"], "format": "date-time" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "❌ Contract not found",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": { "type": "boolean", "example": false },
+                  "error": { "type": "string", "example": "Contract not found" }
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error - Failed to fetch contract",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": { "type": "boolean", "example": false },
+                  "error": { "type": "string", "example": "Failed to fetch contract" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    }
+  }
+}

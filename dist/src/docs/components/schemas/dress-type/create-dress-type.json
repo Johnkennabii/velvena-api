@@ -1,0 +1,24 @@
+{
+  "CreateDressTypeRequest": {
+    "type": "object",
+    "required": ["name"],
+    "properties": {
+      "name": { "type": "string", "example": "Robe de cocktail" },
+      "description": { "type": ["string", "null"], "example": "Robe mi-longue pour soirée" }
+    }
+  },
+  "CreateDressTypeResponse": {
+    "type": "object",
+    "properties": {
+      "success": { "type": "boolean", "example": true },
+      "data": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "description": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}

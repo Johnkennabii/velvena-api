@@ -1,0 +1,85 @@
+{
+  "/dress-colors/{id}": {
+    "delete": {
+      "tags": ["Dresses - Colors"],
+      "summary": "Permanently delete a dress color",
+      "description": "Completely removes a color entry from the database. This action is irreversible. Requires authentication and should generally be used only by admins.",
+      "operationId": "hardDeleteDressColor",
+      "security": [
+        { "bearerAuth": [] }
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid",
+            "example": "7f736acb-7b51-4d07-9c18-13dbffeaabf8"
+          },
+          "description": "The unique identifier of the dress color to permanently delete."
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "✅ Dress color successfully hard deleted",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HardDeleteDressColorResponse"
+              },
+              "examples": {
+                "success": {
+                  "summary": "Example successful deletion",
+                  "value": {
+                    "success": true,
+                    "message": "Color hard deleted"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "⚠️ Missing required color ID",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "missingId": {
+                  "summary": "Missing ID error",
+                  "value": {
+                    "success": false,
+                    "error": "Color id is required"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error while deleting color",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "serverError": {
+                  "summary": "Unexpected Prisma or database error",
+                  "value": {
+                    "success": false,
+                    "error": "Failed to hard delete color"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

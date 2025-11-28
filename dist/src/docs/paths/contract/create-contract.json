@@ -1,0 +1,456 @@
+{
+  "/contracts": {
+    "post": {
+      "tags": ["Contracts"],
+      "summary": "Create a new contract",
+      "description": "Creates a full contract record, links it to the selected customer and generates a 7-day signature link. Deux cas d’usage sont supportés : **contrat \"location par jour\"** (sans package, généralement pour une seule robe) et **contrat forfait** (avec `package_id`, préconfiguré avec robes/addons). Les montants HT/TTC doivent être calculés par le client.",
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "contract_number",
+                "customer_id",
+                "contract_type_id",
+                "start_datetime",
+                "end_datetime",
+                "total_price_ht",
+                "total_price_ttc",
+                "status"
+              ],
+              "properties": {
+                "contract_number": {
+                  "type": "string",
+                  "description": "Business identifier displayed to the user (ex: CTR-2025-004). Must be unique.",
+                  "example": "CTR-2025-004"
+                },
+                "customer_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Customer owning the contract.",
+                  "example": "d43c9530-1164-4fa4-96fb-6d64cc1df4b5"
+                },
+                "contract_type_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Type de contrat (`Location par jour`, `Forfait`, etc.). Permet au front de distinguer la logique à appliquer.",
+                  "example": "a0c66f0f-7a6c-4a05-96ab-2b2d1d9afc54"
+                },
+                "package_id": {
+                  "type": ["string", "null"],
+                  "format": "uuid",
+                  "description": "Identifiant du package à appliquer. Laisser `null` ou omettre pour une location par jour.",
+                  "example": "5b73cfa8-b7a1-47f2-b5ed-3f8d2b86a9b7"
+                },
+                "start_datetime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Contract start timestamp (ISO 8601).",
+                  "example": "2025-06-01T10:00:00.000Z"
+                },
+                "end_datetime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Contract end timestamp (ISO 8601).",
+                  "example": "2025-06-03T10:00:00.000Z"
+                },
+                "deposit_payment_method": {
+                  "type": "string",
+                  "description": "Payment method used for the deposit (omit if not collected yet).",
+                  "enum": ["cash", "card", "transfer"],
+                  "example": "card"
+                },
+                "status": {
+                  "type": "string",
+                  "description": "Current status of the contract.",
+                  "enum": ["DRAFT", "PENDING_SIGNATURE", "SIGNED", "CANCELLED", "EXPIRED"],
+                  "example": "PENDING_SIGNATURE"
+                },
+                "account_ht": {
+                  "type": ["number", "null"],
+                  "description": "Deposit amount excluding taxes.",
+                  "example": 400.0
+                },
+                "account_ttc": {
+                  "type": ["number", "null"],
+                  "description": "Deposit amount including taxes.",
+                  "example": 480.0
+                },
+                "account_paid_ht": {
+                  "type": ["number", "null"],
+                  "description": "Deposit already paid (HT).",
+                  "example": 200.0
+                },
+                "account_paid_ttc": {
+                  "type": ["number", "null"],
+                  "description": "Deposit already paid (TTC).",
+                  "example": 240.0
+                },
+                "caution_ht": {
+                  "type": ["number", "null"],
+                  "description": "Security deposit excluding taxes.",
+                  "example": 100.0
+                },
+                "caution_ttc": {
+                  "type": ["number", "null"],
+                  "description": "Security deposit including taxes.",
+                  "example": 120.0
+                },
+                "caution_paid_ht": {
+                  "type": ["number", "null"],
+                  "description": "Security deposit already paid (HT).",
+                  "example": 0.0
+                },
+                "caution_paid_ttc": {
+                  "type": ["number", "null"],
+                  "description": "Security deposit already paid (TTC).",
+                  "example": 0.0
+                },
+                "total_price_ht": {
+                  "type": "number",
+                  "description": "Total contract amount excluding taxes.",
+                  "example": 500.0
+                },
+                "total_price_ttc": {
+                  "type": "number",
+                  "description": "Total contract amount including taxes.",
+                  "example": 600.0
+                },
+                "addons": {
+                  "type": "array",
+                  "description": "Liste d’addons à rattacher au contrat (possible pour un forfait ou une location par jour).",
+                  "items": {
+                    "type": "object",
+                    "required": ["addon_id"],
+                    "properties": {
+                      "addon_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identifier of the addon to link.",
+                        "example": "d031ce8d-9e9f-4d89-a3d8-2ec4b0ca16fc"
+                      }
+                    }
+                  }
+                },
+                "dresses": {
+                  "type": "array",
+                  "description": "Liste des robes liées au contrat. Pour un contrat \"location par jour\", envoyer la ou les robes sélectionnées directement ici.",
+                  "items": {
+                    "type": "object",
+                    "required": ["dress_id"],
+                    "properties": {
+                      "dress_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identifier of the dress to reserve.",
+                        "example": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "examples": {
+              "completeContract": {
+                "summary": "Contrat forfait avec package, addons et robes",
+                "value": {
+                  "contract_number": "CTR-2025-004",
+                  "customer_id": "d43c9530-1164-4fa4-96fb-6d64cc1df4b5",
+                  "contract_type_id": "a0c66f0f-7a6c-4a05-96ab-2b2d1d9afc54",
+                  "package_id": "5b73cfa8-b7a1-47f2-b5ed-3f8d2b86a9b7",
+                  "start_datetime": "2025-06-01T10:00:00.000Z",
+                  "end_datetime": "2025-06-03T10:00:00.000Z",
+                  "deposit_payment_method": "card",
+                  "status": "PENDING_SIGNATURE",
+                  "account_ht": 400,
+                  "account_ttc": 480,
+                  "account_paid_ht": 200,
+                  "account_paid_ttc": 240,
+                  "caution_ht": 100,
+                  "caution_ttc": 120,
+                  "caution_paid_ht": 0,
+                  "caution_paid_ttc": 0,
+                  "total_price_ht": 500,
+                  "total_price_ttc": 600,
+                  "addons": [
+                    { "addon_id": "d031ce8d-9e9f-4d89-a3d8-2ec4b0ca16fc" }
+                  ],
+                  "dresses": [
+                    { "dress_id": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f" },
+                    { "dress_id": "0b00222f-851e-4a7a-9e52-439b820e62ae" }
+                  ]
+                }
+              },
+              "dailyRental": {
+                "summary": "Contrat \"location par jour\" sans package",
+                "value": {
+                  "contract_number": "CTR-2025-005",
+                  "customer_id": "b18c4c10-41b8-4f01-9c74-376fa4b3c2b1",
+                  "contract_type_id": "6c7b9b28-8de2-41f6-9a0f-8f8d063b6c3e",
+                  "start_datetime": "2025-07-15T09:00:00.000Z",
+                  "end_datetime": "2025-07-16T18:00:00.000Z",
+                  "deposit_payment_method": "cash",
+                  "status": "DRAFT",
+                  "account_ht": 150,
+                  "account_ttc": 180,
+                  "account_paid_ht": 150,
+                  "account_paid_ttc": 180,
+                  "caution_ht": 80,
+                  "caution_ttc": 96,
+                  "caution_paid_ht": 0,
+                  "caution_paid_ttc": 0,
+                  "total_price_ht": 280,
+                  "total_price_ttc": 336,
+                  "package_id": null,
+                  "addons": [
+                    { "addon_id": "f94b7a5d-1e2f-4b4a-8a32-90c8a7cb7f20" }
+                  ],
+                  "dresses": [
+                    { "dress_id": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f" }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "✅ Contract created successfully with all related entities.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Newly created contract including related links.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "c1f8b8ce-7420-4a5e-858b-9de799d4af0c"
+                      },
+                      "contract_number": {
+                        "type": "string",
+                        "example": "CTR-2025-004"
+                      },
+                      "status": {
+                        "type": "string",
+                        "example": "PENDING_SIGNATURE"
+                      },
+                      "start_datetime": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "end_datetime": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "total_price_ht": {
+                        "type": "number",
+                        "example": 500
+                      },
+                      "total_price_ttc": {
+                        "type": "number",
+                        "example": 600
+                      },
+                      "deposit_payment_method": {
+                        "type": ["string", "null"],
+                        "example": "card"
+                      },
+                      "account_ht": {
+                        "type": ["number", "null"],
+                        "example": 400
+                      },
+                      "account_ttc": {
+                        "type": ["number", "null"],
+                        "example": 480
+                      },
+                      "account_paid_ht": {
+                        "type": ["number", "null"],
+                        "example": 200
+                      },
+                      "account_paid_ttc": {
+                        "type": ["number", "null"],
+                        "example": 240
+                      },
+                      "caution_ht": {
+                        "type": ["number", "null"],
+                        "example": 100
+                      },
+                      "caution_ttc": {
+                        "type": ["number", "null"],
+                        "example": 120
+                      },
+                      "caution_paid_ht": {
+                        "type": ["number", "null"],
+                        "example": 0
+                      },
+                      "caution_paid_ttc": {
+                        "type": ["number", "null"],
+                        "example": 0
+                      },
+                      "customer_id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "contract_type_id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "package_id": {
+                        "type": ["string", "null"],
+                        "format": "uuid"
+                      },
+                      "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "created_by": {
+                        "type": ["string", "null"],
+                        "format": "uuid"
+                      },
+                      "sign_link": {
+                        "type": "object",
+                        "description": "Signature link generated automatically (7-day expiry).",
+                        "properties": {
+                          "id": { "type": "string", "format": "uuid" },
+                          "token": { "type": "string", "format": "uuid" },
+                          "customer_id": { "type": "string", "format": "uuid" },
+                          "expires_at": { "type": "string", "format": "date-time" }
+                        }
+                      },
+                      "addon_links": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "addon_id": { "type": "string", "format": "uuid" },
+                            "addon": {
+                              "type": "object",
+                              "properties": {
+                                "name": { "type": "string", "example": "Retouche coiffure" },
+                                "price_ttc": { "type": "number", "example": 80 }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "dresses": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "dress_id": { "type": "string", "format": "uuid" },
+                            "dress": {
+                              "type": "object",
+                              "properties": {
+                                "name": { "type": "string", "example": "Robe de mariée Élégance" },
+                                "price_per_day_ttc": { "type": "number", "example": 120 }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "success": {
+                  "summary": "Successful response with linked data",
+                  "value": {
+                    "success": true,
+                    "data": {
+                      "id": "c1f8b8ce-7420-4a5e-858b-9de799d4af0c",
+                      "contract_number": "CTR-2025-004",
+                      "status": "PENDING_SIGNATURE",
+                      "start_datetime": "2025-06-01T10:00:00.000Z",
+                      "end_datetime": "2025-06-03T10:00:00.000Z",
+                      "total_price_ht": 500,
+                      "total_price_ttc": 600,
+                      "deposit_payment_method": "card",
+                      "account_ht": 400,
+                      "account_ttc": 480,
+                      "account_paid_ht": 200,
+                      "account_paid_ttc": 240,
+                      "caution_ht": 100,
+                      "caution_ttc": 120,
+                      "caution_paid_ht": 0,
+                      "caution_paid_ttc": 0,
+                      "customer_id": "d43c9530-1164-4fa4-96fb-6d64cc1df4b5",
+                      "contract_type_id": "a0c66f0f-7a6c-4a05-96ab-2b2d1d9afc54",
+                      "package_id": "5b73cfa8-b7a1-47f2-b5ed-3f8d2b86a9b7",
+                      "created_at": "2025-05-30T10:00:00.000Z",
+                      "created_by": "16937819-c033-438f-bbad-543d83443371",
+                      "sign_link": {
+                        "id": "6b147c3e-3b1f-41ad-8f9e-3a9d5d6c1f23",
+                        "customer_id": "d43c9530-1164-4fa4-96fb-6d64cc1df4b5",
+                        "token": "9c9a6b14-1e8e-48cd-bf8b-cb8dcf9df8d3",
+                        "expires_at": "2025-06-06T10:00:00.000Z"
+                      },
+                      "addon_links": [
+                        {
+                          "addon_id": "d031ce8d-9e9f-4d89-a3d8-2ec4b0ca16fc",
+                          "addon": {
+                            "name": "Retouche coiffure",
+                            "price_ttc": 80
+                          }
+                        }
+                      ],
+                      "dresses": [
+                        {
+                          "dress_id": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f",
+                          "dress": {
+                            "name": "Robe de mariée Élégance",
+                            "price_per_day_ttc": 120
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "⚠️ Invalid or incomplete payload.",
+          "content": {
+            "application/json": {
+              "example": { "success": false, "error": "Missing contract_number" }
+            }
+          }
+        },
+        "401": {
+          "description": "🔒 Missing or invalid JWT.",
+          "content": {
+            "application/json": {
+              "example": { "error": "Unauthorized" }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error.",
+          "content": {
+            "application/json": {
+              "example": { "success": false, "error": "Failed to create contract" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

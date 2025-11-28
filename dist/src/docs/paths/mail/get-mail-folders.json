@@ -1,0 +1,55 @@
+{
+  "/mails/folders": {
+    "get": {
+      "tags": ["Mail"],
+      "summary": "Liste tous les dossiers IMAP",
+      "description": "Récupère tous les dossiers disponibles sur la boîte mail (format plat)",
+      "operationId": "listMailFolders",
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Dossiers récupérés avec succès",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "data": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "example": "INBOX/Clients"
+                        },
+                        "selectable": {
+                          "type": "boolean",
+                          "example": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Non autorisé"
+        },
+        "500": {
+          "description": "Erreur serveur"
+        }
+      }
+    }
+  }
+}

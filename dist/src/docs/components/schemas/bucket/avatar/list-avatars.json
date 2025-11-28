@@ -1,0 +1,49 @@
+{
+  "ListAvatarsResponse": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "description": "Indicates whether the operation succeeded",
+        "example": true
+      },
+      "files": {
+        "type": "array",
+        "description": "Array of available avatar files stored in Object Storage",
+        "items": {
+          "$ref": "#/components/schemas/AvatarFile"
+        },
+        "example": [
+          {
+            "id": "avatar_001.png",
+            "name": "avatar_001.png",
+            "url": "https://avatar.hel1.your-objectstorage.com/avatar_001.png"
+          }
+        ]
+      }
+    },
+    "required": ["success"]
+  },
+  "AvatarFile": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Unique file identifier (the object key in the bucket)",
+        "example": "avatar_001.png"
+      },
+      "name": {
+        "type": "string",
+        "description": "Human-readable file name",
+        "example": "avatar_001.png"
+      },
+      "url": {
+        "type": "string",
+        "format": "uri",
+        "description": "Public URL of the avatar in Object Storage",
+        "example": "https://avatar.hel1.your-objectstorage.com/avatar_001.png"
+      }
+    },
+    "required": ["id", "url"]
+  }
+}

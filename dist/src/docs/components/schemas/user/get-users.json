@@ -1,0 +1,32 @@
+{
+  "GetUsersResponse": {
+    "type": "object",
+    "properties": {
+      "success": { "type": "boolean" },
+      "count": { "type": "integer", "example": 2 },
+      "data": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "format": "uuid" },
+            "email": { "type": "string", "format": "email" },
+            "profile": {
+              "type": "object",
+              "properties": {
+                "firstname": { "type": "string" },
+                "lastname": { "type": "string" },
+                "role": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string", "example": "ADMIN" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

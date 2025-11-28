@@ -1,0 +1,171 @@
+{
+  "/mails/send": {
+    "post": {
+      "tags": ["Mail"],
+      "summary": "Envoie un email",
+      "description": "Envoie un nouvel email via SMTP",
+      "operationId": "sendMail",
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": ["to", "subject"],
+              "properties": {
+                "to": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "email"
+                      }
+                    }
+                  ],
+                  "description": "Destinataire(s) de l'email",
+                  "example": "destinataire@example.com"
+                },
+                "cc": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "email"
+                      }
+                    }
+                  ],
+                  "description": "Destinataire(s) en copie",
+                  "example": ["copie@example.com"]
+                },
+                "bcc": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "email"
+                      }
+                    }
+                  ],
+                  "description": "Destinataire(s) en copie cachée",
+                  "example": ["copie-cachee@example.com"]
+                },
+                "attachments": {
+                  "type": "array",
+                  "description": "Liste des pièces jointes (contenu encodé en base64 par défaut)",
+                  "items": {
+                    "type": "object",
+                    "required": ["filename", "content"],
+                    "properties": {
+                      "filename": {
+                        "type": "string",
+                        "example": "document.pdf"
+                      },
+                      "content": {
+                        "type": "string",
+                        "description": "Contenu encodé (base64 par défaut)",
+                        "example": "JVBERi0xLjUKJcTl8uXrp/Og0MTGCjEgMCBvYmoKPDwvTGluZWFyaXplZCAxL0wgMzI1Nj..."
+                      },
+                      "contentType": {
+                        "type": "string",
+                        "description": "Type MIME optionnel",
+                        "example": "application/pdf"
+                      },
+                      "encoding": {
+                        "type": "string",
+                        "description": "Encodage du contenu (défaut: base64)",
+                        "example": "base64"
+                      }
+                    }
+                  }
+                },
+                "subject": {
+                  "type": "string",
+                  "description": "Sujet de l'email",
+                  "example": "Confirmation de réservation"
+                },
+                "html": {
+                  "type": "string",
+                  "description": "Corps de l'email en HTML",
+                  "example": "<h1>Bonjour</h1><p>Votre réservation est confirmée.</p>"
+                },
+                "text": {
+                  "type": "string",
+                  "description": "Corps de l'email en texte brut",
+                  "example": "Bonjour, Votre réservation est confirmée."
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Email envoyé avec succès",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "message": {
+                    "type": "string",
+                    "example": "Email envoyé avec succès"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Données invalides",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": false
+                  },
+                  "error": {
+                    "type": "string",
+                    "example": "Les champs 'to' et 'subject' sont requis"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Non autorisé"
+        },
+        "500": {
+          "description": "Erreur serveur"
+        }
+      }
+    }
+  }
+}

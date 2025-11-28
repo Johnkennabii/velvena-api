@@ -1,0 +1,114 @@
+{
+  "/mails/{mailbox}/{uid}/move": {
+    "patch": {
+      "summary": "Déplacer un email vers un autre dossier",
+      "description": "Déplace un email d'une boîte mail vers une autre (ex: de Inbox vers Spam, ou de Trash vers Inbox).",
+      "tags": ["Mails"],
+      "security": [{"bearerAuth": []}],
+      "parameters": [
+        {
+          "name": "mailbox",
+          "in": "path",
+          "required": true,
+          "description": "Type de boîte mail source",
+          "schema": {
+            "type": "string",
+            "enum": ["inbox", "sent", "trash", "spam", "drafts"],
+            "example": "inbox"
+          }
+        },
+        {
+          "name": "uid",
+          "in": "path",
+          "required": true,
+          "description": "UID de l'email à déplacer",
+          "schema": {
+            "type": "integer",
+            "example": 123
+          }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": ["toMailbox"],
+              "properties": {
+                "toMailbox": {
+                  "type": "string",
+                  "description": "Boîte mail de destination",
+                  "enum": ["inbox", "sent", "trash", "spam", "drafts"],
+                  "example": "spam"
+                }
+              }
+            },
+            "examples": {
+              "moveToSpam": {
+                "summary": "Déplacer vers spam",
+                "value": {
+                  "toMailbox": "spam"
+                }
+              },
+              "moveToInbox": {
+                "summary": "Restaurer vers inbox",
+                "value": {
+                  "toMailbox": "inbox"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Email déplacé avec succès",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {"type": "boolean", "example": true},
+                  "message": {"type": "string", "example": "Email déplacé de INBOX vers Spam"}
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Paramètres invalides",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {"type": "boolean", "example": false},
+                  "error": {"type": "string", "example": "Boîte mail de destination requise (toMailbox)"}
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Non authentifié"
+        },
+        "500": {
+          "description": "Erreur serveur",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {"type": "boolean", "example": false},
+                  "error": {"type": "string", "example": "Erreur lors du déplacement de l'email"},
+                  "details": {"type": "string"}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

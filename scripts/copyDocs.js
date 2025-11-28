@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 
 const srcDir = path.resolve("src/docs");
-const distDir = path.resolve("dist/docs");
+const distDir = path.resolve("dist/src/docs");
 
 function copyRecursiveSync(src, dest) {
   if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });

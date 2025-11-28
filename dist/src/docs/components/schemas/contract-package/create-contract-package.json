@@ -1,0 +1,88 @@
+{
+  "CreateContractPackageRequest": {
+    "type": "object",
+    "required": ["name", "num_dresses", "price_ht", "price_ttc"],
+    "properties": {
+      "name": {
+        "type": "string",
+        "example": "Formule Premium",
+        "description": "Package name (must be unique)"
+      },
+      "num_dresses": {
+        "type": "integer",
+        "example": 2,
+        "description": "Number of dresses included in this package"
+      },
+      "price_ht": {
+        "type": "number",
+        "example": 350,
+        "description": "Base price before tax (HT)"
+      },
+      "price_ttc": {
+        "type": "number",
+        "example": 420,
+        "description": "Total price including tax (TTC)"
+      },
+      "addon_ids": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "example": ["addon_01", "addon_02"],
+        "description": "Optional list of add-on IDs to associate with the package"
+      }
+    }
+  },
+
+  "CreatedAddonReference": {
+    "type": "object",
+    "description": "Add-on associated to the created contract package.",
+    "properties": {
+      "addon": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "example": "addon_01" },
+          "name": { "type": "string", "example": "Pressing inclus" },
+          "price_ht": { "type": "number", "example": 25 },
+          "price_ttc": { "type": "number", "example": 30 }
+        }
+      }
+    }
+  },
+
+  "CreatedContractPackage": {
+    "type": "object",
+    "description": "Represents a newly created contract package with its metadata.",
+    "properties": {
+      "id": { "type": "string", "format": "uuid", "example": "pkg_001" },
+      "name": { "type": "string", "example": "Formule Premium" },
+      "num_dresses": { "type": "integer", "example": 2 },
+      "price_ht": { "type": "number", "example": 350 },
+      "price_ttc": { "type": "number", "example": 420 },
+      "created_at": {
+        "type": "string",
+        "format": "date-time",
+        "example": "2025-10-09T22:20:00.000Z"
+      },
+      "created_by": {
+        "type": ["string", "null"],
+        "format": "uuid",
+        "example": "1a2b3c4d-5e6f-7890-abcd-ef1234567890"
+      },
+      "addons": {
+        "type": "array",
+        "items": { "$ref": "#/components/schemas/CreatedAddonReference" }
+      }
+    }
+  },
+
+  "CreateContractPackageResponse": {
+    "type": "object",
+    "description": "Response structure after successfully creating a contract package.",
+    "properties": {
+      "success": { "type": "boolean", "example": true },
+      "data": { "$ref": "#/components/schemas/CreatedContractPackage" }
+    }
+  }
+}

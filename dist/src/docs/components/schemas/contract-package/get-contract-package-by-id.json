@@ -1,0 +1,76 @@
+{
+  "ContractAddonDetail": {
+    "type": "object",
+    "description": "Detailed information about an add-on included in the contract package.",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid",
+        "example": "addon_02"
+      },
+      "name": {
+        "type": "string",
+        "example": "Livraison à domicile"
+      },
+      "price_ht": {
+        "type": "number",
+        "example": 40
+      },
+      "price_ttc": {
+        "type": "number",
+        "example": 48
+      }
+    }
+  },
+
+  "ContractPackageDetail": {
+    "type": "object",
+    "description": "Full detailed structure of a contract package including its related add-ons.",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid",
+        "example": "pkg_002"
+      },
+      "name": {
+        "type": "string",
+        "example": "Formule Premium"
+      },
+      "description": {
+        "type": "string",
+        "example": "Inclut pressing et livraison à domicile"
+      },
+      "price_ht": {
+        "type": "number",
+        "example": 350
+      },
+      "price_ttc": {
+        "type": "number",
+        "example": 420
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time",
+        "example": "2025-05-14T09:15:30.000Z"
+      },
+      "addons": {
+        "type": "array",
+        "items": { "$ref": "#/components/schemas/ContractAddonDetail" }
+      }
+    }
+  },
+
+  "GetContractPackageByIdResponse": {
+    "type": "object",
+    "description": "Response schema for retrieving a single contract package by its ID.",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "example": true
+      },
+      "data": {
+        "$ref": "#/components/schemas/ContractPackageDetail"
+      }
+    }
+  }
+}

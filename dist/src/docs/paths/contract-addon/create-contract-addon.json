@@ -1,0 +1,96 @@
+{
+  "/contract-addons": {
+    "post": {
+      "tags": ["Contract Addons"],
+      "summary": "Create a new contract addon",
+      "description": "Creates a new contract addon. If `included` is set to `true`, both `price_ht` and `price_ttc` will automatically be set to 0. The authenticated user's ID is recorded as `created_by`.",
+      "operationId": "createContractAddon",
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateContractAddonRequest"
+            },
+            "examples": {
+              "standardAddon": {
+                "summary": "Standard addon with prices",
+                "value": {
+                  "name": "Livraison à domicile",
+                  "description": "Livraison des tenues directement chez le client",
+                  "price_ht": 25.0,
+                  "price_ttc": 30.0,
+                  "included": false
+                }
+              },
+              "includedAddon": {
+                "summary": "Addon included by default (free)",
+                "value": {
+                  "name": "Pressing de base",
+                  "included": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "✅ Contract addon successfully created",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateContractAddonResponse"
+              },
+              "examples": {
+                "success": {
+                  "summary": "Example: addon created successfully",
+                  "value": {
+                    "success": true,
+                    "data": {
+                      "id": "c8b7d98a-25ab-49d3-8a40-03c1e173d56f",
+                      "name": "Livraison à domicile",
+                      "description": "Livraison des tenues directement chez le client",
+                      "price_ht": 25.0,
+                      "price_ttc": 30.0,
+                      "included": false,
+                      "created_by": "16937819-c033-438f-bbad-543d83443371",
+                      "created_at": "2025-10-09T21:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "⚠️ Missing required field(s)",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Name is required"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error — Failed to create contract addon",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": false,
+                "error": "Failed to create contract addon"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
