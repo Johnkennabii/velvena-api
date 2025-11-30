@@ -78,6 +78,8 @@ app.use(
       "http://127.0.0.1:4173",
       "http://localhost:5174",
       "http://localhost:5173",
+      "http://localhost:3001",
+      "http://192.168.1.17:3000",
       "http://localhost:3000",
       "https://allure-creation.fr",
       "https://app.allure-creation.fr",

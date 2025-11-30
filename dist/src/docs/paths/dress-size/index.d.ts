@@ -1,13 +1,112 @@
-declare const dressSizes: {
-    "/dress-sizes": {
-        get: any;
-        post: any;
-    };
+declare const _default: {
     "/dress-sizes/{id}": {
-        put: any;
-        patch: any;
-        delete: any;
+        delete: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            security: {
+                bearerAuth: never[];
+            }[];
+            parameters: {
+                name: string;
+                in: string;
+                required: boolean;
+                schema: {
+                    type: string;
+                    format: string;
+                };
+                description: string;
+            }[];
+            responses: {
+                "200": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            example: {
+                                success: boolean;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "/dress-sizes": {
+        post: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            security: {
+                bearerAuth: never[];
+            }[];
+            requestBody: {
+                required: boolean;
+                content: {
+                    "application/json": {
+                        schema: {
+                            $ref: string;
+                        };
+                        example: {
+                            name: string;
+                        };
+                    };
+                };
+            };
+            responses: {
+                "201": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            example: {
+                                success: boolean;
+                                data: {
+                                    id: string;
+                                    name: string;
+                                };
+                            };
+                        };
+                    };
+                };
+                "400": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+                "500": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
     };
 };
-export default dressSizes;
+export default _default;
 //# sourceMappingURL=index.d.ts.map

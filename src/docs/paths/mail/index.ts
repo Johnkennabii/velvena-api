@@ -1,33 +1,31 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import getMailboxes from "./get-mailboxes.json" with { type: "json" };
+import getMailFolders from "./get-mail-folders.json" with { type: "json" };
+import getMails from "./get-mails.json" with { type: "json" };
+import getMailById from "./get-mail-by-id.json" with { type: "json" };
+import deleteMailPermanent from "./delete-mail-permanent.json" with { type: "json" };
+import markAsRead from "./mark-as-read.json" with { type: "json" };
+import markAsUnread from "./mark-as-unread.json" with { type: "json" };
+import sendMail from "./send-mail.json" with { type: "json" };
+import createMailFolder from "./create-mail-folder.json" with { type: "json" };
+import moveMailFolder from "./move-mail-folder.json" with { type: "json" };
+import addFlag from "./add-flag.json" with { type: "json" };
+import removeFlag from "./remove-flag.json" with { type: "json" };
+import moveEmail from "./move-email.json" with { type: "json" };
+import downloadEmailAttachment from "./download-email-attachment.json" with { type: "json" };
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const loadJson = (filename: string) =>
-  JSON.parse(fs.readFileSync(path.resolve(__dirname, filename), "utf-8"));
-
-const docs = [
-  loadJson("./get-mailboxes.json"),
-  loadJson("./get-mail-folders.json"),
-  loadJson("./get-mails.json"),
-  loadJson("./get-mail-by-id.json"),
-  loadJson("./delete-mail-permanent.json"),
-  loadJson("./mark-as-read.json"),
-  loadJson("./mark-as-unread.json"),
-  loadJson("./send-mail.json"),
-  loadJson("./create-mail-folder.json"),
-  loadJson("./move-mail-folder.json"),
-  loadJson("./add-flag.json"),
-  loadJson("./remove-flag.json"),
-  loadJson("./move-email.json"),
-  loadJson("./download-email-attachment.json"),
-];
-
-export default docs.reduce<Record<string, any>>((acc, doc) => {
-  for (const [pathKey, pathValue] of Object.entries(doc)) {
-    acc[pathKey] = { ...(acc[pathKey] || {}), ...(pathValue as object) };
-  }
-  return acc;
-}, {});
+export default {
+  ...getMailboxes,
+  ...getMailFolders,
+  ...getMails,
+  ...getMailById,
+  ...deleteMailPermanent,
+  ...markAsRead,
+  ...markAsUnread,
+  ...sendMail,
+  ...createMailFolder,
+  ...moveMailFolder,
+  ...addFlag,
+  ...removeFlag,
+  ...moveEmail,
+  ...downloadEmailAttachment,
+};

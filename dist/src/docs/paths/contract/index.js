@@ -1,44 +1,31 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const loadJson = (filename) => JSON.parse(fs.readFileSync(path.resolve(__dirname, filename), "utf-8"));
-const getContract = loadJson("./get-contract.json");
-const getContractById = loadJson("./get-contract-by-id.json");
-const createContract = loadJson("./create-contract.json");
-const updateContract = loadJson("./update-contract.json");
-const generateSignature = loadJson("./generate-signature.json");
-const getContractSignLink = loadJson("./get-contract-sign-link.json");
-const signContractViaLink = loadJson("./sign-contract-via-link.json");
-const fullView = loadJson("./full-view.json");
-const hardDeleteContract = loadJson("./delete-contract-hard.json");
-const softDeleteContract = loadJson("./delete-contract-soft.json");
-const restoreContract = loadJson("./restore-contract.json");
-const generatePDF = loadJson("./generate-pdf.json");
-const uploadSignedPdf = loadJson("./upload-signed-pdf.json");
-const downloadSignedContract = loadJson("./download-signed-contract.json");
-const contract = {
-    "/contracts": {
-        get: getContract["/contracts"]?.get,
-        post: createContract["/contracts"]?.post,
-    },
-    "/contracts/{id}": {
-        get: getContractById["/contracts/{id}"]?.get,
-        put: updateContract["/contracts/{id}"]?.put,
-        patch: softDeleteContract["/contracts/{id}"]?.patch,
-    },
-    "/contracts/{id}/restore": {
-        patch: restoreContract["/contracts/{id}/restore"]?.patch,
-    },
+import getContract from "./get-contract.json" with { type: "json" };
+import getContractById from "./get-contract-by-id.json" with { type: "json" };
+import createContract from "./create-contract.json" with { type: "json" };
+import updateContract from "./update-contract.json" with { type: "json" };
+import generateSignature from "./generate-signature.json" with { type: "json" };
+import getContractSignLink from "./get-contract-sign-link.json" with { type: "json" };
+import signContractViaLink from "./sign-contract-via-link.json" with { type: "json" };
+import fullView from "./full-view.json" with { type: "json" };
+import deleteContractHard from "./delete-contract-hard.json" with { type: "json" };
+import deleteContractSoft from "./delete-contract-soft.json" with { type: "json" };
+import restoreContract from "./restore-contract.json" with { type: "json" };
+import generatePdf from "./generate-pdf.json" with { type: "json" };
+import uploadSignedPdf from "./upload-signed-pdf.json" with { type: "json" };
+import downloadSignedContract from "./download-signed-contract.json" with { type: "json" };
+export default {
+    ...getContract,
+    ...getContractById,
+    ...createContract,
+    ...updateContract,
     ...generateSignature,
     ...getContractSignLink,
     ...signContractViaLink,
     ...fullView,
-    ...hardDeleteContract,
-    ...generatePDF,
+    ...deleteContractHard,
+    ...deleteContractSoft,
+    ...restoreContract,
+    ...generatePdf,
     ...uploadSignedPdf,
     ...downloadSignedContract,
 };
-export default contract;
 //# sourceMappingURL=index.js.map

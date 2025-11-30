@@ -1,23 +1,7 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import getRoles from "./get-roles.json" with { type: "json" };
+import getRoleById from "./get-role-by-id.json" with { type: "json" };
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const loadJson = (file: string) =>
-  JSON.parse(fs.readFileSync(path.resolve(__dirname, file), "utf-8"));
-
-const getRoles = loadJson("./get-roles.json");
-const getRoleById = loadJson("./get-role-by-id.json");
-
-const roles = {
-  "/roles": {
-    get: getRoles["/roles"]?.get,
-  },
-  "/roles/{id}": {
-    get: getRoleById["/roles/{id}"]?.get,
-  },
+export default {
+  ...getRoles,
+  ...getRoleById,
 };
-
-export default roles;

@@ -1,8 +1,71 @@
-declare const profiles: {
+declare const _default: {
     "/profiles": {
-        get: any;
-        post: any;
+        post: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            security: {
+                bearerAuth: never[];
+            }[];
+            requestBody: {
+                required: boolean;
+                content: {
+                    "application/json": {
+                        schema: {
+                            $ref: string;
+                        };
+                        example: {
+                            firstname: string;
+                            lastname: string;
+                            email: string;
+                            phone: string;
+                            role_id: string;
+                            userId: string;
+                        };
+                    };
+                };
+            };
+            responses: {
+                "201": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            example: {
+                                success: boolean;
+                                data: {
+                                    id: string;
+                                    firstname: string;
+                                    lastname: string;
+                                    email: string;
+                                    phone: string;
+                                    role_id: string;
+                                    userId: string;
+                                };
+                            };
+                        };
+                    };
+                };
+                "400": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
     };
 };
-export default profiles;
+export default _default;
 //# sourceMappingURL=index.d.ts.map

@@ -1,18 +1,8 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-function loadJson(filename) {
-    const filePath = path.join(__dirname, filename);
-    const fileContents = fs.readFileSync(filePath, "utf-8");
-    return JSON.parse(fileContents);
-}
-const getContractTypes = loadJson("./get-contract-types.json");
-const getContractTypeById = loadJson("./get-contract-type-by-id.json");
-const createContractType = loadJson("./create-contract-type.json");
-const updateContractType = loadJson("./update-contract-type.json");
-const deleteContractType = loadJson("./delete-contract-type.json");
+import getContractTypes from "./get-contract-types.json" with { type: "json" };
+import getContractTypeById from "./get-contract-type-by-id.json" with { type: "json" };
+import createContractType from "./create-contract-type.json" with { type: "json" };
+import updateContractType from "./update-contract-type.json" with { type: "json" };
+import deleteContractType from "./delete-contract-type.json" with { type: "json" };
 export default {
     ...getContractTypes,
     ...getContractTypeById,

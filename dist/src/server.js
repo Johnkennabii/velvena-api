@@ -61,7 +61,7 @@ app.use(cors({
         "http://127.0.0.1:4173",
         "http://localhost:5174",
         "http://localhost:5173",
-        "http://localhost:3000",
+        "http://localhost:3001",
         "https://allure-creation.fr",
         "https://app.allure-creation.fr",
         "https://api.allure-creation.fr",

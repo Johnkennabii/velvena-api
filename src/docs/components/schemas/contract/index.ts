@@ -1,28 +1,17 @@
-import fs from "fs";
-import path from "path";
-
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const loadJson = (filename: string) =>
-  JSON.parse(fs.readFileSync(path.resolve(__dirname, filename), "utf-8"));
-
-const contract = loadJson("./get-contract.json");
-const contractById = loadJson("./get-contract-by-id.json");
-const contractCreate = loadJson("./create-contract.json");
-const contractUpdate = loadJson("./update-contract.json");
-const deleteSoft = loadJson("./delete-contract-soft.json");
-const deleteHard = loadJson("./delete-contract-hard.json");
-const generateSignature = loadJson("./generate-signature.json");
+import getContract from "./get-contract.json" with { type: "json" };
+import getContractById from "./get-contract-by-id.json" with { type: "json" };
+import createContract from "./create-contract.json" with { type: "json" };
+import updateContract from "./update-contract.json" with { type: "json" };
+import deleteContractSoft from "./delete-contract-soft.json" with { type: "json" };
+import deleteContractHard from "./delete-contract-hard.json" with { type: "json" };
+import generateSignature from "./generate-signature.json" with { type: "json" };
 
 export default {
-  ...contract,
-  ...contractById,
-  ...contractCreate,
-  ...contractUpdate,
-  ...deleteSoft,
-  ...deleteHard,
+  ...getContract,
+  ...getContractById,
+  ...createContract,
+  ...updateContract,
+  ...deleteContractSoft,
+  ...deleteContractHard,
   ...generateSignature,
 };

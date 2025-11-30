@@ -1,26 +1,9 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const loadJson = (file: string) =>
-  JSON.parse(fs.readFileSync(path.resolve(__dirname, file), "utf-8"));
-
-const getCustomers = loadJson("./get-customers.json");
-const getCustomerById = loadJson("./get-customer-by-id.json");
-const createCustomer = loadJson("./create-customer.json");
-const updateCustomer = loadJson("./update-customer.json");
-const softDeleteCustomer = loadJson("./soft-delete-customer.json");
-const hardDeleteCustomer = loadJson("./delete-customer-hard.json");
-
-let errorResponse = {};
-try {
-  errorResponse = loadJson("../shared/error-response.json");
-} catch {
-  // facultatif
-}
+import getCustomers from "./get-customers.json" with { type: "json" };
+import getCustomerById from "./get-customer-by-id.json" with { type: "json" };
+import createCustomer from "./create-customer.json" with { type: "json" };
+import updateCustomer from "./update-customer.json" with { type: "json" };
+import softDeleteCustomer from "./soft-delete-customer.json" with { type: "json" };
+import deleteCustomerHard from "./delete-customer-hard.json" with { type: "json" };
 
 export default {
   ...getCustomers,
@@ -28,6 +11,5 @@ export default {
   ...createCustomer,
   ...updateCustomer,
   ...softDeleteCustomer,
-  ...hardDeleteCustomer,
-  ...errorResponse,
+  ...deleteCustomerHard,
 };

@@ -1,20 +1,8 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-function loadJson(filename) {
-    const filePath = path.join(__dirname, filename);
-    const fileContents = fs.readFileSync(filePath, "utf-8");
-    return JSON.parse(fileContents);
-}
-// Importation des schémas par fonctionnalité
-const getDressConditions = loadJson("./get-dress-conditions.json");
-const createDressCondition = loadJson("./create-dress-condition.json");
-const updateDressCondition = loadJson("./update-dress-condition.json");
-const softDeleteDressCondition = loadJson("./soft-delete-dress-condition.json");
-const hardDeleteDressCondition = loadJson("./hard-delete-dress-condition.json");
-// Export global (fusionne tous les schémas)
+import getDressConditions from "./get-dress-conditions.json" with { type: "json" };
+import createDressCondition from "./create-dress-condition.json" with { type: "json" };
+import updateDressCondition from "./update-dress-condition.json" with { type: "json" };
+import softDeleteDressCondition from "./soft-delete-dress-condition.json" with { type: "json" };
+import hardDeleteDressCondition from "./hard-delete-dress-condition.json" with { type: "json" };
 export default {
     ...getDressConditions,
     ...createDressCondition,

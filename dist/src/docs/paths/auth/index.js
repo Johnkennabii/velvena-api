@@ -1,13 +1,7 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const loadJson = (filename) => JSON.parse(fs.readFileSync(path.resolve(__dirname, filename), "utf-8"));
-const register = loadJson("./register.json");
-const login = loadJson("./login.json");
-const me = loadJson("./me.json");
-const refresh = loadJson("./refresh.json");
+import register from "./register.json" with { type: "json" };
+import login from "./login.json" with { type: "json" };
+import me from "./me.json" with { type: "json" };
+import refresh from "./refresh.json" with { type: "json" };
 export default {
     ...register,
     ...login,

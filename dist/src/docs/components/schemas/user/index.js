@@ -1,27 +1,13 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const loadJson = (file) => JSON.parse(fs.readFileSync(path.resolve(__dirname, file), "utf-8"));
-const getUsers = loadJson("./get-users.json");
-const getUserById = loadJson("./get-user-by-id.json");
-const updateUser = loadJson("./update-user.json");
-const softDeleteUser = loadJson("./soft-delete-user.json");
-const hardDeleteUser = loadJson("./delete-user-hard.json");
-let errorResponse = {};
-try {
-    errorResponse = loadJson("../shared/error-response.json");
-}
-catch {
-    // Optionnel
-}
+import getUsers from "./get-users.json" with { type: "json" };
+import getUserById from "./get-user-by-id.json" with { type: "json" };
+import updateUser from "./update-user.json" with { type: "json" };
+import softDeleteUser from "./soft-delete-user.json" with { type: "json" };
+import deleteUserHard from "./delete-user-hard.json" with { type: "json" };
 export default {
     ...getUsers,
     ...getUserById,
     ...updateUser,
     ...softDeleteUser,
-    ...hardDeleteUser,
-    ...errorResponse,
+    ...deleteUserHard,
 };
 //# sourceMappingURL=index.js.map
