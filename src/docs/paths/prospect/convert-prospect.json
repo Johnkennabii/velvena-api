@@ -1,0 +1,81 @@
+{
+  "/prospects/{id}/convert": {
+    "post": {
+      "tags": ["Prospects"],
+      "summary": "Convert prospect to customer",
+      "description": "Converts a prospect to a customer. Creates a new customer record with the prospect's data and marks the prospect as converted.",
+      "operationId": "convertProspectToCustomer",
+      "security": [{ "bearerAuth": [] }],
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string", "format": "uuid" },
+          "description": "Prospect ID"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "✅ Prospect successfully converted to customer",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ConvertProspectResponse" },
+              "example": {
+                "success": true,
+                "message": "Prospect successfully converted to customer",
+                "data": {
+                  "prospect": {
+                    "id": "prospect-uuid",
+                    "firstname": "Sophie",
+                    "lastname": "Martin",
+                    "email": "sophie.martin@email.fr",
+                    "status": "converted",
+                    "converted_at": "2025-11-30T12:00:00.000Z",
+                    "converted_to": "customer-uuid"
+                  },
+                  "customer": {
+                    "id": "customer-uuid",
+                    "firstname": "Sophie",
+                    "lastname": "Martin",
+                    "email": "sophie.martin@email.fr",
+                    "created_at": "2025-11-30T12:00:00.000Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "❌ Prospect already converted or email already exists",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+              "example": {
+                "success": false,
+                "error": "Prospect already converted to customer",
+                "customer_id": "existing-customer-uuid"
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "❌ Prospect not found",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Server error",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

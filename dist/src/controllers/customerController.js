@@ -55,7 +55,21 @@ export const getCustomerById = async (req, res) => {
         if (!id) {
             return res.status(400).json({ success: false, error: "Customer ID is required" });
         }
-        const customer = await prisma.customer.findUnique({ where: { id: String(id) } });
+        // Check if notes should be included (query param)
+        const includeNotes = req.query.includeNotes === "true";
+        const customer = includeNotes
+            ? await prisma.customer.findUnique({
+                where: { id: String(id) },
+                include: {
+                    notes: {
+                        where: { deleted_at: null },
+                        orderBy: { created_at: "desc" }
+                    }
+                }
+            })
+            : await prisma.customer.findUnique({
+                where: { id: String(id) }
+            });
         if (!customer || customer.deleted_at) {
             return res.status(404).json({ success: false, error: "Customer not found" });
         }

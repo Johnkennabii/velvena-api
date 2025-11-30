@@ -23,6 +23,8 @@ import dressesRoutes from "./routes/dressRoutes/dresses.js";
 import dressesAvailabilityRoutes from "./routes/dressRoutes/dresses.js";
 
 import customerRoutes from "./routes/customers.js";
+import customerNotesRoutes from "./routes/customerNotes.js";
+import prospectRoutes from "./routes/prospects.js";
 
 import contractTypesRoutes from "./routes/contractRoutes/contractTypes.js";
 import contractAddonsRoutes from "./routes/contractRoutes/contractAddons.js";
@@ -76,6 +78,7 @@ app.use(
       "http://127.0.0.1:4173",
       "http://localhost:5174",
       "http://localhost:5173",
+      "http://localhost:3000",
       "https://allure-creation.fr",
       "https://app.allure-creation.fr",
       "https://api.allure-creation.fr",
@@ -112,6 +115,8 @@ app.use("/dresses", dressesRoutes);
 app.use("/dresses-availability", dressesAvailabilityRoutes);
 
 app.use("/customers", customerRoutes);
+app.use("/customer-notes", customerNotesRoutes);
+app.use("/prospects", prospectRoutes);
 
 app.use("/contract-types", contractTypesRoutes);
 app.use("/contract-addons", contractAddonsRoutes);

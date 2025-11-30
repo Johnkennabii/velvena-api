@@ -156,6 +156,32 @@ model Customer {
   deleted_by  String?
   contracts   Contract[]
   sign_links  ContractSignLink[]
+  notes       CustomerNote[]
+}
+
+model Prospect {
+  id             String    @id @default(uuid())
+  firstname      String
+  lastname       String
+  email          String    @unique
+  phone          String?
+  birthday       DateTime?
+  country        String?
+  city           String?
+  address        String?
+  postal_code    String?
+  status         String    @default("new")
+  source         String?
+  notes          String?
+  created_by     String?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime? @updatedAt
+  updated_by     String?
+  deleted_at     DateTime?
+  deleted_by     String?
+  converted_at   DateTime?
+  converted_by   String?
+  converted_to   String?
 }
 
 model ContractType {
@@ -299,4 +325,17 @@ model NotificationUserLink {
   user            User         @relation(fields: [user_id], references: [id])
 
   @@unique([notification_id, user_id])
+}
+
+model CustomerNote {
+  id          String    @id @default(uuid())
+  customer_id String
+  content     String
+  created_at  DateTime  @default(now())
+  created_by  String?
+  updated_at  DateTime? @updatedAt
+  updated_by  String?
+  deleted_at  DateTime?
+  deleted_by  String?
+  customer    Customer  @relation(fields: [customer_id], references: [id], onDelete: Cascade)
 }

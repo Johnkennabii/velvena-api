@@ -1,0 +1,46 @@
+{
+  "/prospects/{id}": {
+    "patch": {
+      "tags": ["Prospects"],
+      "summary": "Soft delete a prospect",
+      "description": "Marks a prospect as deleted without permanently removing it from the database.",
+      "operationId": "softDeleteProspect",
+      "security": [{ "bearerAuth": [] }],
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string", "format": "uuid" },
+          "description": "Prospect ID"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "✅ Prospect successfully soft deleted",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SoftDeleteProspectResponse" }
+            }
+          }
+        },
+        "404": {
+          "description": "❌ Prospect not found",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Server error",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

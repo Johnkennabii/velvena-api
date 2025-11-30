@@ -1,0 +1,14 @@
+{
+  "GetCustomerNoteResponse": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "example": true
+      },
+      "data": {
+        "$ref": "#/components/schemas/CustomerNote"
+      }
+    }
+  }
+}
