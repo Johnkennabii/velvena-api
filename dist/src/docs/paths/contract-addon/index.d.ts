@@ -170,6 +170,166 @@ declare const _default: {
             };
         };
     };
+    "/contract-addons": {
+        post: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            security: {
+                bearerAuth: never[];
+            }[];
+            requestBody: {
+                required: boolean;
+                content: {
+                    "application/json": {
+                        schema: {
+                            $ref: string;
+                        };
+                        examples: {
+                            standardAddon: {
+                                summary: string;
+                                value: {
+                                    name: string;
+                                    description: string;
+                                    price_ht: number;
+                                    price_ttc: number;
+                                    included: boolean;
+                                };
+                            };
+                            includedAddon: {
+                                summary: string;
+                                value: {
+                                    name: string;
+                                    included: boolean;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            responses: {
+                "201": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            examples: {
+                                success: {
+                                    summary: string;
+                                    value: {
+                                        success: boolean;
+                                        data: {
+                                            id: string;
+                                            name: string;
+                                            description: string;
+                                            price_ht: number;
+                                            price_ttc: number;
+                                            included: boolean;
+                                            created_by: string;
+                                            created_at: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                "400": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+                "500": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        get: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            security: {
+                bearerAuth: never[];
+            }[];
+            responses: {
+                "200": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            examples: {
+                                success: {
+                                    summary: string;
+                                    value: {
+                                        success: boolean;
+                                        data: ({
+                                            id: string;
+                                            name: string;
+                                            description: string;
+                                            price_ht: number;
+                                            price_ttc: number;
+                                            created_at: string;
+                                            updated_at: null;
+                                        } | {
+                                            id: string;
+                                            name: string;
+                                            description: string;
+                                            price_ht: number;
+                                            price_ttc: number;
+                                            created_at: string;
+                                            updated_at: string;
+                                        })[];
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                "401": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+                "500": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
     "/contract-addons/{id}": {
         put: {
             tags: string[];
@@ -283,47 +443,27 @@ declare const _default: {
                 };
             };
         };
-    };
-    "/contract-addons": {
-        post: {
+        get: {
             tags: string[];
             summary: string;
             description: string;
             operationId: string;
+            parameters: {
+                name: string;
+                in: string;
+                required: boolean;
+                description: string;
+                schema: {
+                    type: string;
+                    format: string;
+                    example: string;
+                };
+            }[];
             security: {
                 bearerAuth: never[];
             }[];
-            requestBody: {
-                required: boolean;
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: string;
-                        };
-                        examples: {
-                            standardAddon: {
-                                summary: string;
-                                value: {
-                                    name: string;
-                                    description: string;
-                                    price_ht: number;
-                                    price_ttc: number;
-                                    included: boolean;
-                                };
-                            };
-                            includedAddon: {
-                                summary: string;
-                                value: {
-                                    name: string;
-                                    included: boolean;
-                                };
-                            };
-                        };
-                    };
-                };
-            };
             responses: {
-                "201": {
+                "200": {
                     description: string;
                     content: {
                         "application/json": {
@@ -341,9 +481,8 @@ declare const _default: {
                                             description: string;
                                             price_ht: number;
                                             price_ttc: number;
-                                            included: boolean;
-                                            created_by: string;
                                             created_at: string;
+                                            updated_at: null;
                                         };
                                     };
                                 };
@@ -352,6 +491,17 @@ declare const _default: {
                     };
                 };
                 "400": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+                "404": {
                     description: string;
                     content: {
                         "application/json": {

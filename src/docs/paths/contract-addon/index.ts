@@ -6,10 +6,14 @@ import softDeleteContractAddon from "./soft-delete-contract-addon.json" with { t
 import hardDeleteContractAddon from "./hard-delete-contract-addon.json" with { type: "json" };
 
 export default {
-  ...getContractAddons,
-  ...getContractAddonById,
-  ...createContractAddon,
-  ...updateContractAddon,
+  "/contract-addons": {
+    ...getContractAddons["/contract-addons"],
+    ...createContractAddon["/contract-addons"],
+  },
+  "/contract-addons/{id}": {
+    ...getContractAddonById["/contract-addons/{id}"],
+    ...updateContractAddon["/contract-addons/{id}"],
+  },
   ...softDeleteContractAddon,
   ...hardDeleteContractAddon,
 };

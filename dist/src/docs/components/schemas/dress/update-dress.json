@@ -4,7 +4,7 @@
       "Dresses"
     ],
     "summary": "Update a dress by ID",
-    "description": "Update the details of an existing dress identified by its ID.",
+    "description": "Update the details of an existing dress identified by its ID. You can also manage the publication status using the published_post field.",
     "parameters": [
       {
         "name": "id",
@@ -27,28 +27,66 @@
             "properties": {
               "name": {
                 "type": "string",
-                "example": "Evening Gown"
+                "example": "Robe de mariée élégante"
               },
-              "color": {
+              "reference": {
                 "type": "string",
-                "example": "Red"
+                "example": "REF-2024-001"
               },
-              "size": {
-                "type": "string",
-                "enum": ["XS", "S", "M", "L", "XL"],
-                "example": "M"
-              },
-              "price": {
+              "price_ht": {
                 "type": "number",
                 "format": "float",
-                "example": 149.99
+                "example": 1200.00
               },
-              "available": {
+              "price_ttc": {
+                "type": "number",
+                "format": "float",
+                "example": 1440.00
+              },
+              "price_per_day_ht": {
+                "type": "number",
+                "format": "float",
+                "example": 150.00
+              },
+              "price_per_day_ttc": {
+                "type": "number",
+                "format": "float",
+                "example": 180.00
+              },
+              "type_id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "550e8400-e29b-41d4-a716-446655440001"
+              },
+              "size_id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "550e8400-e29b-41d4-a716-446655440002"
+              },
+              "condition_id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "550e8400-e29b-41d4-a716-446655440003"
+              },
+              "color_id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "550e8400-e29b-41d4-a716-446655440004"
+              },
+              "images": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "example": ["https://media-allure-creation.hel1.your-objectstorage.com/dresses/image1.jpg"]
+              },
+              "published_post": {
                 "type": "boolean",
+                "description": "Set to true to publish the dress (automatically sets published_at and published_by). Set to false to unpublish (clears published_at and published_by). Omit to leave unchanged.",
                 "example": true
               }
             },
-            "required": ["name", "color", "size", "price"]
+            "required": ["price_per_day_ht", "price_per_day_ttc"]
           }
         }
       }
@@ -61,25 +99,88 @@
             "schema": {
               "type": "object",
               "properties": {
-                "id": {
-                  "type": "string",
-                  "format": "uuid"
+                "success": {
+                  "type": "boolean",
+                  "example": true
                 },
-                "name": {
-                  "type": "string"
-                },
-                "color": {
-                  "type": "string"
-                },
-                "size": {
-                  "type": "string"
-                },
-                "price": {
-                  "type": "number",
-                  "format": "float"
-                },
-                "available": {
-                  "type": "boolean"
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "reference": {
+                      "type": "string"
+                    },
+                    "price_ht": {
+                      "type": "number"
+                    },
+                    "price_ttc": {
+                      "type": "number"
+                    },
+                    "price_per_day_ht": {
+                      "type": "number"
+                    },
+                    "price_per_day_ttc": {
+                      "type": "number"
+                    },
+                    "images": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "published_post": {
+                      "type": "boolean"
+                    },
+                    "published_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "published_by": {
+                      "type": "string",
+                      "format": "uuid",
+                      "nullable": true
+                    },
+                    "type_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "nullable": true
+                    },
+                    "size_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "nullable": true
+                    },
+                    "condition_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "nullable": true
+                    },
+                    "color_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "nullable": true
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updated_by": {
+                      "type": "string",
+                      "format": "uuid",
+                      "nullable": true
+                    }
+                  }
                 }
               }
             }
@@ -87,7 +188,7 @@
         }
       },
       "400": {
-        "description": "Invalid input, object invalid"
+        "description": "Invalid input (e.g., missing required fields like price_per_day_ht or price_per_day_ttc)"
       },
       "404": {
         "description": "Dress not found"

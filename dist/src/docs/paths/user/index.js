@@ -5,9 +5,11 @@ import softDeleteUser from "./soft-delete-user.json" with { type: "json" };
 import deleteUserHard from "./delete-user-hard.json" with { type: "json" };
 export default {
     ...getUsers,
-    ...getUserById,
-    ...updateUser,
-    ...softDeleteUser,
-    ...deleteUserHard,
+    "/users/{id}": {
+        ...getUserById["/users/{id}"],
+        ...updateUser["/users/{id}"],
+        ...softDeleteUser["/users/{id}"],
+        ...deleteUserHard["/users/{id}"],
+    },
 };
 //# sourceMappingURL=index.js.map

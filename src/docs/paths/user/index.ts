@@ -6,8 +6,10 @@ import deleteUserHard from "./delete-user-hard.json" with { type: "json" };
 
 export default {
   ...getUsers,
-  ...getUserById,
-  ...updateUser,
-  ...softDeleteUser,
-  ...deleteUserHard,
+  "/users/{id}": {
+    ...getUserById["/users/{id}"],
+    ...updateUser["/users/{id}"],
+    ...softDeleteUser["/users/{id}"],
+    ...deleteUserHard["/users/{id}"],
+  },
 };

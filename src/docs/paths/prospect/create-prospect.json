@@ -3,7 +3,7 @@
     "post": {
       "tags": ["Prospects"],
       "summary": "Create a new prospect",
-      "description": "Creates a new prospect record.",
+      "description": "Creates a new prospect record with optional dress reservations. When dress reservations are included, the response will contain the full details of each dress, rental period, number of days, estimated cost per dress, and total estimated cost.",
       "operationId": "createProspect",
       "security": [{ "bearerAuth": [] }],
       "requestBody": {
@@ -11,28 +11,116 @@
         "content": {
           "application/json": {
             "schema": { "$ref": "#/components/schemas/CreateProspectRequest" },
-            "example": {
-              "firstname": "Sophie",
-              "lastname": "Martin",
-              "email": "sophie.martin@email.fr",
-              "phone": "+33612345678",
-              "country": "France",
-              "city": "Lyon",
-              "address": "15 Rue de la République",
-              "postal_code": "69002",
-              "status": "new",
-              "source": "website",
-              "notes": "Intéressée par les robes de soirée"
+            "examples": {
+              "withoutDresses": {
+                "summary": "Prospect without dress reservations",
+                "value": {
+                  "firstname": "Sophie",
+                  "lastname": "Martin",
+                  "email": "sophie.martin@email.fr",
+                  "phone": "+33612345678",
+                  "country": "France",
+                  "city": "Lyon",
+                  "address": "15 Rue de la République",
+                  "postal_code": "69002",
+                  "status": "new",
+                  "source": "website",
+                  "notes": "Intéressée par les robes de soirée"
+                }
+              },
+              "withDresses": {
+                "summary": "Prospect with dress reservations",
+                "value": {
+                  "firstname": "Sophie",
+                  "lastname": "Martin",
+                  "email": "sophie.martin@email.fr",
+                  "phone": "+33612345678",
+                  "country": "France",
+                  "city": "Lyon",
+                  "address": "15 Rue de la République",
+                  "postal_code": "69002",
+                  "status": "new",
+                  "source": "website",
+                  "notes": "Intéressée par les robes de soirée",
+                  "dress_reservations": [
+                    {
+                      "dress_id": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f",
+                      "rental_start_date": "2025-06-15",
+                      "rental_end_date": "2025-06-17",
+                      "notes": "Préfère essayer avant location"
+                    },
+                    {
+                      "dress_id": "0b00222f-851e-4a7a-9e52-439b820e62ae",
+                      "rental_start_date": "2025-06-15",
+                      "rental_end_date": "2025-06-17"
+                    }
+                  ]
+                }
+              }
             }
           }
         }
       },
       "responses": {
         "201": {
-          "description": "✅ Prospect successfully created",
+          "description": "✅ Prospect successfully created with dress reservations and calculations",
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateProspectResponse" }
+              "schema": { "$ref": "#/components/schemas/CreateProspectResponse" },
+              "example": {
+                "success": true,
+                "data": {
+                  "id": "abc123-def456",
+                  "firstname": "Sophie",
+                  "lastname": "Martin",
+                  "email": "sophie.martin@email.fr",
+                  "phone": "+33612345678",
+                  "country": "France",
+                  "city": "Lyon",
+                  "status": "new",
+                  "source": "website",
+                  "notes": "Intéressée par les robes de soirée",
+                  "created_at": "2025-11-30T10:00:00.000Z",
+                  "dress_reservations": [
+                    {
+                      "id": "res-001",
+                      "dress_id": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f",
+                      "rental_start_date": "2025-06-15T00:00:00.000Z",
+                      "rental_end_date": "2025-06-17T00:00:00.000Z",
+                      "notes": "Préfère essayer avant location",
+                      "rental_days": 3,
+                      "estimated_cost": 360,
+                      "dress": {
+                        "id": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f",
+                        "name": "Robe de mariée Élégance",
+                        "reference": "REF-2025-001",
+                        "price_per_day_ttc": 120,
+                        "type": { "name": "Robe de mariée" },
+                        "size": { "name": "M" },
+                        "color": { "name": "Blanc" }
+                      }
+                    },
+                    {
+                      "id": "res-002",
+                      "dress_id": "0b00222f-851e-4a7a-9e52-439b820e62ae",
+                      "rental_start_date": "2025-06-15T00:00:00.000Z",
+                      "rental_end_date": "2025-06-17T00:00:00.000Z",
+                      "rental_days": 3,
+                      "estimated_cost": 300,
+                      "dress": {
+                        "id": "0b00222f-851e-4a7a-9e52-439b820e62ae",
+                        "name": "Robe de soirée Prestige",
+                        "reference": "REF-2025-002",
+                        "price_per_day_ttc": 100,
+                        "type": { "name": "Robe de soirée" },
+                        "size": { "name": "L" },
+                        "color": { "name": "Noir" }
+                      }
+                    }
+                  ],
+                  "total_estimated_cost": 660
+                }
+              }
             }
           }
         },

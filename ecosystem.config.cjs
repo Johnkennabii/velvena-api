@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "allure-api",
-      script: "dist/server.js",
+      script: "dist/src/server.js",
       cwd: "/var/www/allure-api",
       instances: 1,
       autorestart: true,

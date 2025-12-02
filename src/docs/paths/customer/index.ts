@@ -6,10 +6,14 @@ import softDeleteCustomer from "./soft-delete-customer.json" with { type: "json"
 import deleteCustomerHard from "./delete-customer-hard.json" with { type: "json" };
 
 export default {
-  ...getCustomers,
-  ...getCustomerById,
-  ...createCustomer,
-  ...updateCustomer,
-  ...softDeleteCustomer,
-  ...deleteCustomerHard,
+  "/customers": {
+    ...getCustomers["/customers"],
+    ...createCustomer["/customers"],
+  },
+  "/customers/{id}": {
+    ...getCustomerById["/customers/{id}"],
+    ...updateCustomer["/customers/{id}"],
+    ...softDeleteCustomer["/customers/{id}"],
+    ...deleteCustomerHard["/customers/{id}"],
+  },
 };

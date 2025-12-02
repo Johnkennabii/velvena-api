@@ -4,10 +4,14 @@ import updateDressColor from "./update-dress-color.json" with { type: "json" };
 import hardDeleteDressColor from "./hard-delete-dress-color.json" with { type: "json" };
 import softDeleteDressColor from "./soft-delete-dress-color.json" with { type: "json" };
 export default {
-    ...getDressColors,
-    ...createDressColor,
-    ...updateDressColor,
-    ...hardDeleteDressColor,
-    ...softDeleteDressColor,
+    "/dress-colors": {
+        ...getDressColors["/dress-colors"],
+        ...createDressColor["/dress-colors"],
+    },
+    "/dress-colors/{id}": {
+        ...updateDressColor["/dress-colors/{id}"],
+        ...softDeleteDressColor["/dress-colors/{id}"],
+        ...hardDeleteDressColor["/dress-colors/{id}"],
+    },
 };
 //# sourceMappingURL=index.js.map

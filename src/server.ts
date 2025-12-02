@@ -35,6 +35,7 @@ import contractsFullViewRoutes from "./routes/contractRoutes/contractRoutes.js";
 import notificationRoute from "./routes/notifications.js";
 import mailRoutes from "./routes/mailRoutes.js";
 import emailRoutes from "./routes/emailRoutes.js";
+import apiKeyRoutes from "./routes/apiKeys.js";
 
 import {
   getContractSignLink,
@@ -80,6 +81,7 @@ app.use(
       "http://localhost:5173",
       "http://localhost:3001",
       "http://192.168.1.17:3000",
+      "http://192.168.1.17:3001",
       "http://localhost:3000",
       "https://allure-creation.fr",
       "https://app.allure-creation.fr",
@@ -133,6 +135,7 @@ app.post("/sign-links/:token/sign", signContractViaLink);
 app.use("/notifications", notificationRoute);
 app.use("/mails", mailRoutes);
 app.use("/emails", emailRoutes);
+app.use("/api-keys", apiKeyRoutes);
 
 // ✅ Route racine
 app.get("/", (req: Request, res: Response) => {

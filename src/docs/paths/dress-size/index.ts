@@ -5,9 +5,13 @@ import softDeleteDressSize from "./soft-delete-dress-size.json" with { type: "js
 import deleteDressSizeHard from "./delete-dress-size-hard.json" with { type: "json" };
 
 export default {
-  ...getDressSizes,
-  ...createDressSize,
-  ...updateDressSize,
-  ...softDeleteDressSize,
-  ...deleteDressSizeHard,
+  "/dress-sizes": {
+    ...getDressSizes["/dress-sizes"],
+    ...createDressSize["/dress-sizes"],
+  },
+  "/dress-sizes/{id}": {
+    ...updateDressSize["/dress-sizes/{id}"],
+    ...softDeleteDressSize["/dress-sizes/{id}"],
+    ...deleteDressSizeHard["/dress-sizes/{id}"],
+  },
 };

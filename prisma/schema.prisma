@@ -109,32 +109,33 @@ model DressColor {
 }
 
 model Dress {
-  id                String          @id @default(uuid())
-  name              String
-  reference         String          @unique
-  price_ht          Decimal
-  price_ttc         Decimal
-  images            String[]
-  created_at        DateTime        @default(now())
-  created_by        String?
-  updated_at        DateTime?       @updatedAt
-  updated_by        String?
-  deleted_at        DateTime?
-  deleted_by        String?
-  published_at      DateTime?
-  published_by      String?
-  published_post    Boolean         @default(false)
-  type_id           String?
-  size_id           String?
-  condition_id      String?
-  color_id          String?
-  price_per_day_ht  Decimal
-  price_per_day_ttc Decimal
-  ContractDress     ContractDress[]
-  color             DressColor?     @relation(fields: [color_id], references: [id])
-  condition         DressCondition? @relation(fields: [condition_id], references: [id])
-  size              DressSize?      @relation(fields: [size_id], references: [id])
-  type              DressType?      @relation(fields: [type_id], references: [id])
+  id                     String                      @id @default(uuid())
+  name                   String
+  reference              String                      @unique
+  price_ht               Decimal
+  price_ttc              Decimal
+  images                 String[]
+  created_at             DateTime                    @default(now())
+  created_by             String?
+  updated_at             DateTime?                   @updatedAt
+  updated_by             String?
+  deleted_at             DateTime?
+  deleted_by             String?
+  published_at           DateTime?
+  published_by           String?
+  published_post         Boolean                     @default(false)
+  type_id                String?
+  size_id                String?
+  condition_id           String?
+  color_id               String?
+  price_per_day_ht       Decimal
+  price_per_day_ttc      Decimal
+  ContractDress          ContractDress[]
+  prospect_reservations  ProspectDressReservation[]
+  color                  DressColor?                 @relation(fields: [color_id], references: [id])
+  condition              DressCondition?             @relation(fields: [condition_id], references: [id])
+  size                   DressSize?                  @relation(fields: [size_id], references: [id])
+  type                   DressType?                  @relation(fields: [type_id], references: [id])
 }
 
 model Customer {
@@ -160,28 +161,51 @@ model Customer {
 }
 
 model Prospect {
-  id             String    @id @default(uuid())
-  firstname      String
-  lastname       String
-  email          String    @unique
-  phone          String?
-  birthday       DateTime?
-  country        String?
-  city           String?
-  address        String?
-  postal_code    String?
-  status         String    @default("new")
-  source         String?
-  notes          String?
-  created_by     String?
-  created_at     DateTime  @default(now())
-  updated_at     DateTime? @updatedAt
-  updated_by     String?
-  deleted_at     DateTime?
-  deleted_by     String?
-  converted_at   DateTime?
-  converted_by   String?
-  converted_to   String?
+  id                    String                      @id @default(uuid())
+  firstname             String
+  lastname              String
+  email                 String                      @unique
+  phone                 String?
+  birthday              DateTime?
+  country               String?
+  city                  String?
+  address               String?
+  postal_code           String?
+  status                String                      @default("new")
+  source                String?
+  notes                 String?
+  created_by            String?
+  created_at            DateTime                    @default(now())
+  updated_at            DateTime?                   @updatedAt
+  updated_by            String?
+  deleted_at            DateTime?
+  deleted_by            String?
+  converted_at          DateTime?
+  converted_by          String?
+  converted_to          String?
+  dress_reservations    ProspectDressReservation[]
+}
+
+model ProspectDressReservation {
+  id                String    @id @default(uuid())
+  prospect_id       String
+  dress_id          String
+  rental_start_date DateTime
+  rental_end_date   DateTime
+  notes             String?
+  created_at        DateTime  @default(now())
+  created_by        String?
+  updated_at        DateTime? @updatedAt
+  updated_by        String?
+  deleted_at        DateTime?
+  deleted_by        String?
+
+  prospect          Prospect  @relation(fields: [prospect_id], references: [id], onDelete: Cascade)
+  dress             Dress     @relation(fields: [dress_id], references: [id], onDelete: Cascade)
+
+  @@index([prospect_id])
+  @@index([dress_id])
+  @@index([rental_start_date, rental_end_date])
 }
 
 model ContractType {
@@ -338,4 +362,17 @@ model CustomerNote {
   deleted_at  DateTime?
   deleted_by  String?
   customer    Customer  @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+}
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  name        String    // Ex: "E-commerce Frontend"
+  key_hash    String    @unique // Hash de la clé (bcrypt)
+  scopes      String    // JSON array: ["read:dresses", "write:prospects", "write:customers"]
+  expires_at  DateTime?
+  last_used_at DateTime?
+  created_at  DateTime  @default(now())
+  created_by  String?
+  revoked_at  DateTime?
+  revoked_by  String?
 }

@@ -14,15 +14,17 @@ import moveEmail from "./move-email.json" with { type: "json" };
 import downloadEmailAttachment from "./download-email-attachment.json" with { type: "json" };
 
 export default {
+  "/mails/folders": {
+    ...getMailFolders["/mails/folders"],
+    ...createMailFolder["/mails/folders"],
+  },
   ...getMailboxes,
-  ...getMailFolders,
   ...getMails,
   ...getMailById,
   ...deleteMailPermanent,
   ...markAsRead,
   ...markAsUnread,
   ...sendMail,
-  ...createMailFolder,
   ...moveMailFolder,
   ...addFlag,
   ...removeFlag,

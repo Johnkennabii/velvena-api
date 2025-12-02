@@ -4,10 +4,14 @@ import updateDressCondition from "./update-dress-condition.json" with { type: "j
 import softDeleteDressCondition from "./soft-delete-dress-condition.json" with { type: "json" };
 import deleteDressConditionHard from "./delete-dress-condition-hard.json" with { type: "json" };
 export default {
-    ...getDressConditions,
-    ...createDressCondition,
-    ...updateDressCondition,
-    ...softDeleteDressCondition,
-    ...deleteDressConditionHard,
+    "/dress-conditions": {
+        ...getDressConditions["/dress-conditions"],
+        ...createDressCondition["/dress-conditions"],
+    },
+    "/dress-conditions/{id}": {
+        ...updateDressCondition["/dress-conditions/{id}"],
+        ...softDeleteDressCondition["/dress-conditions/{id}"],
+        ...deleteDressConditionHard["/dress-conditions/{id}"],
+    },
 };
 //# sourceMappingURL=index.js.map

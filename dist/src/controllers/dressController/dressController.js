@@ -306,7 +306,7 @@ export const updateDress = async (req, res) => {
         else {
             body = req.body;
         }
-        const { name, reference, price_ht, price_ttc, price_per_day_ht, price_per_day_ttc, type_id, size_id, condition_id, color_id, } = body;
+        const { name, reference, price_ht, price_ttc, price_per_day_ht, price_per_day_ttc, type_id, size_id, condition_id, color_id, published_post, } = body;
         pino.info({ id, body }, "📥 Données reçues pour updateDress");
         // Vérif prix
         if (price_per_day_ht === undefined || price_per_day_ht === null) {
@@ -338,6 +338,24 @@ export const updateDress = async (req, res) => {
         }
         // Supprimer doublons
         uploadedFiles = [...new Set(uploadedFiles)];
+        // Gestion de la publication
+        let publishedData = {};
+        if (published_post === true) {
+            publishedData = {
+                published_post: true,
+                published_at: new Date(),
+                published_by: req.user?.id ?? null,
+            };
+            pino.info({ userId: req.user?.id }, "✅ Robe marquée comme publiée");
+        }
+        else if (published_post === false) {
+            publishedData = {
+                published_post: false,
+                published_at: null,
+                published_by: null,
+            };
+            pino.info("❌ Robe marquée comme non publiée");
+        }
         const updateData = {
             name,
             reference,
@@ -351,6 +369,7 @@ export const updateDress = async (req, res) => {
             condition_id,
             color_id,
             updated_by: req.user?.id ?? null,
+            ...publishedData,
         };
         pino.info({ uploadedFiles, updateData }, "ℹ️ Prepared data for prisma.dress.update");
         const updated = await prisma.dress.update({
@@ -363,6 +382,62 @@ export const updateDress = async (req, res) => {
     catch (err) {
         pino.error({ err }, "❌ Erreur mise à jour robe");
         res.status(500).json({ success: false, error: "Failed to update dress" });
+    }
+};
+// PUBLISH DRESS
+export const publishDress = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ success: false, error: "ID is required" });
+        }
+        const existing = await prisma.dress.findUnique({ where: { id } });
+        if (!existing) {
+            return res.status(404).json({ success: false, error: "Dress not found" });
+        }
+        const updated = await prisma.dress.update({
+            where: { id },
+            data: {
+                published_post: true,
+                published_at: new Date(),
+                published_by: req.user?.id ?? null,
+                updated_by: req.user?.id ?? null,
+            },
+        });
+        pino.info({ id, userId: req.user?.id }, "✅ Robe publiée");
+        res.json({ success: true, data: updated });
+    }
+    catch (err) {
+        pino.error({ err }, "❌ Erreur publication robe");
+        res.status(500).json({ success: false, error: "Failed to publish dress" });
+    }
+};
+// UNPUBLISH DRESS
+export const unpublishDress = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ success: false, error: "ID is required" });
+        }
+        const existing = await prisma.dress.findUnique({ where: { id } });
+        if (!existing) {
+            return res.status(404).json({ success: false, error: "Dress not found" });
+        }
+        const updated = await prisma.dress.update({
+            where: { id },
+            data: {
+                published_post: false,
+                published_at: null,
+                published_by: null,
+                updated_by: req.user?.id ?? null,
+            },
+        });
+        pino.info({ id, userId: req.user?.id }, "❌ Robe dépubliée");
+        res.json({ success: true, data: updated });
+    }
+    catch (err) {
+        pino.error({ err }, "❌ Erreur dépublication robe");
+        res.status(500).json({ success: false, error: "Failed to unpublish dress" });
     }
 };
 // SOFT DELETE

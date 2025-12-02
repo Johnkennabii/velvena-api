@@ -331,55 +331,6 @@ declare const _default: {
             };
         };
     };
-    "/contracts/{id}": {
-        patch: {
-            tags: string[];
-            summary: string;
-            description: string;
-            operationId: string;
-            security: {
-                bearerAuth: never[];
-            }[];
-            parameters: {
-                name: string;
-                in: string;
-                required: boolean;
-                description: string;
-                schema: {
-                    type: string;
-                    format: string;
-                };
-            }[];
-            responses: {
-                "200": {
-                    description: string;
-                    content: {
-                        "application/json": {
-                            schema: {
-                                type: string;
-                                properties: {
-                                    success: {
-                                        type: string;
-                                        example: boolean;
-                                    };
-                                    message: {
-                                        type: string;
-                                        example: string;
-                                    };
-                                };
-                            };
-                        };
-                    };
-                };
-                "404": {
-                    description: string;
-                };
-                "500": {
-                    description: string;
-                };
-            };
-        };
-    };
     "/contracts/{id}/hard": {
         delete: {
             tags: string[];
@@ -1789,6 +1740,738 @@ declare const _default: {
                     };
                 };
             };
+        };
+        get: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            parameters: ({
+                name: string;
+                in: string;
+                required: boolean;
+                schema: {
+                    type: string;
+                    example: string;
+                };
+                description: string;
+            } | {
+                name: string;
+                in: string;
+                required: boolean;
+                schema: {
+                    type: string;
+                    example: number;
+                };
+                description: string;
+            })[];
+            responses: {
+                "200": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: string;
+                                required: string[];
+                                properties: {
+                                    success: {
+                                        type: string;
+                                        example: boolean;
+                                    };
+                                    data: {
+                                        type: string;
+                                        description: string;
+                                        items: {
+                                            type: string;
+                                            properties: {
+                                                id: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                contract_number: {
+                                                    type: string;
+                                                };
+                                                status: {
+                                                    type: string;
+                                                    enum: string[];
+                                                    example: string;
+                                                };
+                                                start_datetime: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                end_datetime: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                deposit_payment_method: {
+                                                    type: string;
+                                                    enum: string[];
+                                                    example: string;
+                                                };
+                                                account_ht: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                account_ttc: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                caution_ht: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                caution_ttc: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                total_price_ht: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                total_price_ttc: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                customer: {
+                                                    type: string;
+                                                    properties: {
+                                                        id: {
+                                                            type: string;
+                                                            format: string;
+                                                        };
+                                                        firstname: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                        lastname: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                        email: {
+                                                            type: string;
+                                                            format: string;
+                                                            example: string;
+                                                        };
+                                                        phone: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                    };
+                                                };
+                                                contract_type: {
+                                                    type: string;
+                                                    properties: {
+                                                        id: {
+                                                            type: string;
+                                                            format: string;
+                                                        };
+                                                        name: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                    };
+                                                };
+                                                package: {
+                                                    type: string[];
+                                                    properties: {
+                                                        id: {
+                                                            type: string;
+                                                            format: string;
+                                                        };
+                                                        name: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                        price_ht: {
+                                                            type: string;
+                                                            example: number;
+                                                        };
+                                                        price_ttc: {
+                                                            type: string;
+                                                            example: number;
+                                                        };
+                                                    };
+                                                };
+                                                addon_links: {
+                                                    type: string;
+                                                    items: {
+                                                        type: string;
+                                                        properties: {
+                                                            addon: {
+                                                                type: string;
+                                                                properties: {
+                                                                    id: {
+                                                                        type: string;
+                                                                        format: string;
+                                                                    };
+                                                                    name: {
+                                                                        type: string;
+                                                                        example: string;
+                                                                    };
+                                                                    price_ttc: {
+                                                                        type: string;
+                                                                        example: number;
+                                                                    };
+                                                                    included: {
+                                                                        type: string;
+                                                                        example: boolean;
+                                                                    };
+                                                                };
+                                                            };
+                                                        };
+                                                    };
+                                                };
+                                                dresses: {
+                                                    type: string;
+                                                    items: {
+                                                        type: string;
+                                                        properties: {
+                                                            dress: {
+                                                                type: string;
+                                                                properties: {
+                                                                    id: {
+                                                                        type: string;
+                                                                        format: string;
+                                                                    };
+                                                                    name: {
+                                                                        type: string;
+                                                                        example: string;
+                                                                    };
+                                                                    price_per_day_ttc: {
+                                                                        type: string;
+                                                                        example: number;
+                                                                    };
+                                                                };
+                                                            };
+                                                        };
+                                                    };
+                                                };
+                                                sign_link: {
+                                                    type: string[];
+                                                    description: string;
+                                                    properties: {
+                                                        token: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                        expires_at: {
+                                                            type: string;
+                                                            format: string;
+                                                        };
+                                                    };
+                                                };
+                                                created_at: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                updated_at: {
+                                                    type: string[];
+                                                    format: string;
+                                                };
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                            examples: {
+                                default: {
+                                    summary: string;
+                                    value: {
+                                        success: boolean;
+                                        data: {
+                                            id: string;
+                                            contract_number: string;
+                                            status: string;
+                                            start_datetime: string;
+                                            end_datetime: string;
+                                            deposit_payment_method: string;
+                                            account_ht: number;
+                                            account_ttc: number;
+                                            caution_ht: number;
+                                            caution_ttc: number;
+                                            total_price_ht: number;
+                                            total_price_ttc: number;
+                                            customer: {
+                                                firstname: string;
+                                                lastname: string;
+                                            };
+                                            contract_type: {
+                                                name: string;
+                                            };
+                                            package: null;
+                                            addon_links: never[];
+                                            dresses: never[];
+                                            sign_link: {
+                                                token: string;
+                                            };
+                                            created_at: string;
+                                        }[];
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                "500": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: string;
+                                properties: {
+                                    success: {
+                                        type: string;
+                                        example: boolean;
+                                    };
+                                    error: {
+                                        type: string;
+                                        example: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            security: {
+                bearerAuth: never[];
+            }[];
+        };
+    };
+    "/contracts/{id}": {
+        patch: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            security: {
+                bearerAuth: never[];
+            }[];
+            parameters: {
+                name: string;
+                in: string;
+                required: boolean;
+                description: string;
+                schema: {
+                    type: string;
+                    format: string;
+                };
+            }[];
+            responses: {
+                "200": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: string;
+                                properties: {
+                                    success: {
+                                        type: string;
+                                        example: boolean;
+                                    };
+                                    message: {
+                                        type: string;
+                                        example: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                "404": {
+                    description: string;
+                };
+                "500": {
+                    description: string;
+                };
+            };
+        };
+        put: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            security: {
+                bearerAuth: never[];
+            }[];
+            parameters: {
+                name: string;
+                in: string;
+                required: boolean;
+                schema: {
+                    type: string;
+                    format: string;
+                    example: string;
+                };
+                description: string;
+            }[];
+            requestBody: {
+                required: boolean;
+                content: {
+                    "application/json": {
+                        schema: {
+                            $ref: string;
+                        };
+                        examples: {
+                            updateContract: {
+                                summary: string;
+                                value: {
+                                    status: string;
+                                    startDatetime: string;
+                                    endDatetime: string;
+                                    depositPaymentMethod: string;
+                                    total_price_ht: string;
+                                    total_price_ttc: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            responses: {
+                "200": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            examples: {
+                                success: {
+                                    summary: string;
+                                    value: {
+                                        success: boolean;
+                                        data: {
+                                            id: string;
+                                            contractType: string;
+                                            status: string;
+                                            startDatetime: string;
+                                            endDatetime: string;
+                                            depositPaymentMethod: string;
+                                            total_price_ht: string;
+                                            total_price_ttc: string;
+                                            updated_by: string;
+                                            updated_at: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                "400": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+                "401": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                error: string;
+                            };
+                        };
+                    };
+                };
+                "404": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+                "500": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        get: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            parameters: {
+                name: string;
+                in: string;
+                required: boolean;
+                schema: {
+                    type: string;
+                    format: string;
+                };
+                description: string;
+            }[];
+            responses: {
+                "200": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: string;
+                                required: string[];
+                                properties: {
+                                    success: {
+                                        type: string;
+                                        example: boolean;
+                                    };
+                                    data: {
+                                        type: string;
+                                        properties: {
+                                            id: {
+                                                type: string;
+                                                format: string;
+                                            };
+                                            contract_number: {
+                                                type: string;
+                                            };
+                                            status: {
+                                                type: string;
+                                                enum: string[];
+                                                example: string;
+                                            };
+                                            start_datetime: {
+                                                type: string;
+                                                format: string;
+                                            };
+                                            end_datetime: {
+                                                type: string;
+                                                format: string;
+                                            };
+                                            deposit_payment_method: {
+                                                type: string;
+                                                enum: string[];
+                                                example: string;
+                                            };
+                                            account_ht: {
+                                                type: string;
+                                                example: number;
+                                            };
+                                            account_ttc: {
+                                                type: string;
+                                                example: number;
+                                            };
+                                            caution_ht: {
+                                                type: string;
+                                                example: number;
+                                            };
+                                            caution_ttc: {
+                                                type: string;
+                                                example: number;
+                                            };
+                                            total_price_ht: {
+                                                type: string;
+                                                example: number;
+                                            };
+                                            total_price_ttc: {
+                                                type: string;
+                                                example: number;
+                                            };
+                                            customer: {
+                                                type: string;
+                                                properties: {
+                                                    id: {
+                                                        type: string;
+                                                        format: string;
+                                                    };
+                                                    firstname: {
+                                                        type: string;
+                                                        example: string;
+                                                    };
+                                                    lastname: {
+                                                        type: string;
+                                                        example: string;
+                                                    };
+                                                    email: {
+                                                        type: string;
+                                                        format: string;
+                                                        example: string;
+                                                    };
+                                                    phone: {
+                                                        type: string;
+                                                        example: string;
+                                                    };
+                                                };
+                                            };
+                                            contract_type: {
+                                                type: string;
+                                                properties: {
+                                                    id: {
+                                                        type: string;
+                                                        format: string;
+                                                    };
+                                                    name: {
+                                                        type: string;
+                                                        example: string;
+                                                    };
+                                                };
+                                            };
+                                            package: {
+                                                type: string[];
+                                                properties: {
+                                                    id: {
+                                                        type: string;
+                                                        format: string;
+                                                    };
+                                                    name: {
+                                                        type: string;
+                                                        example: string;
+                                                    };
+                                                    price_ht: {
+                                                        type: string;
+                                                        example: number;
+                                                    };
+                                                    price_ttc: {
+                                                        type: string;
+                                                        example: number;
+                                                    };
+                                                };
+                                            };
+                                            addon_links: {
+                                                type: string;
+                                                items: {
+                                                    type: string;
+                                                    properties: {
+                                                        addon: {
+                                                            type: string;
+                                                            properties: {
+                                                                id: {
+                                                                    type: string;
+                                                                    format: string;
+                                                                };
+                                                                name: {
+                                                                    type: string;
+                                                                    example: string;
+                                                                };
+                                                                price_ttc: {
+                                                                    type: string;
+                                                                    example: number;
+                                                                };
+                                                                included: {
+                                                                    type: string;
+                                                                    example: boolean;
+                                                                };
+                                                            };
+                                                        };
+                                                    };
+                                                };
+                                            };
+                                            dresses: {
+                                                type: string;
+                                                items: {
+                                                    type: string;
+                                                    properties: {
+                                                        dress: {
+                                                            type: string;
+                                                            properties: {
+                                                                id: {
+                                                                    type: string;
+                                                                    format: string;
+                                                                };
+                                                                name: {
+                                                                    type: string;
+                                                                    example: string;
+                                                                };
+                                                                price_per_day_ttc: {
+                                                                    type: string;
+                                                                    example: number;
+                                                                };
+                                                            };
+                                                        };
+                                                    };
+                                                };
+                                            };
+                                            sign_link: {
+                                                type: string[];
+                                                description: string;
+                                                properties: {
+                                                    token: {
+                                                        type: string;
+                                                        example: string;
+                                                    };
+                                                    expires_at: {
+                                                        type: string;
+                                                        format: string;
+                                                    };
+                                                };
+                                            };
+                                            created_at: {
+                                                type: string;
+                                                format: string;
+                                            };
+                                            updated_at: {
+                                                type: string[];
+                                                format: string;
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                "404": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: string;
+                                properties: {
+                                    success: {
+                                        type: string;
+                                        example: boolean;
+                                    };
+                                    error: {
+                                        type: string;
+                                        example: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                "500": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: string;
+                                properties: {
+                                    success: {
+                                        type: string;
+                                        example: boolean;
+                                    };
+                                    error: {
+                                        type: string;
+                                        example: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            security: {
+                bearerAuth: never[];
+            }[];
         };
     };
 };

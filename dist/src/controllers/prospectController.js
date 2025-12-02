@@ -28,16 +28,54 @@ export const getProspects = async (req, res) => {
         }
         // Count total for pagination
         const total = await prisma.prospect.count({ where });
-        // Fetch paginated data
+        // Fetch paginated data with dress reservations
         const prospects = await prisma.prospect.findMany({
             where,
             orderBy: { created_at: "desc" },
             skip,
             take: limit,
+            include: {
+                dress_reservations: {
+                    where: { deleted_at: null },
+                    include: {
+                        dress: {
+                            include: {
+                                type: true,
+                                size: true,
+                                color: true,
+                                condition: true,
+                            },
+                        },
+                    },
+                    orderBy: { rental_start_date: "asc" },
+                },
+            },
+        });
+        // Calculate rental days and estimated cost for each prospect
+        const prospectsWithCalculations = prospects.map(prospect => {
+            let totalEstimatedCost = 0;
+            const reservationsWithCalculations = prospect.dress_reservations.map(reservation => {
+                const startDate = new Date(reservation.rental_start_date);
+                const endDate = new Date(reservation.rental_end_date);
+                const rentalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                const pricePerDay = Number(reservation.dress.price_per_day_ttc ?? 0);
+                const estimatedCost = rentalDays * pricePerDay;
+                totalEstimatedCost += estimatedCost;
+                return {
+                    ...reservation,
+                    rental_days: rentalDays,
+                    estimated_cost: estimatedCost,
+                };
+            });
+            return {
+                ...prospect,
+                dress_reservations: reservationsWithCalculations,
+                total_estimated_cost: totalEstimatedCost,
+            };
         });
         res.json({
             success: true,
-            data: prospects,
+            data: prospectsWithCalculations,
             page,
             limit,
             total,
@@ -59,11 +97,49 @@ export const getProspectById = async (req, res) => {
         if (!id) {
             return res.status(400).json({ success: false, error: "Prospect ID is required" });
         }
-        const prospect = await prisma.prospect.findUnique({ where: { id: String(id) } });
+        const prospect = await prisma.prospect.findUnique({
+            where: { id: String(id) },
+            include: {
+                dress_reservations: {
+                    where: { deleted_at: null },
+                    include: {
+                        dress: {
+                            include: {
+                                type: true,
+                                size: true,
+                                color: true,
+                                condition: true,
+                            },
+                        },
+                    },
+                    orderBy: { rental_start_date: "asc" },
+                },
+            },
+        });
         if (!prospect || prospect.deleted_at) {
             return res.status(404).json({ success: false, error: "Prospect not found" });
         }
-        res.json({ success: true, data: prospect });
+        // Calculate rental days and estimated cost for each reservation
+        let totalEstimatedCost = 0;
+        const reservationsWithCalculations = prospect.dress_reservations.map(reservation => {
+            const startDate = new Date(reservation.rental_start_date);
+            const endDate = new Date(reservation.rental_end_date);
+            const rentalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+            const pricePerDay = Number(reservation.dress.price_per_day_ttc ?? 0);
+            const estimatedCost = rentalDays * pricePerDay;
+            totalEstimatedCost += estimatedCost;
+            return {
+                ...reservation,
+                rental_days: rentalDays,
+                estimated_cost: estimatedCost,
+            };
+        });
+        const prospectWithCalculations = {
+            ...prospect,
+            dress_reservations: reservationsWithCalculations,
+            total_estimated_cost: totalEstimatedCost,
+        };
+        res.json({ success: true, data: prospectWithCalculations });
     }
     catch (err) {
         pino.error({ err }, "❌ Erreur récupération prospect");
@@ -77,25 +153,82 @@ export const getProspectById = async (req, res) => {
 // Create a new prospect
 export const createProspect = async (req, res) => {
     try {
-        const { firstname, lastname, email, phone, birthday, country, city, address, postal_code, status, source, notes } = req.body;
-        const prospect = await prisma.prospect.create({
-            data: {
-                firstname,
-                lastname,
-                email,
-                phone,
-                birthday: birthday ? new Date(birthday) : null,
-                country,
-                city,
-                address,
-                postal_code,
-                status: status || "new",
-                source,
-                notes,
-                created_by: req.user?.id ?? null,
-            },
+        const { firstname, lastname, email, phone, birthday, country, city, address, postal_code, status, source, notes, dress_reservations } = req.body;
+        // Create prospect with dress reservations in a transaction
+        const result = await prisma.$transaction(async (tx) => {
+            // Create the prospect
+            const prospect = await tx.prospect.create({
+                data: {
+                    firstname,
+                    lastname,
+                    email,
+                    phone,
+                    birthday: birthday ? new Date(birthday) : null,
+                    country,
+                    city,
+                    address,
+                    postal_code,
+                    status: status || "new",
+                    source,
+                    notes,
+                    created_by: req.user?.id ?? null,
+                },
+            });
+            // Create dress reservations if provided
+            if (dress_reservations && Array.isArray(dress_reservations) && dress_reservations.length > 0) {
+                await tx.prospectDressReservation.createMany({
+                    data: dress_reservations.map((reservation) => ({
+                        prospect_id: prospect.id,
+                        dress_id: reservation.dress_id,
+                        rental_start_date: new Date(reservation.rental_start_date),
+                        rental_end_date: new Date(reservation.rental_end_date),
+                        notes: reservation.notes || null,
+                        created_by: req.user?.id ?? null,
+                    })),
+                });
+            }
+            // Fetch the complete prospect with dress reservations and calculated fields
+            const prospectWithDetails = await tx.prospect.findUnique({
+                where: { id: prospect.id },
+                include: {
+                    dress_reservations: {
+                        where: { deleted_at: null },
+                        include: {
+                            dress: {
+                                include: {
+                                    type: true,
+                                    size: true,
+                                    color: true,
+                                    condition: true,
+                                },
+                            },
+                        },
+                        orderBy: { rental_start_date: "asc" },
+                    },
+                },
+            });
+            // Calculate rental days and estimated cost for each reservation
+            let totalEstimatedCost = 0;
+            const reservationsWithCalculations = prospectWithDetails?.dress_reservations.map(reservation => {
+                const startDate = new Date(reservation.rental_start_date);
+                const endDate = new Date(reservation.rental_end_date);
+                const rentalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                const pricePerDay = Number(reservation.dress.price_per_day_ttc ?? 0);
+                const estimatedCost = rentalDays * pricePerDay;
+                totalEstimatedCost += estimatedCost;
+                return {
+                    ...reservation,
+                    rental_days: rentalDays,
+                    estimated_cost: estimatedCost,
+                };
+            }) || [];
+            return {
+                ...prospectWithDetails,
+                dress_reservations: reservationsWithCalculations,
+                total_estimated_cost: totalEstimatedCost,
+            };
         });
-        res.status(201).json({ success: true, data: prospect });
+        res.status(201).json({ success: true, data: result });
     }
     catch (err) {
         pino.error({ err }, "❌ Erreur création prospect");
@@ -214,7 +347,26 @@ export const convertProspectToCustomer = async (req, res) => {
         if (!id) {
             return res.status(400).json({ success: false, error: "Prospect ID is required" });
         }
-        const prospect = await prisma.prospect.findUnique({ where: { id: String(id) } });
+        // Fetch prospect with dress reservations
+        const prospect = await prisma.prospect.findUnique({
+            where: { id: String(id) },
+            include: {
+                dress_reservations: {
+                    where: { deleted_at: null },
+                    include: {
+                        dress: {
+                            include: {
+                                type: true,
+                                size: true,
+                                color: true,
+                                condition: true,
+                            },
+                        },
+                    },
+                    orderBy: { rental_start_date: "asc" },
+                },
+            },
+        });
         if (!prospect || prospect.deleted_at) {
             return res.status(404).json({ success: false, error: "Prospect not found" });
         }
@@ -237,39 +389,79 @@ export const convertProspectToCustomer = async (req, res) => {
                 customer_id: existingCustomer.id
             });
         }
-        // Create customer from prospect data
-        const customer = await prisma.customer.create({
-            data: {
-                firstname: prospect.firstname,
-                lastname: prospect.lastname,
-                email: prospect.email,
-                phone: prospect.phone,
-                birthday: prospect.birthday,
-                country: prospect.country,
-                city: prospect.city,
-                address: prospect.address,
-                postal_code: prospect.postal_code,
-                created_by: req.user?.id ?? null,
-            },
-        });
-        // Update prospect to mark as converted
-        const updatedProspect = await prisma.prospect.update({
-            where: { id: String(id) },
-            data: {
-                converted_at: new Date(),
-                converted_by: req.user?.id ?? null,
-                converted_to: customer.id,
-                status: "converted",
-                updated_at: new Date(),
-                updated_by: req.user?.id ?? null,
-            },
+        // Convert in a transaction
+        const result = await prisma.$transaction(async (tx) => {
+            // Create customer from prospect data
+            const customer = await tx.customer.create({
+                data: {
+                    firstname: prospect.firstname,
+                    lastname: prospect.lastname,
+                    email: prospect.email,
+                    phone: prospect.phone,
+                    birthday: prospect.birthday,
+                    country: prospect.country,
+                    city: prospect.city,
+                    address: prospect.address,
+                    postal_code: prospect.postal_code,
+                    created_by: req.user?.id ?? null,
+                },
+            });
+            // Create a customer note with dress reservations info if any exist
+            if (prospect.dress_reservations.length > 0) {
+                // Format dress reservations into a note
+                let noteContent = "📋 Robes sélectionnées lors de la conversion depuis prospect:\n\n";
+                let totalEstimatedCost = 0;
+                prospect.dress_reservations.forEach((reservation, index) => {
+                    const startDate = new Date(reservation.rental_start_date);
+                    const endDate = new Date(reservation.rental_end_date);
+                    const rentalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                    const pricePerDay = Number(reservation.dress.price_per_day_ttc ?? 0);
+                    const estimatedCost = rentalDays * pricePerDay;
+                    totalEstimatedCost += estimatedCost;
+                    noteContent += `${index + 1}. ${reservation.dress.name}\n`;
+                    noteContent += `   • Référence: ${reservation.dress.reference || "N/A"}\n`;
+                    noteContent += `   • Type: ${reservation.dress.type?.name || "N/A"}\n`;
+                    noteContent += `   • Taille: ${reservation.dress.size?.name || "N/A"}\n`;
+                    noteContent += `   • Couleur: ${reservation.dress.color?.name || "N/A"}\n`;
+                    noteContent += `   • Période: ${startDate.toLocaleDateString("fr-FR")} au ${endDate.toLocaleDateString("fr-FR")}\n`;
+                    noteContent += `   • Nombre de jours: ${rentalDays} jour(s)\n`;
+                    noteContent += `   • Prix/jour TTC: ${pricePerDay.toFixed(2)}€\n`;
+                    noteContent += `   • Coût estimé: ${estimatedCost.toFixed(2)}€\n`;
+                    if (reservation.notes) {
+                        noteContent += `   • Notes: ${reservation.notes}\n`;
+                    }
+                    noteContent += `\n`;
+                });
+                noteContent += `💰 Coût total estimé: ${totalEstimatedCost.toFixed(2)}€`;
+                // Create customer note
+                await tx.customerNote.create({
+                    data: {
+                        customer_id: customer.id,
+                        content: noteContent,
+                        created_by: req.user?.id ?? null,
+                    },
+                });
+            }
+            // Update prospect to mark as converted
+            const updatedProspect = await tx.prospect.update({
+                where: { id: String(id) },
+                data: {
+                    converted_at: new Date(),
+                    converted_by: req.user?.id ?? null,
+                    converted_to: customer.id,
+                    status: "converted",
+                    updated_at: new Date(),
+                    updated_by: req.user?.id ?? null,
+                },
+            });
+            return {
+                prospect: updatedProspect,
+                customer: customer,
+            };
         });
         res.json({
             success: true,
-            data: {
-                prospect: updatedProspect,
-                customer: customer
-            },
+            data: result,
             message: "Prospect successfully converted to customer"
         });
     }

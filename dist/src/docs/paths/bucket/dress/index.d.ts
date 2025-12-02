@@ -150,6 +150,63 @@ declare const _default: {
                 };
             };
         };
+        get: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            security: {
+                bearerAuth: never[];
+            }[];
+            responses: {
+                "200": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            examples: {
+                                success: {
+                                    summary: string;
+                                    value: {
+                                        success: boolean;
+                                        files: {
+                                            id: string;
+                                            name: string;
+                                            url: string;
+                                        }[];
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                "401": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+                "500": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                                details: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
     };
 };
 export default _default;

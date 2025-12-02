@@ -123,6 +123,137 @@ declare const _default: {
             }[];
         };
     };
+    "/contract-types": {
+        post: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            requestBody: {
+                required: boolean;
+                content: {
+                    "application/json": {
+                        schema: {
+                            $ref: string;
+                        };
+                        example: {
+                            name: string;
+                        };
+                    };
+                };
+            };
+            responses: {
+                "201": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            example: {
+                                success: boolean;
+                                data: {
+                                    id: string;
+                                    name: string;
+                                    created_by: string;
+                                    created_at: string;
+                                };
+                            };
+                        };
+                    };
+                };
+                "400": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+                "500": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+            security: {
+                bearerAuth: never[];
+            }[];
+        };
+        get: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            security: {
+                bearerAuth: never[];
+            }[];
+            responses: {
+                "200": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            examples: {
+                                success: {
+                                    summary: string;
+                                    value: {
+                                        success: boolean;
+                                        data: ({
+                                            id: string;
+                                            name: string;
+                                            description: string;
+                                            created_at: string;
+                                            updated_at: null;
+                                        } | {
+                                            id: string;
+                                            name: string;
+                                            description: string;
+                                            created_at: string;
+                                            updated_at: string;
+                                        })[];
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                "401": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+                "500": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
     "/contract-types/{id}": {
         put: {
             tags: string[];
@@ -200,28 +331,23 @@ declare const _default: {
                 bearerAuth: never[];
             }[];
         };
-    };
-    "/contract-types": {
-        post: {
+        get: {
             tags: string[];
             summary: string;
             description: string;
             operationId: string;
-            requestBody: {
+            parameters: {
+                name: string;
+                in: string;
                 required: boolean;
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: string;
-                        };
-                        example: {
-                            name: string;
-                        };
-                    };
+                schema: {
+                    type: string;
+                    example: string;
                 };
-            };
+                description: string;
+            }[];
             responses: {
-                "201": {
+                "200": {
                     description: string;
                     content: {
                         "application/json": {
@@ -233,14 +359,27 @@ declare const _default: {
                                 data: {
                                     id: string;
                                     name: string;
-                                    created_by: string;
+                                    description: string;
                                     created_at: string;
+                                    updated_at: string;
+                                    deleted_at: null;
                                 };
                             };
                         };
                     };
                 };
                 "400": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+                "404": {
                     description: string;
                     content: {
                         "application/json": {

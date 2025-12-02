@@ -8,16 +8,30 @@ import deleteDressSoft from "./delete-dress-soft.json" with { type: "json" };
 import detailsView from "./details-view.json" with { type: "json" };
 import deleteDressImage from "./delete-dress-image.json" with { type: "json" };
 import createDressImage from "./create-dress-image.json" with { type: "json" };
+import publishDress from "./publish-dress.json" with { type: "json" };
+import unpublishDress from "./unpublish-dress.json" with { type: "json" };
 export default {
-    ...getDress,
-    ...getDressById,
+    "/dresses": {
+        ...getDress["/dresses"],
+        ...createDress["/dresses"],
+    },
+    "/dresses/{id}": {
+        ...getDressById["/dresses/{id}"],
+        ...updateDress["/dresses/{id}"],
+    },
+    "/dresses/{id}/images": {
+        ...createDressImage["/dresses/{id}/images"],
+        ...deleteDressImage["/dresses/{id}/images"],
+    },
+    "/dresses/{id}/publish": {
+        ...publishDress,
+    },
+    "/dresses/{id}/unpublish": {
+        ...unpublishDress,
+    },
     ...getDressesAvailability,
-    ...createDress,
-    ...updateDress,
     ...deleteDressHard,
     ...deleteDressSoft,
     ...detailsView,
-    ...deleteDressImage,
-    ...createDressImage,
 };
 //# sourceMappingURL=index.js.map

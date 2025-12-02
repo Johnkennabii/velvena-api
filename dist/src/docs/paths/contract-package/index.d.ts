@@ -173,6 +173,183 @@ declare const _default: {
             };
         };
     };
+    "/contract-packages": {
+        post: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            security: {
+                bearerAuth: never[];
+            }[];
+            requestBody: {
+                required: boolean;
+                content: {
+                    "application/json": {
+                        schema: {
+                            $ref: string;
+                        };
+                        examples: {
+                            basicPackage: {
+                                summary: string;
+                                value: {
+                                    name: string;
+                                    num_dresses: number;
+                                    price_ht: number;
+                                    price_ttc: number;
+                                };
+                            };
+                            packageWithAddons: {
+                                summary: string;
+                                value: {
+                                    name: string;
+                                    num_dresses: number;
+                                    price_ht: number;
+                                    price_ttc: number;
+                                    addon_ids: string[];
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            responses: {
+                "201": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            examples: {
+                                success: {
+                                    summary: string;
+                                    value: {
+                                        success: boolean;
+                                        data: {
+                                            id: string;
+                                            name: string;
+                                            num_dresses: number;
+                                            price_ht: number;
+                                            price_ttc: number;
+                                            created_at: string;
+                                            created_by: string;
+                                            addons: {
+                                                addon: {
+                                                    id: string;
+                                                    name: string;
+                                                    price_ht: number;
+                                                    price_ttc: number;
+                                                };
+                                            }[];
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                "400": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+                "401": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+                "500": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        get: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            security: {
+                bearerAuth: never[];
+            }[];
+            responses: {
+                "200": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            examples: {
+                                success: {
+                                    summary: string;
+                                    value: {
+                                        success: boolean;
+                                        data: {
+                                            id: string;
+                                            name: string;
+                                            description: string;
+                                            price_ht: number;
+                                            price_ttc: number;
+                                            created_at: string;
+                                            addons: {
+                                                id: string;
+                                                name: string;
+                                                price_ht: number;
+                                                price_ttc: number;
+                                            }[];
+                                        }[];
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                "401": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+                "500": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
     "/contract-packages/{id}": {
         put: {
             tags: string[];
@@ -306,9 +483,7 @@ declare const _default: {
                 };
             };
         };
-    };
-    "/contract-packages": {
-        post: {
+        get: {
             tags: string[];
             summary: string;
             description: string;
@@ -316,39 +491,19 @@ declare const _default: {
             security: {
                 bearerAuth: never[];
             }[];
-            requestBody: {
+            parameters: {
+                name: string;
+                in: string;
                 required: boolean;
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: string;
-                        };
-                        examples: {
-                            basicPackage: {
-                                summary: string;
-                                value: {
-                                    name: string;
-                                    num_dresses: number;
-                                    price_ht: number;
-                                    price_ttc: number;
-                                };
-                            };
-                            packageWithAddons: {
-                                summary: string;
-                                value: {
-                                    name: string;
-                                    num_dresses: number;
-                                    price_ht: number;
-                                    price_ttc: number;
-                                    addon_ids: string[];
-                                };
-                            };
-                        };
-                    };
+                description: string;
+                schema: {
+                    type: string;
+                    format: string;
                 };
-            };
+                example: string;
+            }[];
             responses: {
-                "201": {
+                "200": {
                     description: string;
                     content: {
                         "application/json": {
@@ -363,18 +518,15 @@ declare const _default: {
                                         data: {
                                             id: string;
                                             name: string;
-                                            num_dresses: number;
+                                            description: string;
                                             price_ht: number;
                                             price_ttc: number;
                                             created_at: string;
-                                            created_by: string;
                                             addons: {
-                                                addon: {
-                                                    id: string;
-                                                    name: string;
-                                                    price_ht: number;
-                                                    price_ttc: number;
-                                                };
+                                                id: string;
+                                                name: string;
+                                                price_ht: number;
+                                                price_ttc: number;
                                             }[];
                                         };
                                     };
@@ -383,7 +535,7 @@ declare const _default: {
                         };
                     };
                 };
-                "400": {
+                "404": {
                     description: string;
                     content: {
                         "application/json": {

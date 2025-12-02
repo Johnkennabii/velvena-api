@@ -4,8 +4,10 @@ import createProspect from "./create-prospect.json" with { type: "json" };
 import convertProspect from "./convert-prospect.json" with { type: "json" };
 
 export const prospectPaths = {
-  ...getProspects,
+  "/prospects": {
+    ...getProspects["/prospects"],
+    ...createProspect["/prospects"],
+  },
   ...prospectById,
-  ...createProspect,
   ...convertProspect,
 };

@@ -8,7 +8,7 @@
     "test": "node --loader ts-node/esm --test \"tests/**/*.test.ts\"",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc && node scripts/copyDocs.js",
-    "start": "node dist/server.js",
+    "start": "node dist/src/server.js",
     "migrate:dev": "prisma migrate dev --name init",
     "migrate:prod": "prisma migrate deploy",
     "prisma:generate": "prisma generate",

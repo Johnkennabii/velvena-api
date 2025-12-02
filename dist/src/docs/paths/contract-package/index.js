@@ -5,10 +5,14 @@ import updateContractPackage from "./update-contract-package.json" with { type: 
 import softDeleteContractPackage from "./soft-delete-contract-package.json" with { type: "json" };
 import hardDeleteContractPackage from "./hard-delete-contract-package.json" with { type: "json" };
 export default {
-    ...getContractPackages,
-    ...getContractPackageById,
-    ...createContractPackage,
-    ...updateContractPackage,
+    "/contract-packages": {
+        ...getContractPackages["/contract-packages"],
+        ...createContractPackage["/contract-packages"],
+    },
+    "/contract-packages/{id}": {
+        ...getContractPackageById["/contract-packages/{id}"],
+        ...updateContractPackage["/contract-packages/{id}"],
+    },
     ...softDeleteContractPackage,
     ...hardDeleteContractPackage,
 };

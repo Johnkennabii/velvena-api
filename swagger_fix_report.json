@@ -1,0 +1,660 @@
+{
+  "summary": {
+    "total_directories": 17,
+    "already_fixed": [
+      "customer",
+      "customer-note"
+    ],
+    "needs_fixing": 15
+  },
+  "directories_to_fix": [
+    {
+      "directory": "bucket/avatar",
+      "absolute_path": "/var/www/allure-api/src/docs/paths/bucket/avatar",
+      "index_file": "/var/www/allure-api/src/docs/paths/bucket/avatar/index.ts",
+      "shared_paths": [
+        {
+          "path": "/avatars/{id}",
+          "files_and_methods": [
+            {
+              "filename": "get-avatar-by-id.json",
+              "import_name": "get_avatar_by_id",
+              "methods": [
+                "get"
+              ]
+            },
+            {
+              "filename": "delete-avatar-by-id.json",
+              "import_name": "delete_avatar_by_id",
+              "methods": [
+                "delete"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "/avatars",
+          "files_and_methods": [
+            {
+              "filename": "upload-avatar.json",
+              "import_name": "upload_avatar",
+              "methods": [
+                "post"
+              ]
+            },
+            {
+              "filename": "list-avatars.json",
+              "import_name": "list_avatars",
+              "methods": [
+                "get"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "bucket/dress",
+      "absolute_path": "/var/www/allure-api/src/docs/paths/bucket/dress",
+      "index_file": "/var/www/allure-api/src/docs/paths/bucket/dress/index.ts",
+      "shared_paths": [
+        {
+          "path": "/dress-storage",
+          "files_and_methods": [
+            {
+              "filename": "list-dress-images.json",
+              "import_name": "list_dress_images",
+              "methods": [
+                "get"
+              ]
+            },
+            {
+              "filename": "upload-dress-images.json",
+              "import_name": "upload_dress_images",
+              "methods": [
+                "post"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "contract",
+      "absolute_path": "/var/www/allure-api/src/docs/paths/contract",
+      "index_file": "/var/www/allure-api/src/docs/paths/contract/index.ts",
+      "shared_paths": [
+        {
+          "path": "/contracts/{id}",
+          "files_and_methods": [
+            {
+              "filename": "delete-contract-soft.json",
+              "import_name": "delete_contract_soft",
+              "methods": [
+                "patch"
+              ]
+            },
+            {
+              "filename": "get-contract-by-id.json",
+              "import_name": "get_contract_by_id",
+              "methods": [
+                "get"
+              ]
+            },
+            {
+              "filename": "update-contract.json",
+              "import_name": "update_contract",
+              "methods": [
+                "put"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "/contracts",
+          "files_and_methods": [
+            {
+              "filename": "get-contract.json",
+              "import_name": "get_contract",
+              "methods": [
+                "get"
+              ]
+            },
+            {
+              "filename": "create-contract.json",
+              "import_name": "create_contract",
+              "methods": [
+                "post"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "contract-addon",
+      "absolute_path": "/var/www/allure-api/src/docs/paths/contract-addon",
+      "index_file": "/var/www/allure-api/src/docs/paths/contract-addon/index.ts",
+      "shared_paths": [
+        {
+          "path": "/contract-addons",
+          "files_and_methods": [
+            {
+              "filename": "get-contract-addons.json",
+              "import_name": "get_contract_addons",
+              "methods": [
+                "get"
+              ]
+            },
+            {
+              "filename": "create-contract-addon.json",
+              "import_name": "create_contract_addon",
+              "methods": [
+                "post"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "/contract-addons/{id}",
+          "files_and_methods": [
+            {
+              "filename": "get-contract-addon-by-id.json",
+              "import_name": "get_contract_addon_by_id",
+              "methods": [
+                "get"
+              ]
+            },
+            {
+              "filename": "update-contract-addon.json",
+              "import_name": "update_contract_addon",
+              "methods": [
+                "put"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "contract-package",
+      "absolute_path": "/var/www/allure-api/src/docs/paths/contract-package",
+      "index_file": "/var/www/allure-api/src/docs/paths/contract-package/index.ts",
+      "shared_paths": [
+        {
+          "path": "/contract-packages",
+          "files_and_methods": [
+            {
+              "filename": "create-contract-package.json",
+              "import_name": "create_contract_package",
+              "methods": [
+                "post"
+              ]
+            },
+            {
+              "filename": "get-contract-packages.json",
+              "import_name": "get_contract_packages",
+              "methods": [
+                "get"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "/contract-packages/{id}",
+          "files_and_methods": [
+            {
+              "filename": "update-contract-package.json",
+              "import_name": "update_contract_package",
+              "methods": [
+                "put"
+              ]
+            },
+            {
+              "filename": "get-contract-package-by-id.json",
+              "import_name": "get_contract_package_by_id",
+              "methods": [
+                "get"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "contract-type",
+      "absolute_path": "/var/www/allure-api/src/docs/paths/contract-type",
+      "index_file": "/var/www/allure-api/src/docs/paths/contract-type/index.ts",
+      "shared_paths": [
+        {
+          "path": "/contract-types",
+          "files_and_methods": [
+            {
+              "filename": "get-contract-types.json",
+              "import_name": "get_contract_types",
+              "methods": [
+                "get"
+              ]
+            },
+            {
+              "filename": "create-contract-type.json",
+              "import_name": "create_contract_type",
+              "methods": [
+                "post"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "/contract-types/{id}",
+          "files_and_methods": [
+            {
+              "filename": "update-contract-type.json",
+              "import_name": "update_contract_type",
+              "methods": [
+                "put"
+              ]
+            },
+            {
+              "filename": "get-contract-type-by-id.json",
+              "import_name": "get_contract_type_by_id",
+              "methods": [
+                "get"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "dress",
+      "absolute_path": "/var/www/allure-api/src/docs/paths/dress",
+      "index_file": "/var/www/allure-api/src/docs/paths/dress/index.ts",
+      "shared_paths": [
+        {
+          "path": "/dresses",
+          "files_and_methods": [
+            {
+              "filename": "get-dress.json",
+              "import_name": "get_dress",
+              "methods": [
+                "get"
+              ]
+            },
+            {
+              "filename": "create-dress.json",
+              "import_name": "create_dress",
+              "methods": [
+                "post"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "/dresses/{id}",
+          "files_and_methods": [
+            {
+              "filename": "get-dress-by-id.json",
+              "import_name": "get_dress_by_id",
+              "methods": [
+                "get"
+              ]
+            },
+            {
+              "filename": "update-dress.json",
+              "import_name": "update_dress",
+              "methods": [
+                "put"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "/dresses/{id}/images",
+          "files_and_methods": [
+            {
+              "filename": "create-dress-image.json",
+              "import_name": "create_dress_image",
+              "methods": [
+                "post"
+              ]
+            },
+            {
+              "filename": "delete-dress-image.json",
+              "import_name": "delete_dress_image",
+              "methods": [
+                "delete"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "dress-colors",
+      "absolute_path": "/var/www/allure-api/src/docs/paths/dress-colors",
+      "index_file": "/var/www/allure-api/src/docs/paths/dress-colors/index.ts",
+      "shared_paths": [
+        {
+          "path": "/dress-colors",
+          "files_and_methods": [
+            {
+              "filename": "get-dress-colors.json",
+              "import_name": "get_dress_colors",
+              "methods": [
+                "get"
+              ]
+            },
+            {
+              "filename": "create-dress-color.json",
+              "import_name": "create_dress_color",
+              "methods": [
+                "post"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "/dress-colors/{id}",
+          "files_and_methods": [
+            {
+              "filename": "hard-delete-dress-color.json",
+              "import_name": "hard_delete_dress_color",
+              "methods": [
+                "delete"
+              ]
+            },
+            {
+              "filename": "update-dress-color.json",
+              "import_name": "update_dress_color",
+              "methods": [
+                "put"
+              ]
+            },
+            {
+              "filename": "soft-delete-dress-color.json",
+              "import_name": "soft_delete_dress_color",
+              "methods": [
+                "patch"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "dress-conditions",
+      "absolute_path": "/var/www/allure-api/src/docs/paths/dress-conditions",
+      "index_file": "/var/www/allure-api/src/docs/paths/dress-conditions/index.ts",
+      "shared_paths": [
+        {
+          "path": "/dress-conditions/{id}",
+          "files_and_methods": [
+            {
+              "filename": "delete-dress-condition-hard.json",
+              "import_name": "delete_dress_condition_hard",
+              "methods": [
+                "delete"
+              ]
+            },
+            {
+              "filename": "soft-delete-dress-condition.json",
+              "import_name": "soft_delete_dress_condition",
+              "methods": [
+                "patch"
+              ]
+            },
+            {
+              "filename": "update-dress-condition.json",
+              "import_name": "update_dress_condition",
+              "methods": [
+                "put"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "/dress-conditions",
+          "files_and_methods": [
+            {
+              "filename": "create-dress-condition.json",
+              "import_name": "create_dress_condition",
+              "methods": [
+                "post"
+              ]
+            },
+            {
+              "filename": "get-dress-conditions.json",
+              "import_name": "get_dress_conditions",
+              "methods": [
+                "get"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "dress-size",
+      "absolute_path": "/var/www/allure-api/src/docs/paths/dress-size",
+      "index_file": "/var/www/allure-api/src/docs/paths/dress-size/index.ts",
+      "shared_paths": [
+        {
+          "path": "/dress-sizes/{id}",
+          "files_and_methods": [
+            {
+              "filename": "delete-dress-size-hard.json",
+              "import_name": "delete_dress_size_hard",
+              "methods": [
+                "delete"
+              ]
+            },
+            {
+              "filename": "soft-delete-dress-size.json",
+              "import_name": "soft_delete_dress_size",
+              "methods": [
+                "patch"
+              ]
+            },
+            {
+              "filename": "update-dress-size.json",
+              "import_name": "update_dress_size",
+              "methods": [
+                "put"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "/dress-sizes",
+          "files_and_methods": [
+            {
+              "filename": "create-dress-size.json",
+              "import_name": "create_dress_size",
+              "methods": [
+                "post"
+              ]
+            },
+            {
+              "filename": "get-dress-sizes.json",
+              "import_name": "get_dress_sizes",
+              "methods": [
+                "get"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "dress-type",
+      "absolute_path": "/var/www/allure-api/src/docs/paths/dress-type",
+      "index_file": "/var/www/allure-api/src/docs/paths/dress-type/index.ts",
+      "shared_paths": [
+        {
+          "path": "/dress-types",
+          "files_and_methods": [
+            {
+              "filename": "get-dress-types.json",
+              "import_name": "get_dress_types",
+              "methods": [
+                "get"
+              ]
+            },
+            {
+              "filename": "create-dress-type.json",
+              "import_name": "create_dress_type",
+              "methods": [
+                "post"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "/dress-types/{id}",
+          "files_and_methods": [
+            {
+              "filename": "update-dress-type.json",
+              "import_name": "update_dress_type",
+              "methods": [
+                "put"
+              ]
+            },
+            {
+              "filename": "soft-delete-dress-type.json",
+              "import_name": "soft_delete_dress_type",
+              "methods": [
+                "patch"
+              ]
+            },
+            {
+              "filename": "delete-dress-type-hard.json",
+              "import_name": "delete_dress_type_hard",
+              "methods": [
+                "delete"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "mail",
+      "absolute_path": "/var/www/allure-api/src/docs/paths/mail",
+      "index_file": "/var/www/allure-api/src/docs/paths/mail/index.ts",
+      "shared_paths": [
+        {
+          "path": "/mails/folders",
+          "files_and_methods": [
+            {
+              "filename": "get-mail-folders.json",
+              "import_name": "get_mail_folders",
+              "methods": [
+                "get"
+              ]
+            },
+            {
+              "filename": "create-mail-folder.json",
+              "import_name": "create_mail_folder",
+              "methods": [
+                "post"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "profile",
+      "absolute_path": "/var/www/allure-api/src/docs/paths/profile",
+      "index_file": "/var/www/allure-api/src/docs/paths/profile/index.ts",
+      "shared_paths": [
+        {
+          "path": "/profiles",
+          "files_and_methods": [
+            {
+              "filename": "create-profile.json",
+              "import_name": "create_profile",
+              "methods": [
+                "post"
+              ]
+            },
+            {
+              "filename": "get-profiles.json",
+              "import_name": "get_profiles",
+              "methods": [
+                "get"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "prospect",
+      "absolute_path": "/var/www/allure-api/src/docs/paths/prospect",
+      "index_file": "/var/www/allure-api/src/docs/paths/prospect/index.ts",
+      "shared_paths": [
+        {
+          "path": "/prospects",
+          "files_and_methods": [
+            {
+              "filename": "get-prospects.json",
+              "import_name": "get_prospects",
+              "methods": [
+                "get"
+              ]
+            },
+            {
+              "filename": "create-prospect.json",
+              "import_name": "create_prospect",
+              "methods": [
+                "post"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "user",
+      "absolute_path": "/var/www/allure-api/src/docs/paths/user",
+      "index_file": "/var/www/allure-api/src/docs/paths/user/index.ts",
+      "shared_paths": [
+        {
+          "path": "/users/{id}",
+          "files_and_methods": [
+            {
+              "filename": "soft-delete-user.json",
+              "import_name": "soft_delete_user",
+              "methods": [
+                "patch"
+              ]
+            },
+            {
+              "filename": "delete-user-hard.json",
+              "import_name": "delete_user_hard",
+              "methods": [
+                "delete"
+              ]
+            },
+            {
+              "filename": "get-user-by-id.json",
+              "import_name": "get_user_by_id",
+              "methods": [
+                "get"
+              ]
+            },
+            {
+              "filename": "update-user.json",
+              "import_name": "update_user",
+              "methods": [
+                "put"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

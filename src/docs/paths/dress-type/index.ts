@@ -5,9 +5,13 @@ import softDeleteDressType from "./soft-delete-dress-type.json" with { type: "js
 import deleteDressTypeHard from "./delete-dress-type-hard.json" with { type: "json" };
 
 export default {
-  ...getDressTypes,
-  ...createDressType,
-  ...updateDressType,
-  ...softDeleteDressType,
-  ...deleteDressTypeHard,
+  "/dress-types": {
+    ...getDressTypes["/dress-types"],
+    ...createDressType["/dress-types"],
+  },
+  "/dress-types/{id}": {
+    ...updateDressType["/dress-types/{id}"],
+    ...softDeleteDressType["/dress-types/{id}"],
+    ...deleteDressTypeHard["/dress-types/{id}"],
+  },
 };

@@ -1,14 +1,16 @@
 // src/routes/contractRoutes/contractRoutes.ts
 import authMiddleware from "../../middleware/authMiddleware.js";
+import { hybridAuthMiddleware, requireApiKeyScope } from "../../middleware/hybridAuthMiddleware.js";
 import { Router } from "express";
 import { getAllContracts, getContractById, createContract, updateContract, softDeleteContract, restoreContract, hardDeleteContract, getContractsFullView, generateSignatureLink, getContractSignLink, signContractViaLink, generateContractPdfManually, uploadSignedContractPdf, uploadSignedPdfMiddleware, downloadSignedContract } from "../../controllers/contractController/contractController.js";
 import { contractPermissionMiddleware } from "../../middleware/contractPermissionMiddleware.js";
 const router = Router();
 // ⚠️ Routes publiques (AVANT le middleware d'authentification)
 router.get("/download/:contractId/:token", downloadSignedContract);
-// 🔒 Middleware d'authentification pour les routes protégées
+// 📋 GET all contracts avec authentification hybride (JWT ou API Key)
+router.get("/", hybridAuthMiddleware, requireApiKeyScope("read:contracts"), getAllContracts);
+// 🔒 Middleware d'authentification pour les autres routes protégées
 router.use(authMiddleware);
-router.get("/", getAllContracts);
 // Support optional customer_id as query param
 router.get("/full-view", getContractsFullView);
 // New RESTful route for full-view by customerId

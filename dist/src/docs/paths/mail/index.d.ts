@@ -507,70 +507,6 @@ declare const _default: {
             };
         };
     };
-    "/mails/folders": {
-        post: {
-            tags: string[];
-            summary: string;
-            description: string;
-            operationId: string;
-            security: {
-                bearerAuth: never[];
-            }[];
-            requestBody: {
-                required: boolean;
-                content: {
-                    "application/json": {
-                        schema: {
-                            type: string;
-                            required: string[];
-                            properties: {
-                                name: {
-                                    type: string;
-                                    description: string;
-                                    example: string;
-                                };
-                            };
-                        };
-                    };
-                };
-            };
-            responses: {
-                "201": {
-                    description: string;
-                    content: {
-                        "application/json": {
-                            schema: {
-                                type: string;
-                                properties: {
-                                    success: {
-                                        type: string;
-                                        example: boolean;
-                                    };
-                                    message: {
-                                        type: string;
-                                        example: string;
-                                    };
-                                    name: {
-                                        type: string;
-                                        example: string;
-                                    };
-                                };
-                            };
-                        };
-                    };
-                };
-                "400": {
-                    description: string;
-                };
-                "401": {
-                    description: string;
-                };
-                "500": {
-                    description: string;
-                };
-            };
-        };
-    };
     "/mails/send": {
         post: {
             tags: string[];
@@ -1179,6 +1115,119 @@ declare const _default: {
                                                 new: {
                                                     type: string;
                                                     example: number;
+                                                };
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                "401": {
+                    description: string;
+                };
+                "500": {
+                    description: string;
+                };
+            };
+        };
+    };
+    "/mails/folders": {
+        post: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            security: {
+                bearerAuth: never[];
+            }[];
+            requestBody: {
+                required: boolean;
+                content: {
+                    "application/json": {
+                        schema: {
+                            type: string;
+                            required: string[];
+                            properties: {
+                                name: {
+                                    type: string;
+                                    description: string;
+                                    example: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            responses: {
+                "201": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: string;
+                                properties: {
+                                    success: {
+                                        type: string;
+                                        example: boolean;
+                                    };
+                                    message: {
+                                        type: string;
+                                        example: string;
+                                    };
+                                    name: {
+                                        type: string;
+                                        example: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                "400": {
+                    description: string;
+                };
+                "401": {
+                    description: string;
+                };
+                "500": {
+                    description: string;
+                };
+            };
+        };
+        get: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            security: {
+                bearerAuth: never[];
+            }[];
+            responses: {
+                "200": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: string;
+                                properties: {
+                                    success: {
+                                        type: string;
+                                        example: boolean;
+                                    };
+                                    data: {
+                                        type: string;
+                                        items: {
+                                            type: string;
+                                            properties: {
+                                                name: {
+                                                    type: string;
+                                                    example: string;
+                                                };
+                                                selectable: {
+                                                    type: string;
+                                                    example: boolean;
                                                 };
                                             };
                                         };

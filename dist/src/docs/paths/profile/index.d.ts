@@ -65,6 +65,52 @@ declare const _default: {
                 };
             };
         };
+        get: {
+            tags: string[];
+            summary: string;
+            description: string;
+            operationId: string;
+            security: {
+                bearerAuth: never[];
+            }[];
+            responses: {
+                "200": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            example: {
+                                success: boolean;
+                                data: {
+                                    id: string;
+                                    firstname: string;
+                                    lastname: string;
+                                    email: string;
+                                    phone: string;
+                                    role_id: string;
+                                }[];
+                            };
+                        };
+                    };
+                };
+                "500": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            example: {
+                                success: boolean;
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
     };
 };
 export default _default;

@@ -1,0 +1,88 @@
+{
+  "post": {
+    "tags": [
+      "Dresses"
+    ],
+    "summary": "Publish a dress",
+    "description": "Publish a dress by its ID. This will set published_post to true, published_at to the current timestamp, and published_by to the authenticated user's ID.",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "description": "ID of the dress to publish",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Dress published successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "reference": {
+                      "type": "string"
+                    },
+                    "published_post": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "published_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "published_by": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updated_by": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid input - ID is required"
+      },
+      "404": {
+        "description": "Dress not found"
+      },
+      "500": {
+        "description": "Internal server error"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}

@@ -522,70 +522,6 @@ export declare const swaggerDocument: {
                 };
             };
         };
-        "/mails/folders": {
-            post: {
-                tags: string[];
-                summary: string;
-                description: string;
-                operationId: string;
-                security: {
-                    bearerAuth: never[];
-                }[];
-                requestBody: {
-                    required: boolean;
-                    content: {
-                        "application/json": {
-                            schema: {
-                                type: string;
-                                required: string[];
-                                properties: {
-                                    name: {
-                                        type: string;
-                                        description: string;
-                                        example: string;
-                                    };
-                                };
-                            };
-                        };
-                    };
-                };
-                responses: {
-                    "201": {
-                        description: string;
-                        content: {
-                            "application/json": {
-                                schema: {
-                                    type: string;
-                                    properties: {
-                                        success: {
-                                            type: string;
-                                            example: boolean;
-                                        };
-                                        message: {
-                                            type: string;
-                                            example: string;
-                                        };
-                                        name: {
-                                            type: string;
-                                            example: string;
-                                        };
-                                    };
-                                };
-                            };
-                        };
-                    };
-                    "400": {
-                        description: string;
-                    };
-                    "401": {
-                        description: string;
-                    };
-                    "500": {
-                        description: string;
-                    };
-                };
-            };
-        };
         "/mails/send": {
             post: {
                 tags: string[];
@@ -1212,6 +1148,119 @@ export declare const swaggerDocument: {
                 };
             };
         };
+        "/mails/folders": {
+            post: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: string;
+                                required: string[];
+                                properties: {
+                                    name: {
+                                        type: string;
+                                        description: string;
+                                        example: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "201": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        message: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                        name: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                    };
+                    "401": {
+                        description: string;
+                    };
+                    "500": {
+                        description: string;
+                    };
+                };
+            };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        data: {
+                                            type: string;
+                                            items: {
+                                                type: string;
+                                                properties: {
+                                                    name: {
+                                                        type: string;
+                                                        example: string;
+                                                    };
+                                                    selectable: {
+                                                        type: string;
+                                                        example: boolean;
+                                                    };
+                                                };
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "401": {
+                        description: string;
+                    };
+                    "500": {
+                        description: string;
+                    };
+                };
+            };
+        };
         "/roles/{id}": {
             get: {
                 tags: string[];
@@ -1420,62 +1469,6 @@ export declare const swaggerDocument: {
                         };
                     };
                     "404": {
-                        description: string;
-                        content: {
-                            "application/json": {
-                                schema: {
-                                    $ref: string;
-                                };
-                            };
-                        };
-                    };
-                    "500": {
-                        description: string;
-                        content: {
-                            "application/json": {
-                                schema: {
-                                    $ref: string;
-                                };
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        "/prospects": {
-            post: {
-                tags: string[];
-                summary: string;
-                description: string;
-                operationId: string;
-                security: {
-                    bearerAuth: never[];
-                }[];
-                requestBody: {
-                    required: boolean;
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: string;
-                            };
-                            example: {
-                                firstname: string;
-                                lastname: string;
-                                email: string;
-                                phone: string;
-                                country: string;
-                                city: string;
-                                address: string;
-                                postal_code: string;
-                                status: string;
-                                source: string;
-                                notes: string;
-                            };
-                        };
-                    };
-                };
-                responses: {
-                    "201": {
                         description: string;
                         content: {
                             "application/json": {
@@ -1724,8 +1717,8 @@ export declare const swaggerDocument: {
                 };
             };
         };
-        "/customer-notes/{id}": {
-            delete: {
+        "/prospects": {
+            post: {
                 tags: string[];
                 summary: string;
                 description: string;
@@ -1733,16 +1726,175 @@ export declare const swaggerDocument: {
                 security: {
                     bearerAuth: never[];
                 }[];
-                parameters: {
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            examples: {
+                                withoutDresses: {
+                                    summary: string;
+                                    value: {
+                                        firstname: string;
+                                        lastname: string;
+                                        email: string;
+                                        phone: string;
+                                        country: string;
+                                        city: string;
+                                        address: string;
+                                        postal_code: string;
+                                        status: string;
+                                        source: string;
+                                        notes: string;
+                                    };
+                                };
+                                withDresses: {
+                                    summary: string;
+                                    value: {
+                                        firstname: string;
+                                        lastname: string;
+                                        email: string;
+                                        phone: string;
+                                        country: string;
+                                        city: string;
+                                        address: string;
+                                        postal_code: string;
+                                        status: string;
+                                        source: string;
+                                        notes: string;
+                                        dress_reservations: ({
+                                            dress_id: string;
+                                            rental_start_date: string;
+                                            rental_end_date: string;
+                                            notes: string;
+                                        } | {
+                                            dress_id: string;
+                                            rental_start_date: string;
+                                            rental_end_date: string;
+                                            notes?: never;
+                                        })[];
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "201": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    data: {
+                                        id: string;
+                                        firstname: string;
+                                        lastname: string;
+                                        email: string;
+                                        phone: string;
+                                        country: string;
+                                        city: string;
+                                        status: string;
+                                        source: string;
+                                        notes: string;
+                                        created_at: string;
+                                        dress_reservations: ({
+                                            id: string;
+                                            dress_id: string;
+                                            rental_start_date: string;
+                                            rental_end_date: string;
+                                            notes: string;
+                                            rental_days: number;
+                                            estimated_cost: number;
+                                            dress: {
+                                                id: string;
+                                                name: string;
+                                                reference: string;
+                                                price_per_day_ttc: number;
+                                                type: {
+                                                    name: string;
+                                                };
+                                                size: {
+                                                    name: string;
+                                                };
+                                                color: {
+                                                    name: string;
+                                                };
+                                            };
+                                        } | {
+                                            id: string;
+                                            dress_id: string;
+                                            rental_start_date: string;
+                                            rental_end_date: string;
+                                            rental_days: number;
+                                            estimated_cost: number;
+                                            dress: {
+                                                id: string;
+                                                name: string;
+                                                reference: string;
+                                                price_per_day_ttc: number;
+                                                type: {
+                                                    name: string;
+                                                };
+                                                size: {
+                                                    name: string;
+                                                };
+                                                color: {
+                                                    name: string;
+                                                };
+                                            };
+                                            notes?: never;
+                                        })[];
+                                        total_estimated_cost: number;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: ({
                     name: string;
                     in: string;
                     required: boolean;
                     schema: {
                         type: string;
-                        format: string;
+                        default?: never;
                     };
                     description: string;
-                }[];
+                } | {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        default: number;
+                    };
+                    description: string;
+                })[];
                 responses: {
                     "200": {
                         description: string;
@@ -1753,17 +1905,43 @@ export declare const swaggerDocument: {
                                 };
                                 example: {
                                     success: boolean;
-                                    message: string;
-                                };
-                            };
-                        };
-                    };
-                    "404": {
-                        description: string;
-                        content: {
-                            "application/json": {
-                                schema: {
-                                    $ref: string;
+                                    page: number;
+                                    limit: number;
+                                    total: number;
+                                    data: {
+                                        id: string;
+                                        firstname: string;
+                                        lastname: string;
+                                        email: string;
+                                        phone: string;
+                                        status: string;
+                                        source: string;
+                                        created_at: string;
+                                        dress_reservations: {
+                                            id: string;
+                                            dress_id: string;
+                                            rental_start_date: string;
+                                            rental_end_date: string;
+                                            rental_days: number;
+                                            estimated_cost: number;
+                                            dress: {
+                                                id: string;
+                                                name: string;
+                                                reference: string;
+                                                price_per_day_ttc: number;
+                                                type: {
+                                                    name: string;
+                                                };
+                                                size: {
+                                                    name: string;
+                                                };
+                                                color: {
+                                                    name: string;
+                                                };
+                                            };
+                                        }[];
+                                        total_estimated_cost: number;
+                                    }[];
                                 };
                             };
                         };
@@ -1874,8 +2052,77 @@ export declare const swaggerDocument: {
                     };
                 };
             };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                    description: string;
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    data: {
+                                        id: string;
+                                        customer_id: string;
+                                        content: string;
+                                        created_at: string;
+                                        created_by: string;
+                                        updated_at: null;
+                                        updated_by: null;
+                                        deleted_at: null;
+                                        deleted_by: null;
+                                    }[];
+                                };
+                            };
+                        };
+                    };
+                    "404": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
         };
-        "/customers/{id}": {
+        "/customer-notes/{id}": {
             delete: {
                 tags: string[];
                 summary: string;
@@ -1892,9 +2139,256 @@ export declare const swaggerDocument: {
                         type: string;
                         format: string;
                     };
+                    description: string;
                 }[];
                 responses: {
                     "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    message: string;
+                                };
+                            };
+                        };
+                    };
+                    "404": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            patch: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                    description: string;
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    data: {
+                                        id: string;
+                                        customer_id: string;
+                                        content: string;
+                                        created_at: string;
+                                        created_by: string;
+                                        updated_at: null;
+                                        updated_by: null;
+                                        deleted_at: string;
+                                        deleted_by: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "404": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            put: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                    description: string;
+                }[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            example: {
+                                content: string;
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    data: {
+                                        id: string;
+                                        customer_id: string;
+                                        content: string;
+                                        created_at: string;
+                                        created_by: string;
+                                        updated_at: string;
+                                        updated_by: string;
+                                        deleted_at: null;
+                                        deleted_by: null;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                            };
+                        };
+                    };
+                    "404": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                    description: string;
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    data: {
+                                        id: string;
+                                        customer_id: string;
+                                        content: string;
+                                        created_at: string;
+                                        created_by: string;
+                                        updated_at: null;
+                                        updated_by: null;
+                                        deleted_at: null;
+                                        deleted_by: null;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "404": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
                         description: string;
                         content: {
                             "application/json": {
@@ -1938,6 +2432,219 @@ export declare const swaggerDocument: {
                 };
                 responses: {
                     "201": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: ({
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        default?: never;
+                    };
+                    description: string;
+                } | {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        default: number;
+                    };
+                    description: string;
+                })[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    page: number;
+                                    limit: number;
+                                    total: number;
+                                    data: {
+                                        id: string;
+                                        firstname: string;
+                                        lastname: string;
+                                        email: string;
+                                        phone: string;
+                                        city: string;
+                                        country: string;
+                                        created_at: string;
+                                    }[];
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        "/customers/{id}": {
+            delete: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            patch: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            put: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                }[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                    description: string;
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                            };
+                        };
+                    };
+                    "404": {
                         description: string;
                         content: {
                             "application/json": {
@@ -2016,6 +2723,52 @@ export declare const swaggerDocument: {
                     };
                 };
             };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    data: {
+                                        id: string;
+                                        firstname: string;
+                                        lastname: string;
+                                        email: string;
+                                        phone: string;
+                                        role_id: string;
+                                    }[];
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
         };
         "/users/{id}": {
             delete: {
@@ -2048,6 +2801,303 @@ export declare const swaggerDocument: {
                                     data: {
                                         message: string;
                                     };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            patch: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    data: {
+                                        id: string;
+                                        deleted_at: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            put: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                    description: string;
+                }[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: string;
+                                properties: {
+                                    password: {
+                                        type: string;
+                                        description: string;
+                                    };
+                                    profile: {
+                                        type: string;
+                                        description: string;
+                                        required: string[];
+                                        properties: {
+                                            firstname: {
+                                                type: string;
+                                                example: string;
+                                            };
+                                            lastname: {
+                                                type: string;
+                                                example: string;
+                                            };
+                                            address: {
+                                                type: string;
+                                                example: string;
+                                            };
+                                            city: {
+                                                type: string;
+                                                example: string;
+                                            };
+                                            country: {
+                                                type: string;
+                                                example: string;
+                                            };
+                                            postal_code: {
+                                                type: string;
+                                                example: string;
+                                            };
+                                            avatar_url: {
+                                                type: string;
+                                                example: string;
+                                            };
+                                            role_id: {
+                                                type: string;
+                                                format: string;
+                                                example: string;
+                                            };
+                                        };
+                                    };
+                                };
+                                example: {
+                                    password: string;
+                                    profile: {
+                                        firstName: string;
+                                        lastName: string;
+                                        country: string;
+                                        city: string;
+                                        address: string;
+                                        postal_code: string;
+                                        role_id: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        data: {
+                                            type: string;
+                                            properties: {
+                                                id: {
+                                                    type: string;
+                                                    format: string;
+                                                    example: string;
+                                                };
+                                                email: {
+                                                    type: string;
+                                                    example: string;
+                                                };
+                                                profile: {
+                                                    type: string;
+                                                    properties: {
+                                                        firstname: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                        lastname: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                        country: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                        city: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                        address: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                        postal_code: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                        role: {
+                                                            type: string;
+                                                            properties: {
+                                                                id: {
+                                                                    type: string;
+                                                                    example: string;
+                                                                };
+                                                                name: {
+                                                                    type: string;
+                                                                    example: string;
+                                                                };
+                                                            };
+                                                        };
+                                                    };
+                                                };
+                                            };
+                                        };
+                                    };
+                                };
+                                example: {
+                                    success: boolean;
+                                    data: {
+                                        id: string;
+                                        email: string;
+                                        profile: {
+                                            firstName: string;
+                                            lastName: string;
+                                            country: string;
+                                            city: string;
+                                            address: string;
+                                            postal_code: string;
+                                            role: {
+                                                name: string;
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                    description: string;
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    data: {
+                                        id: string;
+                                        email: string;
+                                        profile: {
+                                            firstname: string;
+                                            lastname: string;
+                                            role: {
+                                                name: string;
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "404": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    error: string;
                                 };
                             };
                         };
@@ -2258,6 +3308,63 @@ export declare const swaggerDocument: {
                     };
                 };
             };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    success: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            files: {
+                                                id: string;
+                                                name: string;
+                                                url: string;
+                                            }[];
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "401": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                    details: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
         };
         "/avatars": {
             post: {
@@ -2353,6 +3460,62 @@ export declare const swaggerDocument: {
                     };
                 };
             };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    success: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            files: {
+                                                id: string;
+                                                name: string;
+                                                url: string;
+                                            }[];
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "401": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
         };
         "/avatars/{id}": {
             delete: {
@@ -2417,9 +3580,7 @@ export declare const swaggerDocument: {
                     };
                 };
             };
-        };
-        "/dress-types/{id}": {
-            delete: {
+            get: {
                 tags: string[];
                 summary: string;
                 description: string;
@@ -2431,11 +3592,11 @@ export declare const swaggerDocument: {
                     name: string;
                     in: string;
                     required: boolean;
+                    description: string;
                     schema: {
                         type: string;
-                        format: string;
+                        example: string;
                     };
-                    description: string;
                 }[];
                 responses: {
                     "200": {
@@ -2445,10 +3606,51 @@ export declare const swaggerDocument: {
                                 schema: {
                                     $ref: string;
                                 };
+                                examples: {
+                                    success: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            file: {
+                                                id: string;
+                                                name: string;
+                                                url: string;
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "404": {
+                        description: string;
+                        content: {
+                            "application/json": {
                                 example: {
                                     success: boolean;
-                                    message: string;
-                                    data: null;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "401": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
                                 };
                             };
                         };
@@ -2528,8 +3730,51 @@ export declare const swaggerDocument: {
                     };
                 };
             };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    data: {
+                                        id: string;
+                                        name: string;
+                                        description: string;
+                                    }[];
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
         };
-        "/dress-sizes/{id}": {
+        "/dress-types/{id}": {
             delete: {
                 tags: string[];
                 summary: string;
@@ -2559,6 +3804,113 @@ export declare const swaggerDocument: {
                                 example: {
                                     success: boolean;
                                     message: string;
+                                    data: null;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            patch: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                    description: string;
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    data: {
+                                        id: string;
+                                        name: string;
+                                        deleted_at: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            put: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                    description: string;
+                }[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            example: {
+                                name: string;
+                                description: string;
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    data: {
+                                        id: string;
+                                        name: string;
+                                        description: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "404": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    error: string;
                                 };
                             };
                         };
@@ -2636,8 +3988,55 @@ export declare const swaggerDocument: {
                     };
                 };
             };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    success: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            data: {
+                                                id: string;
+                                                name: string;
+                                            }[];
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
         };
-        "/dress-conditions/{id}": {
+        "/dress-sizes/{id}": {
             delete: {
                 tags: string[];
                 summary: string;
@@ -2664,13 +4063,114 @@ export declare const swaggerDocument: {
                                 schema: {
                                     $ref: string;
                                 };
-                                examples: {
-                                    success: {
-                                        value: {
-                                            success: boolean;
-                                            message: string;
-                                        };
+                                example: {
+                                    success: boolean;
+                                    message: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            patch: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                    description: string;
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    data: {
+                                        id: string;
+                                        name: string;
+                                        deleted_by: string;
+                                        deleted_at: string;
                                     };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            put: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                    description: string;
+                }[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            example: {
+                                name: string;
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    data: {
+                                        id: string;
+                                        name: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "404": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    error: string;
                                 };
                             };
                         };
@@ -2682,13 +4182,9 @@ export declare const swaggerDocument: {
                                 schema: {
                                     $ref: string;
                                 };
-                                examples: {
-                                    serverError: {
-                                        value: {
-                                            success: boolean;
-                                            error: string;
-                                        };
-                                    };
+                                example: {
+                                    success: boolean;
+                                    error: string;
                                 };
                             };
                         };
@@ -2785,26 +4281,13 @@ export declare const swaggerDocument: {
                     };
                 };
             };
-        };
-        "/dress-colors/{id}": {
-            patch: {
+            get: {
                 tags: string[];
                 summary: string;
                 description: string;
                 operationId: string;
                 security: {
                     bearerAuth: never[];
-                }[];
-                parameters: {
-                    name: string;
-                    in: string;
-                    required: boolean;
-                    schema: {
-                        type: string;
-                        format: string;
-                        example: string;
-                    };
-                    description: string;
                 }[];
                 responses: {
                     "200": {
@@ -2822,9 +4305,207 @@ export declare const swaggerDocument: {
                                             data: {
                                                 id: string;
                                                 name: string;
-                                                hex_code: string;
+                                                created_at: string;
+                                            }[];
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    serverError: {
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        "/dress-conditions/{id}": {
+            delete: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                    description: string;
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    success: {
+                                        value: {
+                                            success: boolean;
+                                            message: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    serverError: {
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            patch: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                    description: string;
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    success: {
+                                        value: {
+                                            success: boolean;
+                                            data: {
+                                                id: string;
+                                                name: string;
                                                 deleted_by: string;
                                                 deleted_at: string;
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    serverError: {
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            put: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                    description: string;
+                }[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            examples: {
+                                updateCondition: {
+                                    value: {
+                                        name: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    success: {
+                                        value: {
+                                            success: boolean;
+                                            data: {
+                                                id: string;
+                                                name: string;
+                                                updated_by: string;
+                                                updated_at: string;
                                             };
                                         };
                                     };
@@ -2841,26 +4522,6 @@ export declare const swaggerDocument: {
                                 };
                                 examples: {
                                     missingId: {
-                                        summary: string;
-                                        value: {
-                                            success: boolean;
-                                            error: string;
-                                        };
-                                    };
-                                };
-                            };
-                        };
-                    };
-                    "401": {
-                        description: string;
-                        content: {
-                            "application/json": {
-                                schema: {
-                                    $ref: string;
-                                };
-                                examples: {
-                                    unauthorized: {
-                                        summary: string;
                                         value: {
                                             success: boolean;
                                             error: string;
@@ -2879,7 +4540,6 @@ export declare const swaggerDocument: {
                                 };
                                 examples: {
                                     serverError: {
-                                        summary: string;
                                         value: {
                                             success: boolean;
                                             error: string;
@@ -2986,9 +4646,64 @@ export declare const swaggerDocument: {
                     };
                 };
             };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    success: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            data: {
+                                                id: string;
+                                                name: string;
+                                                hex_value: string;
+                                                created_at: string;
+                                                updated_at: null;
+                                            }[];
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    serverError: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
         };
-        "/dresses/{id}/images": {
-            post: {
+        "/dress-colors/{id}": {
+            delete: {
                 tags: string[];
                 summary: string;
                 description: string;
@@ -3000,36 +4715,209 @@ export declare const swaggerDocument: {
                     name: string;
                     in: string;
                     required: boolean;
-                    description: string;
                     schema: {
                         type: string;
                         format: string;
                         example: string;
                     };
+                    description: string;
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    success: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            message: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    missingId: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    serverError: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            patch: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                        example: string;
+                    };
+                    description: string;
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    success: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            data: {
+                                                id: string;
+                                                name: string;
+                                                hex_code: string;
+                                                deleted_by: string;
+                                                deleted_at: string;
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    missingId: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "401": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    unauthorized: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    serverError: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            put: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                        example: string;
+                    };
+                    description: string;
                 }[];
                 requestBody: {
                     required: boolean;
                     content: {
-                        "multipart/form-data": {
+                        "application/json": {
                             schema: {
-                                type: string;
-                                properties: {
-                                    files: {
-                                        type: string;
-                                        items: {
-                                            type: string;
-                                            format: string;
-                                        };
-                                        description: string;
-                                    };
-                                };
-                                required: string[];
+                                $ref: string;
                             };
                             examples: {
-                                exampleUpload: {
+                                updateColor: {
                                     summary: string;
                                     value: {
-                                        files: string[];
+                                        name: string;
+                                        hex_code: string;
                                     };
                                 };
                             };
@@ -3042,60 +4930,17 @@ export declare const swaggerDocument: {
                         content: {
                             "application/json": {
                                 schema: {
-                                    type: string;
-                                    properties: {
-                                        success: {
-                                            type: string;
-                                            example: boolean;
-                                        };
-                                        data: {
-                                            type: string;
-                                            description: string;
-                                            properties: {
-                                                id: {
-                                                    type: string;
-                                                    format: string;
-                                                };
-                                                name: {
-                                                    type: string;
-                                                    example: string;
-                                                };
-                                                reference: {
-                                                    type: string;
-                                                    example: string;
-                                                };
-                                                images: {
-                                                    type: string;
-                                                    items: {
-                                                        type: string;
-                                                        format: string;
-                                                    };
-                                                    example: string[];
-                                                };
-                                                updated_by: {
-                                                    type: string;
-                                                    format: string;
-                                                    example: string;
-                                                };
-                                                updated_at: {
-                                                    type: string;
-                                                    format: string;
-                                                    example: string;
-                                                };
-                                            };
-                                        };
-                                    };
+                                    $ref: string;
                                 };
                                 examples: {
-                                    successExample: {
+                                    success: {
                                         summary: string;
                                         value: {
                                             success: boolean;
                                             data: {
                                                 id: string;
                                                 name: string;
-                                                reference: string;
-                                                images: string[];
+                                                hex_code: string;
                                                 updated_by: string;
                                                 updated_at: string;
                                             };
@@ -3109,6 +4954,9 @@ export declare const swaggerDocument: {
                         description: string;
                         content: {
                             "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
                                 examples: {
                                     missingId: {
                                         summary: string;
@@ -3117,136 +4965,19 @@ export declare const swaggerDocument: {
                                             error: string;
                                         };
                                     };
-                                    noFiles: {
-                                        summary: string;
-                                        value: {
-                                            success: boolean;
-                                            error: string;
-                                        };
-                                    };
-                                };
-                            };
-                        };
-                    };
-                    "404": {
-                        description: string;
-                        content: {
-                            "application/json": {
-                                example: {
-                                    success: boolean;
-                                    error: string;
                                 };
                             };
                         };
                     };
                     "500": {
-                        description: string;
-                        content: {
-                            "application/json": {
-                                example: {
-                                    success: boolean;
-                                    error: string;
-                                };
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        "/dresses/{id}/images/{key}": {
-            delete: {
-                tags: string[];
-                summary: string;
-                description: string;
-                operationId: string;
-                security: {
-                    bearerAuth: never[];
-                }[];
-                parameters: ({
-                    name: string;
-                    in: string;
-                    required: boolean;
-                    description: string;
-                    schema: {
-                        type: string;
-                        format: string;
-                        example: string;
-                    };
-                } | {
-                    name: string;
-                    in: string;
-                    required: boolean;
-                    description: string;
-                    schema: {
-                        type: string;
-                        example: string;
-                        format?: never;
-                    };
-                })[];
-                responses: {
-                    "200": {
                         description: string;
                         content: {
                             "application/json": {
                                 schema: {
-                                    type: string;
-                                    properties: {
-                                        success: {
-                                            type: string;
-                                            example: boolean;
-                                        };
-                                        removedKeys: {
-                                            type: string;
-                                            items: {
-                                                type: string;
-                                            };
-                                            example: string[];
-                                        };
-                                        notFoundKeys: {
-                                            type: string;
-                                            items: {
-                                                type: string;
-                                            };
-                                            example: never[];
-                                        };
-                                        data: {
-                                            type: string;
-                                            description: string;
-                                        };
-                                    };
+                                    $ref: string;
                                 };
-                            };
-                        };
-                    };
-                    "404": {
-                        description: string;
-                        content: {
-                            "application/json": {
                                 examples: {
-                                    dressNotFound: {
-                                        summary: string;
-                                        value: {
-                                            success: boolean;
-                                            error: string;
-                                        };
-                                    };
-                                    imageNotFound: {
-                                        summary: string;
-                                        value: {
-                                            success: boolean;
-                                            error: string;
-                                        };
-                                    };
-                                };
-                            };
-                        };
-                    };
-                    "500": {
-                        description: string;
-                        content: {
-                            "application/json": {
-                                examples: {
-                                    internalError: {
+                                    serverError: {
                                         summary: string;
                                         value: {
                                             success: boolean;
@@ -3616,8 +5347,8 @@ export declare const swaggerDocument: {
                 };
             };
         };
-        "/dresses/{id}": {
-            put: {
+        "/dresses/availability": {
+            get: {
                 tags: string[];
                 summary: string;
                 description: string;
@@ -3628,57 +5359,14 @@ export declare const swaggerDocument: {
                 parameters: {
                     name: string;
                     in: string;
-                    description: string;
                     required: boolean;
+                    description: string;
                     schema: {
                         type: string;
                         format: string;
+                        example: string;
                     };
                 }[];
-                requestBody: {
-                    required: boolean;
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: string;
-                            };
-                            example: {
-                                name: string;
-                                reference: string;
-                                price_ht: number;
-                                price_ttc: number;
-                                price_per_day_ht: number;
-                                price_per_day_ttc: number;
-                                type_id: string;
-                                size_id: string;
-                                condition_id: string;
-                                color_id: string;
-                                images: string[];
-                            };
-                        };
-                        "multipart/form-data": {
-                            schema: {
-                                type: string;
-                                properties: {
-                                    data: {
-                                        type: string;
-                                        description: string;
-                                        example: string;
-                                    };
-                                    files: {
-                                        type: string;
-                                        items: {
-                                            type: string;
-                                            format: string;
-                                        };
-                                        description: string;
-                                    };
-                                };
-                                required: string[];
-                            };
-                        };
-                    };
-                };
                 responses: {
                     "200": {
                         description: string;
@@ -3687,17 +5375,85 @@ export declare const swaggerDocument: {
                                 schema: {
                                     $ref: string;
                                 };
+                                examples: {
+                                    success: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            count: number;
+                                            filters: {
+                                                start: string;
+                                                end: string;
+                                            };
+                                            data: ({
+                                                id: string;
+                                                name: string;
+                                                reference: string;
+                                                price_ht: number;
+                                                price_ttc: number;
+                                                price_per_day_ht: number;
+                                                price_per_day_ttc: number;
+                                                images: string[];
+                                                isAvailable: boolean;
+                                                current_contract: {
+                                                    start_datetime: string;
+                                                    end_datetime: string;
+                                                };
+                                            } | {
+                                                id: string;
+                                                name: string;
+                                                reference: string;
+                                                price_ht: number;
+                                                price_ttc: number;
+                                                price_per_day_ht: number;
+                                                price_per_day_ttc: number;
+                                                images: string[];
+                                                isAvailable: boolean;
+                                                current_contract: null;
+                                            })[];
+                                        };
+                                    };
+                                };
                             };
                         };
                     };
                     "400": {
                         description: string;
-                    };
-                    "404": {
-                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    invalidDates: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
                     };
                     "500": {
                         description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    serverError: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
                     };
                 };
             };
@@ -3853,8 +5609,305 @@ export declare const swaggerDocument: {
                     };
                 };
             };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: ({
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        example: number;
+                    };
+                    description: string;
+                } | {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        example: string;
+                    };
+                    description: string;
+                })[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                examples: {
+                                    successResponse: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            data: {
+                                                id: string;
+                                                name: string;
+                                                reference: string;
+                                                description: string;
+                                                price_ht: number;
+                                                price_ttc: number;
+                                                images: string[];
+                                                created_at: string;
+                                                updated_at: string;
+                                                type: {
+                                                    id: string;
+                                                    name: string;
+                                                };
+                                                size: {
+                                                    id: string;
+                                                    label: string;
+                                                };
+                                                condition: {
+                                                    id: string;
+                                                    label: string;
+                                                };
+                                                color: {
+                                                    id: string;
+                                                    label: string;
+                                                };
+                                            }[];
+                                        };
+                                    };
+                                };
+                                schema: {
+                                    type: string;
+                                    required: string[];
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                            description: string;
+                                        };
+                                        data: {
+                                            type: string;
+                                            description: string;
+                                            items: {
+                                                type: string;
+                                                properties: {
+                                                    id: {
+                                                        type: string;
+                                                        format: string;
+                                                    };
+                                                    name: {
+                                                        type: string;
+                                                        example: string;
+                                                    };
+                                                    reference: {
+                                                        type: string;
+                                                        example: string;
+                                                    };
+                                                    description: {
+                                                        type: string;
+                                                        example: string;
+                                                    };
+                                                    price_ht: {
+                                                        type: string;
+                                                        example: number;
+                                                    };
+                                                    price_ttc: {
+                                                        type: string;
+                                                        example: number;
+                                                    };
+                                                    images: {
+                                                        type: string;
+                                                        items: {
+                                                            type: string;
+                                                            format: string;
+                                                        };
+                                                        example: string[];
+                                                    };
+                                                    created_at: {
+                                                        type: string;
+                                                        format: string;
+                                                    };
+                                                    updated_at: {
+                                                        type: string[];
+                                                        format: string;
+                                                    };
+                                                    type: {
+                                                        type: string;
+                                                        properties: {
+                                                            id: {
+                                                                type: string;
+                                                                format: string;
+                                                            };
+                                                            name: {
+                                                                type: string;
+                                                                example: string;
+                                                            };
+                                                        };
+                                                    };
+                                                    size: {
+                                                        type: string;
+                                                        properties: {
+                                                            id: {
+                                                                type: string;
+                                                                format: string;
+                                                            };
+                                                            label: {
+                                                                type: string;
+                                                                example: string;
+                                                            };
+                                                        };
+                                                    };
+                                                    condition: {
+                                                        type: string;
+                                                        properties: {
+                                                            id: {
+                                                                type: string;
+                                                                format: string;
+                                                            };
+                                                            label: {
+                                                                type: string;
+                                                                example: string;
+                                                            };
+                                                        };
+                                                    };
+                                                    color: {
+                                                        type: string;
+                                                        properties: {
+                                                            id: {
+                                                                type: string;
+                                                                format: string;
+                                                            };
+                                                            label: {
+                                                                type: string;
+                                                                example: string;
+                                                            };
+                                                        };
+                                                    };
+                                                };
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                examples: {
+                                    errorExample: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        error: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
         };
-        "/dresses/availability": {
+        "/dresses/{id}": {
+            put: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    description: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                }[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            example: {
+                                name: string;
+                                reference: string;
+                                price_ht: number;
+                                price_ttc: number;
+                                price_per_day_ht: number;
+                                price_per_day_ttc: number;
+                                type_id: string;
+                                size_id: string;
+                                condition_id: string;
+                                color_id: string;
+                                images: string[];
+                            };
+                        };
+                        "multipart/form-data": {
+                            schema: {
+                                type: string;
+                                properties: {
+                                    data: {
+                                        type: string;
+                                        description: string;
+                                        example: string;
+                                    };
+                                    files: {
+                                        type: string;
+                                        items: {
+                                            type: string;
+                                            format: string;
+                                        };
+                                        description: string;
+                                    };
+                                };
+                                required: string[];
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                    };
+                    "404": {
+                        description: string;
+                    };
+                    "500": {
+                        description: string;
+                    };
+                };
+            };
             get: {
                 tags: string[];
                 summary: string;
@@ -3879,45 +5932,164 @@ export declare const swaggerDocument: {
                         description: string;
                         content: {
                             "application/json": {
-                                schema: {
-                                    $ref: string;
-                                };
                                 examples: {
-                                    success: {
+                                    successExample: {
                                         summary: string;
                                         value: {
                                             success: boolean;
-                                            count: number;
-                                            filters: {
-                                                start: string;
-                                                end: string;
-                                            };
-                                            data: ({
+                                            data: {
                                                 id: string;
                                                 name: string;
                                                 reference: string;
+                                                description: string;
                                                 price_ht: number;
                                                 price_ttc: number;
                                                 price_per_day_ht: number;
                                                 price_per_day_ttc: number;
                                                 images: string[];
-                                                isAvailable: boolean;
-                                                current_contract: {
-                                                    start_datetime: string;
-                                                    end_datetime: string;
+                                                created_at: string;
+                                                updated_at: string;
+                                                type: {
+                                                    id: string;
+                                                    name: string;
                                                 };
-                                            } | {
-                                                id: string;
-                                                name: string;
-                                                reference: string;
-                                                price_ht: number;
-                                                price_ttc: number;
-                                                price_per_day_ht: number;
-                                                price_per_day_ttc: number;
-                                                images: string[];
-                                                isAvailable: boolean;
-                                                current_contract: null;
-                                            })[];
+                                                size: {
+                                                    id: string;
+                                                    label: string;
+                                                };
+                                                condition: {
+                                                    id: string;
+                                                    label: string;
+                                                };
+                                                color: {
+                                                    id: string;
+                                                    label: string;
+                                                };
+                                            };
+                                        };
+                                    };
+                                };
+                                schema: {
+                                    type: string;
+                                    required: string[];
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                            description: string;
+                                        };
+                                        data: {
+                                            type: string;
+                                            description: string;
+                                            properties: {
+                                                id: {
+                                                    type: string;
+                                                    format: string;
+                                                    example: string;
+                                                };
+                                                name: {
+                                                    type: string;
+                                                    example: string;
+                                                };
+                                                reference: {
+                                                    type: string;
+                                                    example: string;
+                                                };
+                                                description: {
+                                                    type: string[];
+                                                    example: string;
+                                                };
+                                                price_ht: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                price_ttc: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                price_per_day_ht: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                price_per_day_ttc: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                images: {
+                                                    type: string;
+                                                    items: {
+                                                        type: string;
+                                                        format: string;
+                                                    };
+                                                    example: string[];
+                                                };
+                                                created_at: {
+                                                    type: string;
+                                                    format: string;
+                                                    example: string;
+                                                };
+                                                updated_at: {
+                                                    type: string[];
+                                                    format: string;
+                                                    example: string;
+                                                };
+                                                type: {
+                                                    type: string;
+                                                    description: string;
+                                                    properties: {
+                                                        id: {
+                                                            type: string;
+                                                            format: string;
+                                                        };
+                                                        name: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                    };
+                                                };
+                                                size: {
+                                                    type: string;
+                                                    description: string;
+                                                    properties: {
+                                                        id: {
+                                                            type: string;
+                                                            format: string;
+                                                        };
+                                                        label: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                    };
+                                                };
+                                                condition: {
+                                                    type: string;
+                                                    description: string;
+                                                    properties: {
+                                                        id: {
+                                                            type: string;
+                                                            format: string;
+                                                        };
+                                                        label: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                    };
+                                                };
+                                                color: {
+                                                    type: string;
+                                                    description: string;
+                                                    properties: {
+                                                        id: {
+                                                            type: string;
+                                                            format: string;
+                                                        };
+                                                        label: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                    };
+                                                };
+                                            };
                                         };
                                     };
                                 };
@@ -3928,11 +6100,24 @@ export declare const swaggerDocument: {
                         description: string;
                         content: {
                             "application/json": {
-                                schema: {
-                                    $ref: string;
-                                };
                                 examples: {
-                                    invalidDates: {
+                                    missingId: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "404": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                examples: {
+                                    notFound: {
                                         summary: string;
                                         value: {
                                             success: boolean;
@@ -3947,9 +6132,6 @@ export declare const swaggerDocument: {
                         description: string;
                         content: {
                             "application/json": {
-                                schema: {
-                                    $ref: string;
-                                };
                                 examples: {
                                     serverError: {
                                         summary: string;
@@ -3963,6 +6145,542 @@ export declare const swaggerDocument: {
                         };
                     };
                 };
+            };
+        };
+        "/dresses/{id}/images": {
+            delete: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    description: string;
+                    schema: {
+                        type: string;
+                        format: string;
+                        example: string;
+                    };
+                }[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: string;
+                                properties: {
+                                    keys: {
+                                        type: string;
+                                        description: string;
+                                        items: {
+                                            type: string;
+                                        };
+                                        minItems: number;
+                                    };
+                                    key: {
+                                        type: string;
+                                        description: string;
+                                    };
+                                };
+                                oneOf: {
+                                    required: string[];
+                                    description: string;
+                                }[];
+                            };
+                            examples: {
+                                multipleImages: {
+                                    summary: string;
+                                    value: {
+                                        keys: string[];
+                                    };
+                                };
+                                singleImage: {
+                                    summary: string;
+                                    value: {
+                                        key: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        removedKeys: {
+                                            type: string;
+                                            description: string;
+                                            items: {
+                                                type: string;
+                                            };
+                                        };
+                                        notFoundKeys: {
+                                            type: string;
+                                            description: string;
+                                            items: {
+                                                type: string;
+                                            };
+                                        };
+                                        data: {
+                                            type: string;
+                                            description: string;
+                                            properties: {
+                                                id: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                name: {
+                                                    type: string;
+                                                    example: string;
+                                                };
+                                                reference: {
+                                                    type: string;
+                                                    example: string;
+                                                };
+                                                images: {
+                                                    type: string;
+                                                    items: {
+                                                        type: string;
+                                                        format: string;
+                                                    };
+                                                };
+                                                updated_by: {
+                                                    type: string;
+                                                    format: string;
+                                                    example: string;
+                                                };
+                                                updated_at: {
+                                                    type: string;
+                                                    format: string;
+                                                    example: string;
+                                                };
+                                            };
+                                        };
+                                    };
+                                };
+                                examples: {
+                                    successExample: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            removedKeys: string[];
+                                            notFoundKeys: string[];
+                                            data: {
+                                                id: string;
+                                                name: string;
+                                                reference: string;
+                                                images: string[];
+                                                updated_by: string;
+                                                updated_at: string;
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                examples: {
+                                    missingParams: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "404": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                examples: {
+                                    dressNotFound: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                    keysNotFound: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                examples: {
+                                    internalError: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            post: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    description: string;
+                    schema: {
+                        type: string;
+                        format: string;
+                        example: string;
+                    };
+                }[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "multipart/form-data": {
+                            schema: {
+                                type: string;
+                                properties: {
+                                    files: {
+                                        type: string;
+                                        items: {
+                                            type: string;
+                                            format: string;
+                                        };
+                                        description: string;
+                                    };
+                                };
+                                required: string[];
+                            };
+                            examples: {
+                                exampleUpload: {
+                                    summary: string;
+                                    value: {
+                                        files: string[];
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        data: {
+                                            type: string;
+                                            description: string;
+                                            properties: {
+                                                id: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                name: {
+                                                    type: string;
+                                                    example: string;
+                                                };
+                                                reference: {
+                                                    type: string;
+                                                    example: string;
+                                                };
+                                                images: {
+                                                    type: string;
+                                                    items: {
+                                                        type: string;
+                                                        format: string;
+                                                    };
+                                                    example: string[];
+                                                };
+                                                updated_by: {
+                                                    type: string;
+                                                    format: string;
+                                                    example: string;
+                                                };
+                                                updated_at: {
+                                                    type: string;
+                                                    format: string;
+                                                    example: string;
+                                                };
+                                            };
+                                        };
+                                    };
+                                };
+                                examples: {
+                                    successExample: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            data: {
+                                                id: string;
+                                                name: string;
+                                                reference: string;
+                                                images: string[];
+                                                updated_by: string;
+                                                updated_at: string;
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                examples: {
+                                    missingId: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                    noFiles: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            error: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "404": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        "/dresses/{id}/publish": {
+            post: {
+                tags: string[];
+                summary: string;
+                description: string;
+                parameters: {
+                    name: string;
+                    in: string;
+                    description: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        data: {
+                                            type: string;
+                                            properties: {
+                                                id: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                name: {
+                                                    type: string;
+                                                };
+                                                reference: {
+                                                    type: string;
+                                                };
+                                                published_post: {
+                                                    type: string;
+                                                    example: boolean;
+                                                };
+                                                published_at: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                published_by: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                updated_at: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                updated_by: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                    };
+                    "404": {
+                        description: string;
+                    };
+                    "500": {
+                        description: string;
+                    };
+                };
+                security: {
+                    bearerAuth: never[];
+                }[];
+            };
+        };
+        "/dresses/{id}/unpublish": {
+            post: {
+                tags: string[];
+                summary: string;
+                description: string;
+                parameters: {
+                    name: string;
+                    in: string;
+                    description: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        data: {
+                                            type: string;
+                                            properties: {
+                                                id: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                name: {
+                                                    type: string;
+                                                };
+                                                reference: {
+                                                    type: string;
+                                                };
+                                                published_post: {
+                                                    type: string;
+                                                    example: boolean;
+                                                };
+                                                published_at: {
+                                                    type: string;
+                                                    format: string;
+                                                    nullable: boolean;
+                                                    example: null;
+                                                };
+                                                published_by: {
+                                                    type: string;
+                                                    format: string;
+                                                    nullable: boolean;
+                                                    example: null;
+                                                };
+                                                updated_at: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                updated_by: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                    };
+                    "404": {
+                        description: string;
+                    };
+                    "500": {
+                        description: string;
+                    };
+                };
+                security: {
+                    bearerAuth: never[];
+                }[];
             };
         };
         "/contract-addons/{id}/hard": {
@@ -4136,6 +6854,166 @@ export declare const swaggerDocument: {
                 };
             };
         };
+        "/contract-addons": {
+            post: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            examples: {
+                                standardAddon: {
+                                    summary: string;
+                                    value: {
+                                        name: string;
+                                        description: string;
+                                        price_ht: number;
+                                        price_ttc: number;
+                                        included: boolean;
+                                    };
+                                };
+                                includedAddon: {
+                                    summary: string;
+                                    value: {
+                                        name: string;
+                                        included: boolean;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "201": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    success: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            data: {
+                                                id: string;
+                                                name: string;
+                                                description: string;
+                                                price_ht: number;
+                                                price_ttc: number;
+                                                included: boolean;
+                                                created_by: string;
+                                                created_at: string;
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    success: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            data: ({
+                                                id: string;
+                                                name: string;
+                                                description: string;
+                                                price_ht: number;
+                                                price_ttc: number;
+                                                created_at: string;
+                                                updated_at: null;
+                                            } | {
+                                                id: string;
+                                                name: string;
+                                                description: string;
+                                                price_ht: number;
+                                                price_ttc: number;
+                                                created_at: string;
+                                                updated_at: string;
+                                            })[];
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "401": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
         "/contract-addons/{id}": {
             put: {
                 tags: string[];
@@ -4249,47 +7127,27 @@ export declare const swaggerDocument: {
                     };
                 };
             };
-        };
-        "/contract-addons": {
-            post: {
+            get: {
                 tags: string[];
                 summary: string;
                 description: string;
                 operationId: string;
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    description: string;
+                    schema: {
+                        type: string;
+                        format: string;
+                        example: string;
+                    };
+                }[];
                 security: {
                     bearerAuth: never[];
                 }[];
-                requestBody: {
-                    required: boolean;
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: string;
-                            };
-                            examples: {
-                                standardAddon: {
-                                    summary: string;
-                                    value: {
-                                        name: string;
-                                        description: string;
-                                        price_ht: number;
-                                        price_ttc: number;
-                                        included: boolean;
-                                    };
-                                };
-                                includedAddon: {
-                                    summary: string;
-                                    value: {
-                                        name: string;
-                                        included: boolean;
-                                    };
-                                };
-                            };
-                        };
-                    };
-                };
                 responses: {
-                    "201": {
+                    "200": {
                         description: string;
                         content: {
                             "application/json": {
@@ -4307,9 +7165,8 @@ export declare const swaggerDocument: {
                                                 description: string;
                                                 price_ht: number;
                                                 price_ttc: number;
-                                                included: boolean;
-                                                created_by: string;
                                                 created_at: string;
+                                                updated_at: null;
                                             };
                                         };
                                     };
@@ -4318,6 +7175,17 @@ export declare const swaggerDocument: {
                         };
                     };
                     "400": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "404": {
                         description: string;
                         content: {
                             "application/json": {
@@ -4516,6 +7384,183 @@ export declare const swaggerDocument: {
                 };
             };
         };
+        "/contract-packages": {
+            post: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            examples: {
+                                basicPackage: {
+                                    summary: string;
+                                    value: {
+                                        name: string;
+                                        num_dresses: number;
+                                        price_ht: number;
+                                        price_ttc: number;
+                                    };
+                                };
+                                packageWithAddons: {
+                                    summary: string;
+                                    value: {
+                                        name: string;
+                                        num_dresses: number;
+                                        price_ht: number;
+                                        price_ttc: number;
+                                        addon_ids: string[];
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "201": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    success: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            data: {
+                                                id: string;
+                                                name: string;
+                                                num_dresses: number;
+                                                price_ht: number;
+                                                price_ttc: number;
+                                                created_at: string;
+                                                created_by: string;
+                                                addons: {
+                                                    addon: {
+                                                        id: string;
+                                                        name: string;
+                                                        price_ht: number;
+                                                        price_ttc: number;
+                                                    };
+                                                }[];
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "401": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    success: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            data: {
+                                                id: string;
+                                                name: string;
+                                                description: string;
+                                                price_ht: number;
+                                                price_ttc: number;
+                                                created_at: string;
+                                                addons: {
+                                                    id: string;
+                                                    name: string;
+                                                    price_ht: number;
+                                                    price_ttc: number;
+                                                }[];
+                                            }[];
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "401": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
         "/contract-packages/{id}": {
             put: {
                 tags: string[];
@@ -4649,9 +7694,7 @@ export declare const swaggerDocument: {
                     };
                 };
             };
-        };
-        "/contract-packages": {
-            post: {
+            get: {
                 tags: string[];
                 summary: string;
                 description: string;
@@ -4659,39 +7702,19 @@ export declare const swaggerDocument: {
                 security: {
                     bearerAuth: never[];
                 }[];
-                requestBody: {
+                parameters: {
+                    name: string;
+                    in: string;
                     required: boolean;
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: string;
-                            };
-                            examples: {
-                                basicPackage: {
-                                    summary: string;
-                                    value: {
-                                        name: string;
-                                        num_dresses: number;
-                                        price_ht: number;
-                                        price_ttc: number;
-                                    };
-                                };
-                                packageWithAddons: {
-                                    summary: string;
-                                    value: {
-                                        name: string;
-                                        num_dresses: number;
-                                        price_ht: number;
-                                        price_ttc: number;
-                                        addon_ids: string[];
-                                    };
-                                };
-                            };
-                        };
+                    description: string;
+                    schema: {
+                        type: string;
+                        format: string;
                     };
-                };
+                    example: string;
+                }[];
                 responses: {
-                    "201": {
+                    "200": {
                         description: string;
                         content: {
                             "application/json": {
@@ -4706,18 +7729,15 @@ export declare const swaggerDocument: {
                                             data: {
                                                 id: string;
                                                 name: string;
-                                                num_dresses: number;
+                                                description: string;
                                                 price_ht: number;
                                                 price_ttc: number;
                                                 created_at: string;
-                                                created_by: string;
                                                 addons: {
-                                                    addon: {
-                                                        id: string;
-                                                        name: string;
-                                                        price_ht: number;
-                                                        price_ttc: number;
-                                                    };
+                                                    id: string;
+                                                    name: string;
+                                                    price_ht: number;
+                                                    price_ttc: number;
                                                 }[];
                                             };
                                         };
@@ -4726,7 +7746,7 @@ export declare const swaggerDocument: {
                             };
                         };
                     };
-                    "400": {
+                    "404": {
                         description: string;
                         content: {
                             "application/json": {
@@ -4886,6 +7906,137 @@ export declare const swaggerDocument: {
                 }[];
             };
         };
+        "/contract-types": {
+            post: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            example: {
+                                name: string;
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "201": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                example: {
+                                    success: boolean;
+                                    data: {
+                                        id: string;
+                                        name: string;
+                                        created_by: string;
+                                        created_at: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                };
+                security: {
+                    bearerAuth: never[];
+                }[];
+            };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    success: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            data: ({
+                                                id: string;
+                                                name: string;
+                                                description: string;
+                                                created_at: string;
+                                                updated_at: null;
+                                            } | {
+                                                id: string;
+                                                name: string;
+                                                description: string;
+                                                created_at: string;
+                                                updated_at: string;
+                                            })[];
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "401": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
         "/contract-types/{id}": {
             put: {
                 tags: string[];
@@ -4963,28 +8114,23 @@ export declare const swaggerDocument: {
                     bearerAuth: never[];
                 }[];
             };
-        };
-        "/contract-types": {
-            post: {
+            get: {
                 tags: string[];
                 summary: string;
                 description: string;
                 operationId: string;
-                requestBody: {
+                parameters: {
+                    name: string;
+                    in: string;
                     required: boolean;
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: string;
-                            };
-                            example: {
-                                name: string;
-                            };
-                        };
+                    schema: {
+                        type: string;
+                        example: string;
                     };
-                };
+                    description: string;
+                }[];
                 responses: {
-                    "201": {
+                    "200": {
                         description: string;
                         content: {
                             "application/json": {
@@ -4996,14 +8142,27 @@ export declare const swaggerDocument: {
                                     data: {
                                         id: string;
                                         name: string;
-                                        created_by: string;
+                                        description: string;
                                         created_at: string;
+                                        updated_at: string;
+                                        deleted_at: null;
                                     };
                                 };
                             };
                         };
                     };
                     "400": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "404": {
                         description: string;
                         content: {
                             "application/json": {
@@ -5315,55 +8474,6 @@ export declare const swaggerDocument: {
             };
         };
         "/contracts/{id}/restore": {
-            patch: {
-                tags: string[];
-                summary: string;
-                description: string;
-                operationId: string;
-                security: {
-                    bearerAuth: never[];
-                }[];
-                parameters: {
-                    name: string;
-                    in: string;
-                    required: boolean;
-                    description: string;
-                    schema: {
-                        type: string;
-                        format: string;
-                    };
-                }[];
-                responses: {
-                    "200": {
-                        description: string;
-                        content: {
-                            "application/json": {
-                                schema: {
-                                    type: string;
-                                    properties: {
-                                        success: {
-                                            type: string;
-                                            example: boolean;
-                                        };
-                                        message: {
-                                            type: string;
-                                            example: string;
-                                        };
-                                    };
-                                };
-                            };
-                        };
-                    };
-                    "404": {
-                        description: string;
-                    };
-                    "500": {
-                        description: string;
-                    };
-                };
-            };
-        };
-        "/contracts/{id}": {
             patch: {
                 tags: string[];
                 summary: string;
@@ -6821,6 +9931,738 @@ export declare const swaggerDocument: {
                         };
                     };
                 };
+            };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                parameters: ({
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        example: string;
+                    };
+                    description: string;
+                } | {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        example: number;
+                    };
+                    description: string;
+                })[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    required: string[];
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        data: {
+                                            type: string;
+                                            description: string;
+                                            items: {
+                                                type: string;
+                                                properties: {
+                                                    id: {
+                                                        type: string;
+                                                        format: string;
+                                                    };
+                                                    contract_number: {
+                                                        type: string;
+                                                    };
+                                                    status: {
+                                                        type: string;
+                                                        enum: string[];
+                                                        example: string;
+                                                    };
+                                                    start_datetime: {
+                                                        type: string;
+                                                        format: string;
+                                                    };
+                                                    end_datetime: {
+                                                        type: string;
+                                                        format: string;
+                                                    };
+                                                    deposit_payment_method: {
+                                                        type: string;
+                                                        enum: string[];
+                                                        example: string;
+                                                    };
+                                                    account_ht: {
+                                                        type: string;
+                                                        example: number;
+                                                    };
+                                                    account_ttc: {
+                                                        type: string;
+                                                        example: number;
+                                                    };
+                                                    caution_ht: {
+                                                        type: string;
+                                                        example: number;
+                                                    };
+                                                    caution_ttc: {
+                                                        type: string;
+                                                        example: number;
+                                                    };
+                                                    total_price_ht: {
+                                                        type: string;
+                                                        example: number;
+                                                    };
+                                                    total_price_ttc: {
+                                                        type: string;
+                                                        example: number;
+                                                    };
+                                                    customer: {
+                                                        type: string;
+                                                        properties: {
+                                                            id: {
+                                                                type: string;
+                                                                format: string;
+                                                            };
+                                                            firstname: {
+                                                                type: string;
+                                                                example: string;
+                                                            };
+                                                            lastname: {
+                                                                type: string;
+                                                                example: string;
+                                                            };
+                                                            email: {
+                                                                type: string;
+                                                                format: string;
+                                                                example: string;
+                                                            };
+                                                            phone: {
+                                                                type: string;
+                                                                example: string;
+                                                            };
+                                                        };
+                                                    };
+                                                    contract_type: {
+                                                        type: string;
+                                                        properties: {
+                                                            id: {
+                                                                type: string;
+                                                                format: string;
+                                                            };
+                                                            name: {
+                                                                type: string;
+                                                                example: string;
+                                                            };
+                                                        };
+                                                    };
+                                                    package: {
+                                                        type: string[];
+                                                        properties: {
+                                                            id: {
+                                                                type: string;
+                                                                format: string;
+                                                            };
+                                                            name: {
+                                                                type: string;
+                                                                example: string;
+                                                            };
+                                                            price_ht: {
+                                                                type: string;
+                                                                example: number;
+                                                            };
+                                                            price_ttc: {
+                                                                type: string;
+                                                                example: number;
+                                                            };
+                                                        };
+                                                    };
+                                                    addon_links: {
+                                                        type: string;
+                                                        items: {
+                                                            type: string;
+                                                            properties: {
+                                                                addon: {
+                                                                    type: string;
+                                                                    properties: {
+                                                                        id: {
+                                                                            type: string;
+                                                                            format: string;
+                                                                        };
+                                                                        name: {
+                                                                            type: string;
+                                                                            example: string;
+                                                                        };
+                                                                        price_ttc: {
+                                                                            type: string;
+                                                                            example: number;
+                                                                        };
+                                                                        included: {
+                                                                            type: string;
+                                                                            example: boolean;
+                                                                        };
+                                                                    };
+                                                                };
+                                                            };
+                                                        };
+                                                    };
+                                                    dresses: {
+                                                        type: string;
+                                                        items: {
+                                                            type: string;
+                                                            properties: {
+                                                                dress: {
+                                                                    type: string;
+                                                                    properties: {
+                                                                        id: {
+                                                                            type: string;
+                                                                            format: string;
+                                                                        };
+                                                                        name: {
+                                                                            type: string;
+                                                                            example: string;
+                                                                        };
+                                                                        price_per_day_ttc: {
+                                                                            type: string;
+                                                                            example: number;
+                                                                        };
+                                                                    };
+                                                                };
+                                                            };
+                                                        };
+                                                    };
+                                                    sign_link: {
+                                                        type: string[];
+                                                        description: string;
+                                                        properties: {
+                                                            token: {
+                                                                type: string;
+                                                                example: string;
+                                                            };
+                                                            expires_at: {
+                                                                type: string;
+                                                                format: string;
+                                                            };
+                                                        };
+                                                    };
+                                                    created_at: {
+                                                        type: string;
+                                                        format: string;
+                                                    };
+                                                    updated_at: {
+                                                        type: string[];
+                                                        format: string;
+                                                    };
+                                                };
+                                            };
+                                        };
+                                    };
+                                };
+                                examples: {
+                                    default: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            data: {
+                                                id: string;
+                                                contract_number: string;
+                                                status: string;
+                                                start_datetime: string;
+                                                end_datetime: string;
+                                                deposit_payment_method: string;
+                                                account_ht: number;
+                                                account_ttc: number;
+                                                caution_ht: number;
+                                                caution_ttc: number;
+                                                total_price_ht: number;
+                                                total_price_ttc: number;
+                                                customer: {
+                                                    firstname: string;
+                                                    lastname: string;
+                                                };
+                                                contract_type: {
+                                                    name: string;
+                                                };
+                                                package: null;
+                                                addon_links: never[];
+                                                dresses: never[];
+                                                sign_link: {
+                                                    token: string;
+                                                };
+                                                created_at: string;
+                                            }[];
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        error: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                security: {
+                    bearerAuth: never[];
+                }[];
+            };
+        };
+        "/contracts/{id}": {
+            patch: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    description: string;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        message: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "404": {
+                        description: string;
+                    };
+                    "500": {
+                        description: string;
+                    };
+                };
+            };
+            put: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                        example: string;
+                    };
+                    description: string;
+                }[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            examples: {
+                                updateContract: {
+                                    summary: string;
+                                    value: {
+                                        status: string;
+                                        startDatetime: string;
+                                        endDatetime: string;
+                                        depositPaymentMethod: string;
+                                        total_price_ht: string;
+                                        total_price_ttc: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: string;
+                                };
+                                examples: {
+                                    success: {
+                                        summary: string;
+                                        value: {
+                                            success: boolean;
+                                            data: {
+                                                id: string;
+                                                contractType: string;
+                                                status: string;
+                                                startDatetime: string;
+                                                endDatetime: string;
+                                                depositPaymentMethod: string;
+                                                total_price_ht: string;
+                                                total_price_ttc: string;
+                                                updated_by: string;
+                                                updated_at: string;
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "401": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "404": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: boolean;
+                                    error: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            get: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                parameters: {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    schema: {
+                        type: string;
+                        format: string;
+                    };
+                    description: string;
+                }[];
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    required: string[];
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        data: {
+                                            type: string;
+                                            properties: {
+                                                id: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                contract_number: {
+                                                    type: string;
+                                                };
+                                                status: {
+                                                    type: string;
+                                                    enum: string[];
+                                                    example: string;
+                                                };
+                                                start_datetime: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                end_datetime: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                deposit_payment_method: {
+                                                    type: string;
+                                                    enum: string[];
+                                                    example: string;
+                                                };
+                                                account_ht: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                account_ttc: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                caution_ht: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                caution_ttc: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                total_price_ht: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                total_price_ttc: {
+                                                    type: string;
+                                                    example: number;
+                                                };
+                                                customer: {
+                                                    type: string;
+                                                    properties: {
+                                                        id: {
+                                                            type: string;
+                                                            format: string;
+                                                        };
+                                                        firstname: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                        lastname: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                        email: {
+                                                            type: string;
+                                                            format: string;
+                                                            example: string;
+                                                        };
+                                                        phone: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                    };
+                                                };
+                                                contract_type: {
+                                                    type: string;
+                                                    properties: {
+                                                        id: {
+                                                            type: string;
+                                                            format: string;
+                                                        };
+                                                        name: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                    };
+                                                };
+                                                package: {
+                                                    type: string[];
+                                                    properties: {
+                                                        id: {
+                                                            type: string;
+                                                            format: string;
+                                                        };
+                                                        name: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                        price_ht: {
+                                                            type: string;
+                                                            example: number;
+                                                        };
+                                                        price_ttc: {
+                                                            type: string;
+                                                            example: number;
+                                                        };
+                                                    };
+                                                };
+                                                addon_links: {
+                                                    type: string;
+                                                    items: {
+                                                        type: string;
+                                                        properties: {
+                                                            addon: {
+                                                                type: string;
+                                                                properties: {
+                                                                    id: {
+                                                                        type: string;
+                                                                        format: string;
+                                                                    };
+                                                                    name: {
+                                                                        type: string;
+                                                                        example: string;
+                                                                    };
+                                                                    price_ttc: {
+                                                                        type: string;
+                                                                        example: number;
+                                                                    };
+                                                                    included: {
+                                                                        type: string;
+                                                                        example: boolean;
+                                                                    };
+                                                                };
+                                                            };
+                                                        };
+                                                    };
+                                                };
+                                                dresses: {
+                                                    type: string;
+                                                    items: {
+                                                        type: string;
+                                                        properties: {
+                                                            dress: {
+                                                                type: string;
+                                                                properties: {
+                                                                    id: {
+                                                                        type: string;
+                                                                        format: string;
+                                                                    };
+                                                                    name: {
+                                                                        type: string;
+                                                                        example: string;
+                                                                    };
+                                                                    price_per_day_ttc: {
+                                                                        type: string;
+                                                                        example: number;
+                                                                    };
+                                                                };
+                                                            };
+                                                        };
+                                                    };
+                                                };
+                                                sign_link: {
+                                                    type: string[];
+                                                    description: string;
+                                                    properties: {
+                                                        token: {
+                                                            type: string;
+                                                            example: string;
+                                                        };
+                                                        expires_at: {
+                                                            type: string;
+                                                            format: string;
+                                                        };
+                                                    };
+                                                };
+                                                created_at: {
+                                                    type: string;
+                                                    format: string;
+                                                };
+                                                updated_at: {
+                                                    type: string[];
+                                                    format: string;
+                                                };
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "404": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        error: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        error: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                security: {
+                    bearerAuth: never[];
+                }[];
             };
         };
         "/auth/refresh": {

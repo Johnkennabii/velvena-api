@@ -393,6 +393,7 @@ export const updateDress = async (req: AuthenticatedRequest, res: Response) => {
       size_id,
       condition_id,
       color_id,
+      published_post,
     } = body;
     pino.info({ id, body }, "📥 Données reçues pour updateDress");
 
@@ -438,6 +439,24 @@ export const updateDress = async (req: AuthenticatedRequest, res: Response) => {
     // Supprimer doublons
     uploadedFiles = [...new Set(uploadedFiles)];
 
+    // Gestion de la publication
+    let publishedData: { published_post?: boolean; published_at?: Date | null; published_by?: string | null } = {};
+    if (published_post === true) {
+      publishedData = {
+        published_post: true,
+        published_at: new Date(),
+        published_by: req.user?.id ?? null,
+      };
+      pino.info({ userId: req.user?.id }, "✅ Robe marquée comme publiée");
+    } else if (published_post === false) {
+      publishedData = {
+        published_post: false,
+        published_at: null,
+        published_by: null,
+      };
+      pino.info("❌ Robe marquée comme non publiée");
+    }
+
     const updateData = {
       name,
       reference,
@@ -451,6 +470,7 @@ export const updateDress = async (req: AuthenticatedRequest, res: Response) => {
       condition_id,
       color_id,
       updated_by: req.user?.id ?? null,
+      ...publishedData,
     };
     pino.info({ uploadedFiles, updateData }, "ℹ️ Prepared data for prisma.dress.update");
 
@@ -464,6 +484,68 @@ export const updateDress = async (req: AuthenticatedRequest, res: Response) => {
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur mise à jour robe");
     res.status(500).json({ success: false, error: "Failed to update dress" });
+  }
+};
+
+// PUBLISH DRESS
+export const publishDress = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, error: "ID is required" });
+    }
+
+    const existing = await prisma.dress.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: "Dress not found" });
+    }
+
+    const updated = await prisma.dress.update({
+      where: { id },
+      data: {
+        published_post: true,
+        published_at: new Date(),
+        published_by: req.user?.id ?? null,
+        updated_by: req.user?.id ?? null,
+      },
+    });
+
+    pino.info({ id, userId: req.user?.id }, "✅ Robe publiée");
+    res.json({ success: true, data: updated });
+  } catch (err: any) {
+    pino.error({ err }, "❌ Erreur publication robe");
+    res.status(500).json({ success: false, error: "Failed to publish dress" });
+  }
+};
+
+// UNPUBLISH DRESS
+export const unpublishDress = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, error: "ID is required" });
+    }
+
+    const existing = await prisma.dress.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: "Dress not found" });
+    }
+
+    const updated = await prisma.dress.update({
+      where: { id },
+      data: {
+        published_post: false,
+        published_at: null,
+        published_by: null,
+        updated_by: req.user?.id ?? null,
+      },
+    });
+
+    pino.info({ id, userId: req.user?.id }, "❌ Robe dépubliée");
+    res.json({ success: true, data: updated });
+  } catch (err: any) {
+    pino.error({ err }, "❌ Erreur dépublication robe");
+    res.status(500).json({ success: false, error: "Failed to unpublish dress" });
   }
 };
 
