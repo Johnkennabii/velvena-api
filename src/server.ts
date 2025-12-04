@@ -84,6 +84,7 @@ app.use(
       "http://192.168.1.17:3001",
       "http://localhost:3000",
       "https://allure-creation.fr",
+      "https://www.allure-creation.fr/api/webhook/maintenance",
       "https://app.allure-creation.fr",
       "https://api.allure-creation.fr",
     ],
