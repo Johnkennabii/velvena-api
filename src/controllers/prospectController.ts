@@ -188,24 +188,64 @@ export const createProspect = async (req: AuthenticatedRequest, res: Response) =
 
     // Create prospect with dress reservations in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Create the prospect
-      const prospect = await tx.prospect.create({
-        data: {
-          firstname,
-          lastname,
-          email,
-          phone,
-          birthday: birthday ? new Date(birthday) : null,
-          country,
-          city,
-          address,
-          postal_code,
-          status: status || "new",
-          source,
-          notes,
-          created_by: req.user?.id ?? null,
-        },
+      // Check if prospect with this email already exists
+      const existingProspect = await tx.prospect.findUnique({
+        where: { email },
       });
+
+      let prospect;
+
+      if (existingProspect) {
+        // If prospect already exists
+        if (existingProspect.deleted_at) {
+          // If deleted, restore and update
+          prospect = await tx.prospect.update({
+            where: { id: existingProspect.id },
+            data: {
+              firstname,
+              lastname,
+              phone,
+              birthday: birthday ? new Date(birthday) : null,
+              country,
+              city,
+              address,
+              postal_code,
+              status: status || existingProspect.status,
+              source: source || existingProspect.source,
+              notes: notes || existingProspect.notes,
+              deleted_at: null,
+              deleted_by: null,
+              updated_by: req.user?.id ?? null,
+            },
+          });
+        } else if (existingProspect.converted_at) {
+          // If already converted to customer, reject
+          throw new Error("Ce prospect a déjà été converti en client. Utilisez l'API clients pour ajouter des réservations.");
+        } else {
+          // If active prospect exists, just use it (we'll add reservations below)
+          prospect = existingProspect;
+          pino.info({ prospectId: prospect.id, email }, "📧 Prospect existant trouvé, ajout de nouvelles réservations");
+        }
+      } else {
+        // Create new prospect
+        prospect = await tx.prospect.create({
+          data: {
+            firstname,
+            lastname,
+            email,
+            phone,
+            birthday: birthday ? new Date(birthday) : null,
+            country,
+            city,
+            address,
+            postal_code,
+            status: status || "new",
+            source,
+            notes,
+            created_by: req.user?.id ?? null,
+          },
+        });
+      }
 
       // Create dress reservations if provided
       if (dress_reservations && Array.isArray(dress_reservations) && dress_reservations.length > 0) {
