@@ -15,6 +15,9 @@ import {
   removeMailFlag,
   moveMailToFolder,
   downloadAttachment,
+  replyToMail,
+  replyAllToMail,
+  forwardMail,
 } from "../controllers/mailController/mailController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 
@@ -75,5 +78,20 @@ router.patch("/:mailbox/:uid/move", authMiddleware, moveMailToFolder);
 // Exemple: POST /mails/send
 // Body: { to: "user@example.com", subject: "Hello", html: "<p>Hello</p>", text: "Hello" }
 router.post("/send", authMiddleware, sendMail);
+
+// Répondre à un email
+// Exemple: POST /mails/inbox/123/reply
+// Body: { body: "Ma réponse", bodyText?: "Ma réponse", attachments?: [] }
+router.post("/:mailbox/:uid/reply", authMiddleware, replyToMail);
+
+// Répondre à tous
+// Exemple: POST /mails/inbox/123/reply-all
+// Body: { body: "Ma réponse", bodyText?: "Ma réponse", attachments?: [] }
+router.post("/:mailbox/:uid/reply-all", authMiddleware, replyAllToMail);
+
+// Transférer un email
+// Exemple: POST /mails/inbox/123/forward
+// Body: { to: "user@example.com", message?: "Mon message", messageText?: "Mon message", includeAttachments?: true }
+router.post("/:mailbox/:uid/forward", authMiddleware, forwardMail);
 
 export default router;

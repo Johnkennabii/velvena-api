@@ -1,0 +1,151 @@
+{
+  "/mails/{mailbox}/{uid}/forward": {
+    "post": {
+      "tags": ["Mail"],
+      "summary": "Transférer un email",
+      "description": "Transfère un email à de nouveaux destinataires avec un message optionnel",
+      "operationId": "forwardMail",
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "mailbox",
+          "in": "path",
+          "required": true,
+          "description": "Nom de la boîte mail (inbox, sent, trash, spam, drafts)",
+          "schema": {
+            "type": "string",
+            "example": "inbox"
+          }
+        },
+        {
+          "name": "uid",
+          "in": "path",
+          "required": true,
+          "description": "UID de l'email à transférer",
+          "schema": {
+            "type": "integer",
+            "example": 123
+          }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": ["to"],
+              "properties": {
+                "to": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "email"
+                      }
+                    }
+                  ],
+                  "description": "Destinataire(s) du transfert",
+                  "example": "destinataire@example.com"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Message d'accompagnement en HTML (optionnel)",
+                  "example": "<p>Veuillez trouver ci-dessous le message transféré.</p>"
+                },
+                "messageText": {
+                  "type": "string",
+                  "description": "Message d'accompagnement en texte brut (optionnel)",
+                  "example": "Veuillez trouver ci-dessous le message transféré."
+                },
+                "includeAttachments": {
+                  "type": "boolean",
+                  "description": "Inclure les pièces jointes de l'email original (par défaut: true)",
+                  "example": true,
+                  "default": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Email transféré avec succès",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "message": {
+                    "type": "string",
+                    "example": "Email transféré avec succès"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Données invalides",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": false
+                  },
+                  "error": {
+                    "type": "string",
+                    "example": "Le(s) destinataire(s) est/sont requis"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Non autorisé"
+        },
+        "500": {
+          "description": "Erreur serveur",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": false
+                  },
+                  "error": {
+                    "type": "string",
+                    "example": "Erreur lors du transfert de l'email"
+                  },
+                  "details": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

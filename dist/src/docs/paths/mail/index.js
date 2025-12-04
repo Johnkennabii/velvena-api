@@ -12,6 +12,9 @@ import addFlag from "./add-flag.json" with { type: "json" };
 import removeFlag from "./remove-flag.json" with { type: "json" };
 import moveEmail from "./move-email.json" with { type: "json" };
 import downloadEmailAttachment from "./download-email-attachment.json" with { type: "json" };
+import replyToMail from "./reply-to-mail.json" with { type: "json" };
+import replyAllToMail from "./reply-all-to-mail.json" with { type: "json" };
+import forwardMail from "./forward-mail.json" with { type: "json" };
 export default {
     "/mails/folders": {
         ...getMailFolders["/mails/folders"],
@@ -29,5 +32,8 @@ export default {
     ...removeFlag,
     ...moveEmail,
     ...downloadEmailAttachment,
+    ...replyToMail,
+    ...replyAllToMail,
+    ...forwardMail,
 };
 //# sourceMappingURL=index.js.map

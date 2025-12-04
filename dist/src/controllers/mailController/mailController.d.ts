@@ -79,4 +79,22 @@ export declare function downloadAttachment(req: Request, res: Response): Promise
  * GET /emails/:emailId/attachments/:index?mailbox=inbox
  */
 export declare function downloadAttachmentByEmailId(req: Request, res: Response): Promise<void>;
+/**
+ * Répondre à un email
+ * POST /mails/:mailbox/:uid/reply
+ * Body: { body: string, bodyText?: string, attachments?: [] }
+ */
+export declare function replyToMail(req: Request, res: Response): Promise<void>;
+/**
+ * Répondre à tous
+ * POST /mails/:mailbox/:uid/reply-all
+ * Body: { body: string, bodyText?: string, attachments?: [] }
+ */
+export declare function replyAllToMail(req: Request, res: Response): Promise<void>;
+/**
+ * Transférer un email
+ * POST /mails/:mailbox/:uid/forward
+ * Body: { to: string | string[], message?: string, messageText?: string, includeAttachments?: boolean }
+ */
+export declare function forwardMail(req: Request, res: Response): Promise<void>;
 //# sourceMappingURL=mailController.d.ts.map

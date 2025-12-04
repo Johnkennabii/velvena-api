@@ -110,5 +110,22 @@ export declare function getEmailAttachment(uid: number, attachmentIndex: number,
  * Déplace un email d'une boîte mail vers une autre
  */
 export declare function moveEmail(uid: number, fromMailboxType: MailboxType, toMailboxType: MailboxType): Promise<void>;
+/**
+ * Répondre à un email
+ * @param uid - UID de l'email original
+ * @param mailboxType - Type de boîte mail (par défaut INBOX)
+ * @param replyBody - Corps de la réponse (HTML ou texte)
+ * @param replyBodyText - Corps de la réponse en texte brut (optionnel)
+ * @param attachments - Pièces jointes optionnelles
+ */
+export declare function replyToEmail(uid: number, mailboxType: MailboxType, replyBody: string, replyBodyText?: string, attachments?: MailAttachmentInput[]): Promise<void>;
+/**
+ * Répondre à tous (expéditeur + tous les destinataires originaux)
+ */
+export declare function replyAllToEmail(uid: number, mailboxType: MailboxType, replyBody: string, replyBodyText?: string, attachments?: MailAttachmentInput[]): Promise<void>;
+/**
+ * Transférer un email
+ */
+export declare function forwardEmail(uid: number, mailboxType: MailboxType, to: string | string[], forwardMessage?: string, forwardMessageText?: string, includeAttachments?: boolean): Promise<void>;
 export {};
 //# sourceMappingURL=mailService.d.ts.map

@@ -14,6 +14,449 @@ export declare const swaggerDocument: {
         description: string;
     }[];
     paths: {
+        "/mails/{mailbox}/{uid}/forward": {
+            post: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: ({
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    description: string;
+                    schema: {
+                        type: string;
+                        example: string;
+                    };
+                } | {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    description: string;
+                    schema: {
+                        type: string;
+                        example: number;
+                    };
+                })[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: string;
+                                required: string[];
+                                properties: {
+                                    to: {
+                                        oneOf: ({
+                                            type: string;
+                                            format: string;
+                                            items?: never;
+                                        } | {
+                                            type: string;
+                                            items: {
+                                                type: string;
+                                                format: string;
+                                            };
+                                            format?: never;
+                                        })[];
+                                        description: string;
+                                        example: string;
+                                    };
+                                    message: {
+                                        type: string;
+                                        description: string;
+                                        example: string;
+                                    };
+                                    messageText: {
+                                        type: string;
+                                        description: string;
+                                        example: string;
+                                    };
+                                    includeAttachments: {
+                                        type: string;
+                                        description: string;
+                                        example: boolean;
+                                        default: boolean;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        message: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        error: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "401": {
+                        description: string;
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        error: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                        details: {
+                                            type: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        "/mails/{mailbox}/{uid}/reply-all": {
+            post: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: ({
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    description: string;
+                    schema: {
+                        type: string;
+                        example: string;
+                    };
+                } | {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    description: string;
+                    schema: {
+                        type: string;
+                        example: number;
+                    };
+                })[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: string;
+                                required: string[];
+                                properties: {
+                                    body: {
+                                        type: string;
+                                        description: string;
+                                        example: string;
+                                    };
+                                    bodyText: {
+                                        type: string;
+                                        description: string;
+                                        example: string;
+                                    };
+                                    attachments: {
+                                        type: string;
+                                        description: string;
+                                        items: {
+                                            type: string;
+                                            required: string[];
+                                            properties: {
+                                                filename: {
+                                                    type: string;
+                                                    example: string;
+                                                };
+                                                content: {
+                                                    type: string;
+                                                    description: string;
+                                                    example: string;
+                                                };
+                                                contentType: {
+                                                    type: string;
+                                                    description: string;
+                                                    example: string;
+                                                };
+                                                encoding: {
+                                                    type: string;
+                                                    description: string;
+                                                    example: string;
+                                                };
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        message: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        error: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "401": {
+                        description: string;
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        error: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                        details: {
+                                            type: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        "/mails/{mailbox}/{uid}/reply": {
+            post: {
+                tags: string[];
+                summary: string;
+                description: string;
+                operationId: string;
+                security: {
+                    bearerAuth: never[];
+                }[];
+                parameters: ({
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    description: string;
+                    schema: {
+                        type: string;
+                        example: string;
+                    };
+                } | {
+                    name: string;
+                    in: string;
+                    required: boolean;
+                    description: string;
+                    schema: {
+                        type: string;
+                        example: number;
+                    };
+                })[];
+                requestBody: {
+                    required: boolean;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: string;
+                                required: string[];
+                                properties: {
+                                    body: {
+                                        type: string;
+                                        description: string;
+                                        example: string;
+                                    };
+                                    bodyText: {
+                                        type: string;
+                                        description: string;
+                                        example: string;
+                                    };
+                                    attachments: {
+                                        type: string;
+                                        description: string;
+                                        items: {
+                                            type: string;
+                                            required: string[];
+                                            properties: {
+                                                filename: {
+                                                    type: string;
+                                                    example: string;
+                                                };
+                                                content: {
+                                                    type: string;
+                                                    description: string;
+                                                    example: string;
+                                                };
+                                                contentType: {
+                                                    type: string;
+                                                    description: string;
+                                                    example: string;
+                                                };
+                                                encoding: {
+                                                    type: string;
+                                                    description: string;
+                                                    example: string;
+                                                };
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                responses: {
+                    "200": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        message: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "400": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        error: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                    "401": {
+                        description: string;
+                    };
+                    "500": {
+                        description: string;
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: string;
+                                    properties: {
+                                        success: {
+                                            type: string;
+                                            example: boolean;
+                                        };
+                                        error: {
+                                            type: string;
+                                            example: string;
+                                        };
+                                        details: {
+                                            type: string;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
         "/emails/{emailId}/attachments/{index}": {
             get: {
                 tags: string[];

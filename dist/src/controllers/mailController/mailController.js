@@ -817,4 +817,175 @@ export async function downloadAttachmentByEmailId(req, res) {
         });
     }
 }
+/**
+ * Répondre à un email
+ * POST /mails/:mailbox/:uid/reply
+ * Body: { body: string, bodyText?: string, attachments?: [] }
+ */
+export async function replyToMail(req, res) {
+    try {
+        const mailboxParam = req.params.mailbox || "inbox";
+        const mailboxType = normalizeMailboxType(mailboxParam);
+        const uidParam = req.params.uid;
+        if (!mailboxType) {
+            res.status(400).json({
+                success: false,
+                error: "Type de boîte mail invalide",
+            });
+            return;
+        }
+        if (!uidParam) {
+            res.status(400).json({
+                success: false,
+                error: "UID requis",
+            });
+            return;
+        }
+        const uid = Number.parseInt(uidParam, 10);
+        if (isNaN(uid)) {
+            res.status(400).json({
+                success: false,
+                error: "UID invalide",
+            });
+            return;
+        }
+        const { body, bodyText, attachments } = req.body;
+        if (!body) {
+            res.status(400).json({
+                success: false,
+                error: "Le corps de la réponse est requis",
+            });
+            return;
+        }
+        logger.info({ mailboxType, uid }, "Réponse à un email");
+        const { replyToEmail } = await import("../../lib/mailService.js");
+        await replyToEmail(uid, mailboxType, body, bodyText, attachments);
+        res.status(200).json({
+            success: true,
+            message: "Réponse envoyée avec succès",
+        });
+    }
+    catch (error) {
+        logger.error({ error }, "Erreur lors de l'envoi de la réponse");
+        res.status(500).json({
+            success: false,
+            error: "Erreur lors de l'envoi de la réponse",
+            details: error instanceof Error ? error.message : "Erreur inconnue",
+        });
+    }
+}
+/**
+ * Répondre à tous
+ * POST /mails/:mailbox/:uid/reply-all
+ * Body: { body: string, bodyText?: string, attachments?: [] }
+ */
+export async function replyAllToMail(req, res) {
+    try {
+        const mailboxParam = req.params.mailbox || "inbox";
+        const mailboxType = normalizeMailboxType(mailboxParam);
+        const uidParam = req.params.uid;
+        if (!mailboxType) {
+            res.status(400).json({
+                success: false,
+                error: "Type de boîte mail invalide",
+            });
+            return;
+        }
+        if (!uidParam) {
+            res.status(400).json({
+                success: false,
+                error: "UID requis",
+            });
+            return;
+        }
+        const uid = Number.parseInt(uidParam, 10);
+        if (isNaN(uid)) {
+            res.status(400).json({
+                success: false,
+                error: "UID invalide",
+            });
+            return;
+        }
+        const { body, bodyText, attachments } = req.body;
+        if (!body) {
+            res.status(400).json({
+                success: false,
+                error: "Le corps de la réponse est requis",
+            });
+            return;
+        }
+        logger.info({ mailboxType, uid }, "Réponse à tous");
+        const { replyAllToEmail } = await import("../../lib/mailService.js");
+        await replyAllToEmail(uid, mailboxType, body, bodyText, attachments);
+        res.status(200).json({
+            success: true,
+            message: "Réponse envoyée à tous avec succès",
+        });
+    }
+    catch (error) {
+        logger.error({ error }, "Erreur lors de l'envoi de la réponse à tous");
+        res.status(500).json({
+            success: false,
+            error: "Erreur lors de l'envoi de la réponse à tous",
+            details: error instanceof Error ? error.message : "Erreur inconnue",
+        });
+    }
+}
+/**
+ * Transférer un email
+ * POST /mails/:mailbox/:uid/forward
+ * Body: { to: string | string[], message?: string, messageText?: string, includeAttachments?: boolean }
+ */
+export async function forwardMail(req, res) {
+    try {
+        const mailboxParam = req.params.mailbox || "inbox";
+        const mailboxType = normalizeMailboxType(mailboxParam);
+        const uidParam = req.params.uid;
+        if (!mailboxType) {
+            res.status(400).json({
+                success: false,
+                error: "Type de boîte mail invalide",
+            });
+            return;
+        }
+        if (!uidParam) {
+            res.status(400).json({
+                success: false,
+                error: "UID requis",
+            });
+            return;
+        }
+        const uid = Number.parseInt(uidParam, 10);
+        if (isNaN(uid)) {
+            res.status(400).json({
+                success: false,
+                error: "UID invalide",
+            });
+            return;
+        }
+        const { to, message, messageText, includeAttachments = true } = req.body;
+        if (!to) {
+            res.status(400).json({
+                success: false,
+                error: "Le(s) destinataire(s) est/sont requis",
+            });
+            return;
+        }
+        logger.info({ mailboxType, uid, to }, "Transfert d'un email");
+        const { forwardEmail } = await import("../../lib/mailService.js");
+        await forwardEmail(uid, mailboxType, to, message, messageText, includeAttachments);
+        res.status(200).json({
+            success: true,
+            message: "Email transféré avec succès",
+        });
+    }
+    catch (error) {
+        logger.error({ error }, "Erreur lors du transfert de l'email");
+        res.status(500).json({
+            success: false,
+            error: "Erreur lors du transfert de l'email",
+            details: error instanceof Error ? error.message : "Erreur inconnue",
+        });
+    }
+}
 //# sourceMappingURL=mailController.js.map

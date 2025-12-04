@@ -1764,3 +1764,215 @@ function getDisplayName(mailboxName: string): string {
 
   return mapping[mailboxName] || mailboxName;
 }
+
+/**
+ * Répondre à un email
+ * @param uid - UID de l'email original
+ * @param mailboxType - Type de boîte mail (par défaut INBOX)
+ * @param replyBody - Corps de la réponse (HTML ou texte)
+ * @param replyBodyText - Corps de la réponse en texte brut (optionnel)
+ * @param attachments - Pièces jointes optionnelles
+ */
+export async function replyToEmail(
+  uid: number,
+  mailboxType: MailboxType,
+  replyBody: string,
+  replyBodyText?: string,
+  attachments?: MailAttachmentInput[]
+): Promise<void> {
+  const originalEmail = await getEmailByUid(uid, mailboxType);
+
+  if (!originalEmail) {
+    throw new Error("Email original introuvable");
+  }
+
+  const replyTo = originalEmail.from[0]?.address;
+
+  if (!replyTo) {
+    throw new Error("Impossible de déterminer l'expéditeur de l'email original");
+  }
+
+  const originalSubject = originalEmail.subject || "(sans objet)";
+  const replySubject = originalSubject.toLowerCase().startsWith("re:")
+    ? originalSubject
+    : `Re: ${originalSubject}`;
+
+  const originalDate = new Date(originalEmail.date || Date.now()).toLocaleString("fr-FR");
+  const originalFrom = originalEmail.from[0]?.name
+    ? `${originalEmail.from[0].name} <${originalEmail.from[0].address}>`
+    : originalEmail.from[0]?.address || "Expéditeur inconnu";
+
+  const quotedHtml = `
+<div>
+  ${replyBody}
+</div>
+<br/>
+<div style="border-left: 2px solid #ccc; padding-left: 10px; margin-top: 20px; color: #666;">
+  <p><strong>Le ${originalDate}, ${originalFrom} a écrit :</strong></p>
+  ${originalEmail.html || (originalEmail.text ? `<p>${originalEmail.text.replace(/\n/g, '<br/>')}</p>` : "")}
+</div>`;
+
+  const originalTextContent = originalEmail.text || "";
+  const quotedText = replyBodyText
+    ? `${replyBodyText}\n\n--- Le ${originalDate}, ${originalFrom} a écrit ---\n${originalTextContent}`
+    : undefined;
+
+  await sendEmail(
+    replyTo,
+    replySubject,
+    quotedHtml,
+    quotedText,
+    undefined,
+    undefined,
+    attachments
+  );
+
+  await addFlag(uid, "\\Answered", mailboxType);
+}
+
+/**
+ * Répondre à tous (expéditeur + tous les destinataires originaux)
+ */
+export async function replyAllToEmail(
+  uid: number,
+  mailboxType: MailboxType,
+  replyBody: string,
+  replyBodyText?: string,
+  attachments?: MailAttachmentInput[]
+): Promise<void> {
+  const originalEmail = await getEmailByUid(uid, mailboxType);
+
+  if (!originalEmail) {
+    throw new Error("Email original introuvable");
+  }
+
+  const replyTo = originalEmail.from[0]?.address;
+
+  if (!replyTo) {
+    throw new Error("Impossible de déterminer l'expéditeur de l'email original");
+  }
+
+  const ccAddresses: string[] = [];
+
+  // Ajouter tous les destinataires originaux sauf l'utilisateur actuel
+  if (originalEmail.to) {
+    originalEmail.to.forEach((addr) => {
+      if (addr.address && addr.address !== process.env.SMTP_USER) {
+        ccAddresses.push(addr.address);
+      }
+    });
+  }
+
+  // Filtrer le destinataire principal pour éviter les doublons
+  const filteredCc = ccAddresses.filter((addr) => addr !== replyTo);
+
+  const originalSubject = originalEmail.subject || "(sans objet)";
+  const replySubject = originalSubject.toLowerCase().startsWith("re:")
+    ? originalSubject
+    : `Re: ${originalSubject}`;
+
+  const originalDate = new Date(originalEmail.date || Date.now()).toLocaleString("fr-FR");
+  const originalFrom = originalEmail.from[0]?.name
+    ? `${originalEmail.from[0].name} <${originalEmail.from[0].address}>`
+    : originalEmail.from[0]?.address || "Expéditeur inconnu";
+
+  const quotedHtml = `
+<div>
+  ${replyBody}
+</div>
+<br/>
+<div style="border-left: 2px solid #ccc; padding-left: 10px; margin-top: 20px; color: #666;">
+  <p><strong>Le ${originalDate}, ${originalFrom} a écrit :</strong></p>
+  ${originalEmail.html || (originalEmail.text ? `<p>${originalEmail.text.replace(/\n/g, '<br/>')}</p>` : "")}
+</div>`;
+
+  const originalTextContent = originalEmail.text || "";
+  const quotedText = replyBodyText
+    ? `${replyBodyText}\n\n--- Le ${originalDate}, ${originalFrom} a écrit ---\n${originalTextContent}`
+    : undefined;
+
+  await sendEmail(
+    replyTo,
+    replySubject,
+    quotedHtml,
+    quotedText,
+    filteredCc.length > 0 ? filteredCc : undefined,
+    undefined,
+    attachments
+  );
+
+  await addFlag(uid, "\\Answered", mailboxType);
+}
+
+/**
+ * Transférer un email
+ */
+export async function forwardEmail(
+  uid: number,
+  mailboxType: MailboxType,
+  to: string | string[],
+  forwardMessage?: string,
+  forwardMessageText?: string,
+  includeAttachments: boolean = true
+): Promise<void> {
+  const originalEmail = await getEmailByUid(uid, mailboxType);
+
+  if (!originalEmail) {
+    throw new Error("Email original introuvable");
+  }
+
+  const originalSubject = originalEmail.subject || "(sans objet)";
+  const forwardSubject = originalSubject.toLowerCase().startsWith("fwd:") || originalSubject.toLowerCase().startsWith("tr:")
+    ? originalSubject
+    : `Fwd: ${originalSubject}`;
+
+  const originalDate = new Date(originalEmail.date || Date.now()).toLocaleString("fr-FR");
+  const originalFrom = originalEmail.from[0]?.name
+    ? `${originalEmail.from[0].name} <${originalEmail.from[0].address}>`
+    : originalEmail.from[0]?.address || "Expéditeur inconnu";
+  const originalTo = originalEmail.to
+    .map(addr => addr.name ? `${addr.name} <${addr.address}>` : addr.address)
+    .join(", ") || "Destinataire inconnu";
+
+  const forwardHeader = `
+<div style="margin-bottom: 20px;">
+  ${forwardMessage || ""}
+</div>
+<br/>
+<div style="border-top: 1px solid #ccc; padding-top: 10px; color: #666;">
+  <p><strong>---------- Message transféré ----------</strong></p>
+  <p><strong>De :</strong> ${originalFrom}</p>
+  <p><strong>Date :</strong> ${originalDate}</p>
+  <p><strong>Objet :</strong> ${originalSubject}</p>
+  <p><strong>À :</strong> ${originalTo}</p>
+</div>
+<br/>
+<div>
+  ${originalEmail.html || (originalEmail.text ? `<p>${originalEmail.text.replace(/\n/g, '<br/>')}</p>` : "")}
+</div>`;
+
+  const forwardTextHeader = forwardMessageText
+    ? `${forwardMessageText}\n\n---------- Message transféré ----------\nDe : ${originalFrom}\nDate : ${originalDate}\nObjet : ${originalSubject}\nÀ : ${originalTo}\n\n${originalEmail.text || ""}`
+    : undefined;
+
+  let attachments: MailAttachmentInput[] | undefined;
+
+  if (includeAttachments && originalEmail.attachments && originalEmail.attachments.length > 0) {
+    attachments = originalEmail.attachments.map((att) => ({
+      filename: att.filename || "attachment",
+      content: att.content?.toString("base64") || "",
+      encoding: "base64" as const,
+      contentType: att.contentType,
+    }));
+  }
+
+  await sendEmail(
+    to,
+    forwardSubject,
+    forwardHeader,
+    forwardTextHeader,
+    undefined,
+    undefined,
+    attachments
+  );
+}
