@@ -62,9 +62,9 @@ export const io = new SocketIOServer(server, {
       "http://127.0.0.1:4173",
       "http://localhost:5174",
       "http://localhost:5173",
-      "https://allure-creation.fr",
-      "https://app.allure-creation.fr",
-      "https://api.allure-creation.fr",
+      "https://velvena.fr",
+      "https://app.velvena.fr",
+      "https://api.velvena.fr",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     credentials: true,
@@ -89,10 +89,10 @@ app.use(
       "http://192.168.1.17:3000",
       "http://192.168.1.17:3001",
       "http://localhost:3000",
-      "https://allure-creation.fr",
-      "https://www.allure-creation.fr",
-      "https://app.allure-creation.fr",
-      "https://api.allure-creation.fr",
+      "https://velvena.fr",
+      "https://www.velvena.fr",
+      "https://app.velvena.fr",
+      "https://api.velvena.fr",
     ],
     credentials: true,
   })
@@ -154,7 +154,7 @@ app.use(healthRoutes);
 
 // ✅ Route racine
 app.get("/", (req: Request, res: Response) => {
-  res.json({ success: true, message: "Allure Creation API is running 🚀" });
+  res.json({ success: true, message: "Velvena API is running 🚀" });
 });
 
 // ✅ Gestion des erreurs globales

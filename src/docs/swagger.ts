@@ -75,12 +75,12 @@ console.log("✅ AUTH PATHS LOADED:", Object.keys(contractTypesPath));
 export const swaggerDocument = {
   openapi: "3.0.3",
   info: {
-    title: "Allure Création API",
+    title: "Velvena API",
     version: "1.0.0",
-    description: "API Documentation for Allure Création — modularized version",
+    description: "API Documentation for Velvena — Multi-tenant Dress Rental Management System",
   },
   servers: [
-    { url: "https://api.allure-creation.fr", description: "Production Server" },
+    { url: "https://api.velvena.fr", description: "Production Server" },
     { url: "http://localhost:3000", description: "Local Development Server" },
   ],
   tags: [
