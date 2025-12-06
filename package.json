@@ -9,7 +9,7 @@
     "lint": "echo \"No linter configured\" && exit 0",
     "dev": "tsx watch src/server.ts",
     "build": "tsc && node scripts/copyDocs.js",
-    "start": "tsx src/server.ts",
+    "start": "node src/server.js",
     "migrate:dev": "prisma migrate dev --name init",
     "migrate:deploy": "prisma migrate deploy",
     "prisma:generate": "prisma generate",
