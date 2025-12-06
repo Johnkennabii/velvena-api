@@ -18,8 +18,8 @@ log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # Configuration
-DOMAIN="api.allure-creation.fr"
-EMAIL="contact@allure-creation.fr"
+DOMAIN="${SSL_DOMAIN:-api.velvena.fr}"
+EMAIL="${SSL_EMAIL:-contact@velvena.fr}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
@@ -37,11 +37,11 @@ cd "${PROJECT_DIR}"
 
 # Create temporary nginx config for ACME challenge only
 mkdir -p "${PROJECT_DIR}/nginx/conf.d-initial"
-cat > "${PROJECT_DIR}/nginx/conf.d-initial/acme.conf" << 'EOF'
+cat > "${PROJECT_DIR}/nginx/conf.d-initial/acme.conf" << EOF
 server {
     listen 80;
     listen [::]:80;
-    server_name api.allure-creation.fr;
+    server_name ${DOMAIN};
 
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
