@@ -114,8 +114,8 @@ services:
       HETZNER_ENDPOINT: ${HETZNER_ENDPOINT:-https://fsn1.your-objectstorage.com}
       HETZNER_BUCKET: ${HETZNER_BUCKET}
       HETZNER_REGION: ${HETZNER_REGION:-fsn1}
-      API_URL: ${API_URL:-https://api.allure-creation.fr}
-      FRONTEND_URL: ${FRONTEND_URL:-https://allure-creation.fr}
+      API_URL: ${API_URL:-https://api.velvena.fr}
+      FRONTEND_URL: ${FRONTEND_URL:-https://velvena.fr}
     volumes:
       - uploads_data:/app/uploads
       - ./logs:/app/logs
@@ -201,7 +201,7 @@ services:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
       GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
-      GF_SERVER_ROOT_URL: https://monitoring.allure-creation.fr
+      GF_SERVER_ROOT_URL: https://monitoring.velvena.fr
       GF_ANALYTICS_REPORTING_ENABLED: "false"
     volumes:
       - grafana_data:/var/lib/grafana
