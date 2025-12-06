@@ -558,7 +558,14 @@ export const getContractSignLink = async (req: Request, res: Response) => {
       return res.status(410).json({ success: false, error: "Lien expiré" });
     }
 
-    res.json({ success: true, data: signLink });
+    // ✅ Ajout d'un flag pour indiquer si le contrat est déjà signé
+    const response = {
+      success: true,
+      data: signLink,
+      alreadySigned: !!signLink.contract.signed_at,
+    };
+
+    res.json(response);
   } catch (error) {
     logger.error({ error }, "🔥 Erreur interne - getContractSignLink");
     res.status(500).json({ success: false, error: "Erreur interne serveur" });
@@ -596,6 +603,17 @@ export const signContractViaLink = async (req: Request, res: Response) => {
 
     const contract = link.contract;
     if (!contract) return res.status(404).json({ success: false, error: "Contrat introuvable" });
+
+    // 🚫 Vérification : empêcher la re-signature d'un contrat déjà signé
+    if (contract.signed_at) {
+      logger.warn({ contractId: contract.id, token }, "⚠️ Tentative de re-signature d'un contrat déjà signé");
+      return res.status(400).json({
+        success: false,
+        error: "Ce contrat a déjà été signé",
+        signed_at: contract.signed_at,
+        signed_pdf_url: contract.signed_pdf_url
+      });
+    }
 
     const now = new Date();
 
@@ -679,8 +697,8 @@ await emitAndStoreNotification({
       data: { signed_pdf_url: signedPdfUrl } as Prisma.ContractUncheckedUpdateInput,
     });
 
-    // 🧹 5️⃣ Suppression du lien de signature pour éviter la réutilisation
-    await prisma.contractSignLink.delete({ where: { token } });
+    // ℹ️ 5️⃣ Le lien de signature n'est pas supprimé pour permettre l'accès jusqu'à expiration
+    // Il expirera naturellement selon expires_at (7 jours)
 
     // 🚀 6️⃣ Réponse finale
     res.json({

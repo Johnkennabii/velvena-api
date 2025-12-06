@@ -52,6 +52,9 @@ import { customerNoteSchemas } from "./components/schemas/customer-note/index.js
 import { prospectPaths } from "./paths/prospect/index.js";
 import { prospectSchemas } from "./components/schemas/prospect/index.js";
 
+import { prospectRequestPaths } from "./paths/prospect-request/index.js";
+import { prospectRequestSchemas } from "./components/schemas/prospect-request/index.js";
+
 import rolesPath from "./paths/roles/index.js" ;
 import rolessSchemas from "./components/schemas/roles/index.js";
 
@@ -89,6 +92,7 @@ export const swaggerDocument = {
     { name: "Customers", description: "Endpoints related to customers management" },
     { name: "Customer Notes", description: "Endpoints related to customer notes management" },
     { name: "Prospects", description: "Endpoints related to prospects management and conversion" },
+    { name: "Prospect Requests", description: "Endpoints related to prospect requests (demandes) with dress selections and estimates" },
     { name: "Roles", description: "Endpoints related to roles management" },
     { name: "Mail", description: "Endpoints related to email management (IMAP/SMTP)" },
   ],
@@ -110,6 +114,7 @@ export const swaggerDocument = {
     ...customersPath,
     ...customerNotePaths,
     ...prospectPaths,
+    ...prospectRequestPaths,
     ...rolesPath,
     ...mailPath,
   },
@@ -132,6 +137,7 @@ export const swaggerDocument = {
       ...customersSchemas,
       ...customerNoteSchemas,
       ...prospectSchemas,
+      ...prospectRequestSchemas,
       ...rolessSchemas,
       ...mailSchemas,
     },

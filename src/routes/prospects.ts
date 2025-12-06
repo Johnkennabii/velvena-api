@@ -17,6 +17,13 @@ import {
   updateReservation,
   deleteReservation,
 } from "../controllers/prospectDressReservationController.js";
+import {
+  createProspectRequest,
+  getProspectRequests,
+  getProspectRequestById,
+  updateProspectRequest,
+  deleteProspectRequest,
+} from "../controllers/prospectRequestController.js";
 
 const router = Router();
 
@@ -72,6 +79,47 @@ router.delete(
   "/:prospectId/dress-reservations/:reservationId",
   authMiddleware,
   deleteReservation
+);
+
+// ==================== PROSPECT REQUESTS (DEMANDES) ====================
+
+// Créer une nouvelle demande pour un prospect (JWT ou API Key)
+router.post(
+  "/:prospectId/requests",
+  hybridAuthMiddleware,
+  requireApiKeyScope("write:prospects"),
+  createProspectRequest
+);
+
+// Obtenir toutes les demandes d'un prospect (JWT ou API Key)
+router.get(
+  "/:prospectId/requests",
+  hybridAuthMiddleware,
+  requireApiKeyScope("read:prospects"),
+  getProspectRequests
+);
+
+// Obtenir une demande spécifique (JWT ou API Key)
+router.get(
+  "/:prospectId/requests/:requestId",
+  hybridAuthMiddleware,
+  requireApiKeyScope("read:prospects"),
+  getProspectRequestById
+);
+
+// Mettre à jour une demande (JWT ou API Key)
+router.patch(
+  "/:prospectId/requests/:requestId",
+  hybridAuthMiddleware,
+  requireApiKeyScope("write:prospects"),
+  updateProspectRequest
+);
+
+// Supprimer une demande (JWT uniquement)
+router.delete(
+  "/:prospectId/requests/:requestId",
+  authMiddleware,
+  deleteProspectRequest
 );
 
 export default router;

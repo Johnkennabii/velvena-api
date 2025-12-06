@@ -29,6 +29,7 @@ import notificationRoute from "./routes/notifications.js";
 import mailRoutes from "./routes/mailRoutes.js";
 import emailRoutes from "./routes/emailRoutes.js";
 import apiKeyRoutes from "./routes/apiKeys.js";
+import maintenanceRoutes from "./routes/maintenanceRoutes.js";
 import { getContractSignLink, signContractViaLink, } from "./controllers/contractController/contractController.js";
 // 🧩 1️⃣ Création de ton app Express
 const app = express();
@@ -67,7 +68,7 @@ app.use(cors({
         "http://192.168.1.17:3001",
         "http://localhost:3000",
         "https://allure-creation.fr",
-        "https://www.allure-creation.fr/api/webhook/maintenance",
+        "https://www.allure-creation.fr",
         "https://app.allure-creation.fr",
         "https://api.allure-creation.fr",
     ],
@@ -107,6 +108,7 @@ app.use("/notifications", notificationRoute);
 app.use("/mails", mailRoutes);
 app.use("/emails", emailRoutes);
 app.use("/api-keys", apiKeyRoutes);
+app.use("/api", maintenanceRoutes);
 // ✅ Route racine
 app.get("/", (req, res) => {
     res.json({ success: true, message: "Allure Creation API is running 🚀" });

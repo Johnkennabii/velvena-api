@@ -1844,6 +1844,8 @@ export declare const swaggerDocument: {
                 };
             };
         };
+        "/prospects/{prospectId}/requests": any;
+        "/prospects/{prospectId}/requests/{requestId}": any;
         "/prospects/{id}/convert": {
             post: {
                 tags: string[];

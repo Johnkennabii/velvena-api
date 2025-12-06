@@ -153,8 +153,33 @@ export const getProspectById = async (req, res) => {
 // Create a new prospect
 export const createProspect = async (req, res) => {
     try {
-        const { firstname, lastname, email, phone, birthday, country, city, address, postal_code, status, source, notes, dress_reservations } = req.body;
-        // Create prospect with dress reservations in a transaction
+        const { firstname, lastname, email, phone, birthday, country, city, address, postal_code, status, source, notes, dress_reservations, requests } = req.body;
+        // Helper function to generate request number
+        async function generateRequestNumber(tx) {
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            const datePrefix = `REQ-${year}${month}${day}`;
+            const lastRequest = await tx.prospectRequest.findFirst({
+                where: {
+                    request_number: {
+                        startsWith: datePrefix,
+                    },
+                },
+                orderBy: {
+                    request_number: "desc",
+                },
+            });
+            let sequence = 1;
+            if (lastRequest) {
+                const parts = lastRequest.request_number.split("-");
+                const lastSequence = parseInt(parts[2] || "0", 10);
+                sequence = lastSequence + 1;
+            }
+            return `${datePrefix}-${String(sequence).padStart(4, "0")}`;
+        }
+        // Create prospect with dress reservations and requests in a transaction
         const result = await prisma.$transaction(async (tx) => {
             // Check if prospect with this email already exists
             const existingProspect = await tx.prospect.findUnique({
@@ -228,7 +253,77 @@ export const createProspect = async (req, res) => {
                     })),
                 });
             }
-            // Fetch the complete prospect with dress reservations and calculated fields
+            // Create requests if provided
+            if (requests && Array.isArray(requests) && requests.length > 0) {
+                for (const requestData of requests) {
+                    if (!requestData.dresses || !Array.isArray(requestData.dresses) || requestData.dresses.length === 0) {
+                        continue; // Skip requests without dresses
+                    }
+                    // Fetch dress details for calculation
+                    const dressIds = requestData.dresses.map((d) => d.dress_id);
+                    const fetchedDresses = await tx.dress.findMany({
+                        where: {
+                            id: { in: dressIds },
+                            deleted_at: null,
+                        },
+                    });
+                    const dressMap = new Map(fetchedDresses.map(d => [d.id, d]));
+                    // Calculate totals
+                    let totalEstimatedHt = 0;
+                    let totalEstimatedTtc = 0;
+                    const dressesWithCalculations = requestData.dresses.map((dressData) => {
+                        const dress = dressMap.get(dressData.dress_id);
+                        if (!dress) {
+                            throw new Error(`Dress ${dressData.dress_id} not found`);
+                        }
+                        const startDate = new Date(dressData.rental_start_date);
+                        const endDate = new Date(dressData.rental_end_date);
+                        const rentalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                        const pricePerDayHt = Number(dress.price_per_day_ht);
+                        const pricePerDayTtc = Number(dress.price_per_day_ttc);
+                        const estimatedPriceHt = rentalDays * pricePerDayHt;
+                        const estimatedPriceTtc = rentalDays * pricePerDayTtc;
+                        totalEstimatedHt += estimatedPriceHt;
+                        totalEstimatedTtc += estimatedPriceTtc;
+                        return {
+                            dress_id: dressData.dress_id,
+                            rental_start_date: startDate,
+                            rental_end_date: endDate,
+                            rental_days: rentalDays,
+                            estimated_price_ht: estimatedPriceHt,
+                            estimated_price_ttc: estimatedPriceTtc,
+                            notes: dressData.notes || null,
+                        };
+                    });
+                    // Generate unique request number
+                    const requestNumber = await generateRequestNumber(tx);
+                    // Create the request with dresses
+                    await tx.prospectRequest.create({
+                        data: {
+                            request_number: requestNumber,
+                            prospect_id: prospect.id,
+                            status: requestData.status || "draft",
+                            total_estimated_ht: totalEstimatedHt,
+                            total_estimated_ttc: totalEstimatedTtc,
+                            notes: requestData.notes || null,
+                            created_by: req.user?.id ?? null,
+                            dresses: {
+                                create: dressesWithCalculations.map((d) => ({
+                                    dress_id: d.dress_id,
+                                    rental_start_date: d.rental_start_date,
+                                    rental_end_date: d.rental_end_date,
+                                    rental_days: d.rental_days,
+                                    estimated_price_ht: d.estimated_price_ht,
+                                    estimated_price_ttc: d.estimated_price_ttc,
+                                    notes: d.notes,
+                                    created_by: req.user?.id ?? null,
+                                })),
+                            },
+                        },
+                    });
+                }
+            }
+            // Fetch the complete prospect with dress reservations, requests and calculated fields
             const prospectWithDetails = await tx.prospect.findUnique({
                 where: { id: prospect.id },
                 include: {
@@ -245,6 +340,26 @@ export const createProspect = async (req, res) => {
                             },
                         },
                         orderBy: { rental_start_date: "asc" },
+                    },
+                    requests: {
+                        where: { deleted_at: null },
+                        include: {
+                            dresses: {
+                                where: { deleted_at: null },
+                                include: {
+                                    dress: {
+                                        include: {
+                                            type: true,
+                                            size: true,
+                                            color: true,
+                                            condition: true,
+                                        },
+                                    },
+                                },
+                                orderBy: { rental_start_date: "asc" },
+                            },
+                        },
+                        orderBy: { created_at: "desc" },
                     },
                 },
             });
@@ -267,6 +382,7 @@ export const createProspect = async (req, res) => {
                 ...prospectWithDetails,
                 dress_reservations: reservationsWithCalculations,
                 total_estimated_cost: totalEstimatedCost,
+                requests: prospectWithDetails?.requests || [],
             };
         });
         res.status(201).json({ success: true, data: result });

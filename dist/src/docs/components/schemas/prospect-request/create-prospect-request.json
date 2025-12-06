@@ -1,0 +1,57 @@
+{
+  "CreateProspectRequestRequest": {
+    "type": "object",
+    "required": ["dresses"],
+    "properties": {
+      "dresses": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["dress_id", "rental_start_date", "rental_end_date"],
+          "properties": {
+            "dress_id": {
+              "type": "string",
+              "format": "uuid",
+              "example": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f"
+            },
+            "rental_start_date": {
+              "type": "string",
+              "format": "date",
+              "example": "2025-12-10"
+            },
+            "rental_end_date": {
+              "type": "string",
+              "format": "date",
+              "example": "2025-12-15"
+            },
+            "notes": {
+              "type": "string",
+              "example": "Pour mariage"
+            }
+          }
+        }
+      },
+      "notes": {
+        "type": "string",
+        "example": "Client VIP"
+      },
+      "status": {
+        "type": "string",
+        "enum": ["draft", "sent", "confirmed", "cancelled"],
+        "example": "draft"
+      }
+    }
+  },
+  "CreateProspectRequestResponse": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "example": true
+      },
+      "data": {
+        "$ref": "#/components/schemas/ProspectRequest"
+      }
+    }
+  }
+}

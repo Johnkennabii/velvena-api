@@ -132,6 +132,7 @@ model Dress {
   price_per_day_ttc      Decimal
   ContractDress          ContractDress[]
   prospect_reservations  ProspectDressReservation[]
+  prospect_request_dresses ProspectRequestDress[]
   color                  DressColor?                 @relation(fields: [color_id], references: [id])
   condition              DressCondition?             @relation(fields: [condition_id], references: [id])
   size                   DressSize?                  @relation(fields: [size_id], references: [id])
@@ -184,6 +185,7 @@ model Prospect {
   converted_by          String?
   converted_to          String?
   dress_reservations    ProspectDressReservation[]
+  requests              ProspectRequest[]
 }
 
 model ProspectDressReservation {
@@ -204,6 +206,53 @@ model ProspectDressReservation {
   dress             Dress     @relation(fields: [dress_id], references: [id], onDelete: Cascade)
 
   @@index([prospect_id])
+  @@index([dress_id])
+  @@index([rental_start_date, rental_end_date])
+}
+
+model ProspectRequest {
+  id                    String                 @id @default(uuid())
+  request_number        String                 @unique
+  prospect_id           String
+  status                String                 @default("draft") // draft, sent, confirmed, cancelled
+  total_estimated_ht    Decimal                @default(0)
+  total_estimated_ttc   Decimal                @default(0)
+  notes                 String?
+  created_at            DateTime               @default(now())
+  created_by            String?
+  updated_at            DateTime?              @updatedAt
+  updated_by            String?
+  deleted_at            DateTime?
+  deleted_by            String?
+
+  prospect              Prospect               @relation(fields: [prospect_id], references: [id], onDelete: Cascade)
+  dresses               ProspectRequestDress[]
+
+  @@index([prospect_id])
+  @@index([request_number])
+}
+
+model ProspectRequestDress {
+  id                    String          @id @default(uuid())
+  request_id            String
+  dress_id              String
+  rental_start_date     DateTime
+  rental_end_date       DateTime
+  rental_days           Int
+  estimated_price_ht    Decimal         @default(0)
+  estimated_price_ttc   Decimal         @default(0)
+  notes                 String?
+  created_at            DateTime        @default(now())
+  created_by            String?
+  updated_at            DateTime?       @updatedAt
+  updated_by            String?
+  deleted_at            DateTime?
+  deleted_by            String?
+
+  request               ProspectRequest @relation(fields: [request_id], references: [id], onDelete: Cascade)
+  dress                 Dress           @relation(fields: [dress_id], references: [id], onDelete: Cascade)
+
+  @@index([request_id])
   @@index([dress_id])
   @@index([rental_start_date, rental_end_date])
 }
