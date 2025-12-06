@@ -1,71 +1,71 @@
 {
-  "/emails/{emailId}/attachments/{index}": {
-    "get": {
-      "tags": ["Mail"],
-      "summary": "Télécharge une pièce jointe par emailId",
-      "description": "Retourne une pièce jointe sous forme binaire à partir d'un UID IMAP (emailId) et de son index.",
-      "operationId": "downloadAttachmentByEmailId",
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
-      "parameters": [
-        {
-          "name": "emailId",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "integer",
-            "example": 123
-          },
-          "description": "UID IMAP de l'email renvoyé dans les listes"
-        },
-        {
-          "name": "index",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "integer",
-            "minimum": 0,
-            "example": 0
-          },
-          "description": "Index de la pièce jointe (0 = première PJ)"
-        },
-        {
-          "name": "mailbox",
-          "in": "query",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "enum": ["inbox", "sent", "trash", "spam", "drafts"],
-            "example": "inbox"
-          },
-          "description": "Boîte mail où se trouve l'email"
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "Pièce jointe téléchargée",
-          "content": {
-            "application/octet-stream": {
-              "schema": {
-                "type": "string",
-                "format": "binary"
-              }
+    "/emails/{emailId}/attachments/{index}": {
+        "get": {
+            "tags": ["Mail"],
+            "summary": "Télécharge une pièce jointe par emailId",
+            "description": "Retourne une pièce jointe sous forme binaire à partir d'un UID IMAP (emailId) et de son index.",
+            "operationId": "downloadAttachmentByEmailId",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "emailId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "description": "UID IMAP de l'email renvoyé dans les listes"
+                },
+                {
+                    "name": "index",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 0
+                    },
+                    "description": "Index de la pièce jointe (0 = première PJ)"
+                },
+                {
+                    "name": "mailbox",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "enum": ["inbox", "sent", "trash", "spam", "drafts"],
+                        "example": "inbox"
+                    },
+                    "description": "Boîte mail où se trouve l'email"
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "Pièce jointe téléchargée",
+                    "content": {
+                        "application/octet-stream": {
+                            "schema": {
+                                "type": "string",
+                                "format": "binary"
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "Paramètres manquants ou invalides"
+                },
+                "404": {
+                    "description": "Pièce jointe introuvable"
+                },
+                "500": {
+                    "description": "Erreur serveur"
+                }
             }
-          }
-        },
-        "400": {
-          "description": "Paramètres manquants ou invalides"
-        },
-        "404": {
-          "description": "Pièce jointe introuvable"
-        },
-        "500": {
-          "description": "Erreur serveur"
         }
-      }
     }
-  }
 }

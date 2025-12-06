@@ -1,203 +1,203 @@
 {
-  "/dresses": {
-    "get": {
-      "tags": ["Dresses"],
-      "summary": "Get all dresses",
-      "description": "Retrieves a complete list of all dresses stored in the database that are **not soft deleted** (`deleted_at: null`). The endpoint returns each dress along with its related entities: `type`, `size`, `condition`, and `color`. Results are ordered by the creation date in **descending** order (most recent first).",
-      "operationId": "getDresses",
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
-      "parameters": [
-        {
-          "name": "limit",
-          "in": "query",
-          "required": false,
-          "schema": {
-            "type": "integer",
-            "example": 50
-          },
-          "description": "Optional limit for pagination — the maximum number of dresses to retrieve."
-        },
-        {
-          "name": "offset",
-          "in": "query",
-          "required": false,
-          "schema": {
-            "type": "integer",
-            "example": 0
-          },
-          "description": "Optional offset for pagination — number of records to skip."
-        },
-        {
-          "name": "type",
-          "in": "query",
-          "required": false,
-          "schema": {
-            "type": "string",
-            "example": "Robe de soirée"
-          },
-          "description": "Optional filter by dress type."
-        },
-        {
-          "name": "size",
-          "in": "query",
-          "required": false,
-          "schema": {
-            "type": "string",
-            "example": "M"
-          },
-          "description": "Optional filter by dress size."
-        },
-        {
-          "name": "color",
-          "in": "query",
-          "required": false,
-          "schema": {
-            "type": "string",
-            "example": "Rouge"
-          },
-          "description": "Optional filter by dress color."
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ Successfully retrieved all active dresses.",
-          "content": {
-            "application/json": {
-              "examples": {
-                "successResponse": {
-                  "summary": "Successful retrieval of dresses list",
-                  "value": {
-                    "success": true,
-                    "data": [
-                      {
-                        "id": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f",
-                        "name": "Robe de soirée rouge élégante",
-                        "reference": "RS-2025-004",
-                        "description": "Robe fluide en satin rouge avec bretelles fines et dos nu.",
-                        "price_ht": 120.0,
-                        "price_ttc": 144.0,
-                        "images": [
-                          "https://cdn.allure-creation.fr/dresses/robe-rouge-1.jpg",
-                          "https://cdn.allure-creation.fr/dresses/robe-rouge-2.jpg"
-                        ],
-                        "created_at": "2025-05-10T14:32:00.000Z",
-                        "updated_at": "2025-06-01T09:00:00.000Z",
-                        "type": {
-                          "id": "e4b3a6df-f6b8-4a64-9d25-3e52bda8df21",
-                          "name": "Robe de soirée"
-                        },
-                        "size": {
-                          "id": "bd78c24f-b8e2-45f1-910b-273b63a5d889",
-                          "label": "M"
-                        },
-                        "condition": {
-                          "id": "4b7c0aa3-8a6e-4f6c-bb84-195a9f5e20a2",
-                          "label": "Très bon état"
-                        },
-                        "color": {
-                          "id": "9b7f0a89-b1c1-4c58-a03f-fbcd85b2c4e3",
-                          "label": "Rouge"
-                        }
-                      }
-                    ]
-                  }
+    "/dresses": {
+        "get": {
+            "tags": ["Dresses"],
+            "summary": "Get all dresses",
+            "description": "Retrieves a complete list of all dresses stored in the database that are **not soft deleted** (`deleted_at: null`). The endpoint returns each dress along with its related entities: `type`, `size`, `condition`, and `color`. Results are ordered by the creation date in **descending** order (most recent first).",
+            "operationId": "getDresses",
+            "security": [
+                {
+                    "bearerAuth": []
                 }
-              },
-              "schema": {
-                "type": "object",
-                "required": ["success", "data"],
-                "properties": {
-                  "success": {
-                    "type": "boolean",
-                    "example": true,
-                    "description": "Indicates whether the request was successful."
-                  },
-                  "data": {
-                    "type": "array",
-                    "description": "List of dresses with related entities (type, size, condition, color).",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string", "format": "uuid" },
-                        "name": { "type": "string", "example": "Robe de mariée Élégance" },
-                        "reference": { "type": "string", "example": "RM-2025-001" },
-                        "description": { "type": "string", "example": "Robe blanche en dentelle, coupe sirène." },
-                        "price_ht": { "type": "number", "example": 400 },
-                        "price_ttc": { "type": "number", "example": 480 },
-                        "images": {
-                          "type": "array",
-                          "items": { "type": "string", "format": "uri" },
-                          "example": [
-                            "https://cdn.allure-creation.fr/dresses/mariee1.jpg",
-                            "https://cdn.allure-creation.fr/dresses/mariee2.jpg"
-                          ]
-                        },
-                        "created_at": { "type": "string", "format": "date-time" },
-                        "updated_at": { "type": ["string", "null"], "format": "date-time" },
-                        "type": {
-                          "type": "object",
-                          "properties": {
-                            "id": { "type": "string", "format": "uuid" },
-                            "name": { "type": "string", "example": "Robe de mariée" }
-                          }
-                        },
-                        "size": {
-                          "type": "object",
-                          "properties": {
-                            "id": { "type": "string", "format": "uuid" },
-                            "label": { "type": "string", "example": "S" }
-                          }
-                        },
-                        "condition": {
-                          "type": "object",
-                          "properties": {
-                            "id": { "type": "string", "format": "uuid" },
-                            "label": { "type": "string", "example": "Excellent état" }
-                          }
-                        },
-                        "color": {
-                          "type": "object",
-                          "properties": {
-                            "id": { "type": "string", "format": "uuid" },
-                            "label": { "type": "string", "example": "Blanc ivoire" }
-                          }
+            ],
+            "parameters": [
+                {
+                    "name": "limit",
+                    "in": "query",
+                    "required": false,
+                    "schema": {
+                        "type": "integer",
+                        "example": 50
+                    },
+                    "description": "Optional limit for pagination — the maximum number of dresses to retrieve."
+                },
+                {
+                    "name": "offset",
+                    "in": "query",
+                    "required": false,
+                    "schema": {
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "description": "Optional offset for pagination — number of records to skip."
+                },
+                {
+                    "name": "type",
+                    "in": "query",
+                    "required": false,
+                    "schema": {
+                        "type": "string",
+                        "example": "Robe de soirée"
+                    },
+                    "description": "Optional filter by dress type."
+                },
+                {
+                    "name": "size",
+                    "in": "query",
+                    "required": false,
+                    "schema": {
+                        "type": "string",
+                        "example": "M"
+                    },
+                    "description": "Optional filter by dress size."
+                },
+                {
+                    "name": "color",
+                    "in": "query",
+                    "required": false,
+                    "schema": {
+                        "type": "string",
+                        "example": "Rouge"
+                    },
+                    "description": "Optional filter by dress color."
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ Successfully retrieved all active dresses.",
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "successResponse": {
+                                    "summary": "Successful retrieval of dresses list",
+                                    "value": {
+                                        "success": true,
+                                        "data": [
+                                            {
+                                                "id": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f",
+                                                "name": "Robe de soirée rouge élégante",
+                                                "reference": "RS-2025-004",
+                                                "description": "Robe fluide en satin rouge avec bretelles fines et dos nu.",
+                                                "price_ht": 120.0,
+                                                "price_ttc": 144.0,
+                                                "images": [
+                                                    "https://cdn.allure-creation.fr/dresses/robe-rouge-1.jpg",
+                                                    "https://cdn.allure-creation.fr/dresses/robe-rouge-2.jpg"
+                                                ],
+                                                "created_at": "2025-05-10T14:32:00.000Z",
+                                                "updated_at": "2025-06-01T09:00:00.000Z",
+                                                "type": {
+                                                    "id": "e4b3a6df-f6b8-4a64-9d25-3e52bda8df21",
+                                                    "name": "Robe de soirée"
+                                                },
+                                                "size": {
+                                                    "id": "bd78c24f-b8e2-45f1-910b-273b63a5d889",
+                                                    "label": "M"
+                                                },
+                                                "condition": {
+                                                    "id": "4b7c0aa3-8a6e-4f6c-bb84-195a9f5e20a2",
+                                                    "label": "Très bon état"
+                                                },
+                                                "color": {
+                                                    "id": "9b7f0a89-b1c1-4c58-a03f-fbcd85b2c4e3",
+                                                    "label": "Rouge"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            },
+                            "schema": {
+                                "type": "object",
+                                "required": ["success", "data"],
+                                "properties": {
+                                    "success": {
+                                        "type": "boolean",
+                                        "example": true,
+                                        "description": "Indicates whether the request was successful."
+                                    },
+                                    "data": {
+                                        "type": "array",
+                                        "description": "List of dresses with related entities (type, size, condition, color).",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": { "type": "string", "format": "uuid" },
+                                                "name": { "type": "string", "example": "Robe de mariée Élégance" },
+                                                "reference": { "type": "string", "example": "RM-2025-001" },
+                                                "description": { "type": "string", "example": "Robe blanche en dentelle, coupe sirène." },
+                                                "price_ht": { "type": "number", "example": 400 },
+                                                "price_ttc": { "type": "number", "example": 480 },
+                                                "images": {
+                                                    "type": "array",
+                                                    "items": { "type": "string", "format": "uri" },
+                                                    "example": [
+                                                        "https://cdn.allure-creation.fr/dresses/mariee1.jpg",
+                                                        "https://cdn.allure-creation.fr/dresses/mariee2.jpg"
+                                                    ]
+                                                },
+                                                "created_at": { "type": "string", "format": "date-time" },
+                                                "updated_at": { "type": ["string", "null"], "format": "date-time" },
+                                                "type": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": { "type": "string", "format": "uuid" },
+                                                        "name": { "type": "string", "example": "Robe de mariée" }
+                                                    }
+                                                },
+                                                "size": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": { "type": "string", "format": "uuid" },
+                                                        "label": { "type": "string", "example": "S" }
+                                                    }
+                                                },
+                                                "condition": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": { "type": "string", "format": "uuid" },
+                                                        "label": { "type": "string", "example": "Excellent état" }
+                                                    }
+                                                },
+                                                "color": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": { "type": "string", "format": "uuid" },
+                                                        "label": { "type": "string", "example": "Blanc ivoire" }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
-                      }
                     }
-                  }
+                },
+                "500": {
+                    "description": "💥 Internal server error - Failed to fetch dresses.",
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "errorExample": {
+                                    "summary": "Example server error",
+                                    "value": {
+                                        "success": false,
+                                        "error": "Failed to fetch dresses"
+                                    }
+                                }
+                            },
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "success": { "type": "boolean", "example": false },
+                                    "error": { "type": "string", "example": "Failed to fetch dresses" }
+                                }
+                            }
+                        }
+                    }
                 }
-              }
             }
-          }
-        },
-        "500": {
-          "description": "💥 Internal server error - Failed to fetch dresses.",
-          "content": {
-            "application/json": {
-              "examples": {
-                "errorExample": {
-                  "summary": "Example server error",
-                  "value": {
-                    "success": false,
-                    "error": "Failed to fetch dresses"
-                  }
-                }
-              },
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "success": { "type": "boolean", "example": false },
-                  "error": { "type": "string", "example": "Failed to fetch dresses" }
-                }
-              }
-            }
-          }
         }
-      }
     }
-  }
 }

@@ -1,145 +1,145 @@
 {
-  "/contract-packages/{id}": {
-    "put": {
-      "tags": ["Contract Packages"],
-      "summary": "Update a contract package",
-      "description": "Updates an existing contract package with new data. All existing add-ons will be replaced if `addon_ids` are provided. Requires authentication. The user's ID is recorded in `updated_by`.",
-      "operationId": "updateContractPackage",
-      "security": [
-        { "bearerAuth": [] }
-      ],
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "description": "UUID of the contract package to update",
-          "schema": { "type": "string", "format": "uuid" },
-          "example": "pkg_001"
-        }
-      ],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/UpdateContractPackageRequest"
-            },
-            "examples": {
-              "updateBasicFields": {
-                "summary": "Update basic package information",
-                "value": {
-                  "name": "Formule Classique Révisée",
-                  "num_dresses": 3,
-                  "price_ht": 250,
-                  "price_ttc": 300
+    "/contract-packages/{id}": {
+        "put": {
+            "tags": ["Contract Packages"],
+            "summary": "Update a contract package",
+            "description": "Updates an existing contract package with new data. All existing add-ons will be replaced if `addon_ids` are provided. Requires authentication. The user's ID is recorded in `updated_by`.",
+            "operationId": "updateContractPackage",
+            "security": [
+                { "bearerAuth": [] }
+            ],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "UUID of the contract package to update",
+                    "schema": { "type": "string", "format": "uuid" },
+                    "example": "pkg_001"
                 }
-              },
-              "updateWithAddons": {
-                "summary": "Update package and replace add-ons",
-                "value": {
-                  "name": "Formule Premium Plus",
-                  "num_dresses": 2,
-                  "price_ht": 400,
-                  "price_ttc": 480,
-                  "addon_ids": ["addon_01", "addon_03"]
-                }
-              }
-            }
-          }
-        }
-      },
-      "responses": {
-        "200": {
-          "description": "✅ Contract package successfully updated",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateContractPackageResponse"
-              },
-              "examples": {
-                "success": {
-                  "summary": "Example: Updated package",
-                  "value": {
-                    "success": true,
-                    "data": {
-                      "id": "pkg_001",
-                      "name": "Formule Premium Plus",
-                      "num_dresses": 2,
-                      "price_ht": 400,
-                      "price_ttc": 480,
-                      "updated_at": "2025-10-09T23:15:00.000Z",
-                      "updated_by": "1a2b3c4d-5e6f-7890-abcd-ef1234567890",
-                      "addons": [
-                        {
-                          "addon": {
-                            "id": "addon_01",
-                            "name": "Pressing inclus",
-                            "price_ht": 25,
-                            "price_ttc": 30
-                          }
+            ],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/UpdateContractPackageRequest"
                         },
-                        {
-                          "addon": {
-                            "id": "addon_03",
-                            "name": "Livraison express",
-                            "price_ht": 50,
-                            "price_ttc": 60
-                          }
+                        "examples": {
+                            "updateBasicFields": {
+                                "summary": "Update basic package information",
+                                "value": {
+                                    "name": "Formule Classique Révisée",
+                                    "num_dresses": 3,
+                                    "price_ht": 250,
+                                    "price_ttc": 300
+                                }
+                            },
+                            "updateWithAddons": {
+                                "summary": "Update package and replace add-ons",
+                                "value": {
+                                    "name": "Formule Premium Plus",
+                                    "num_dresses": 2,
+                                    "price_ht": 400,
+                                    "price_ttc": 480,
+                                    "addon_ids": ["addon_01", "addon_03"]
+                                }
+                            }
                         }
-                      ]
                     }
-                  }
                 }
-              }
+            },
+            "responses": {
+                "200": {
+                    "description": "✅ Contract package successfully updated",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateContractPackageResponse"
+                            },
+                            "examples": {
+                                "success": {
+                                    "summary": "Example: Updated package",
+                                    "value": {
+                                        "success": true,
+                                        "data": {
+                                            "id": "pkg_001",
+                                            "name": "Formule Premium Plus",
+                                            "num_dresses": 2,
+                                            "price_ht": 400,
+                                            "price_ttc": 480,
+                                            "updated_at": "2025-10-09T23:15:00.000Z",
+                                            "updated_by": "1a2b3c4d-5e6f-7890-abcd-ef1234567890",
+                                            "addons": [
+                                                {
+                                                    "addon": {
+                                                        "id": "addon_01",
+                                                        "name": "Pressing inclus",
+                                                        "price_ht": 25,
+                                                        "price_ttc": 30
+                                                    }
+                                                },
+                                                {
+                                                    "addon": {
+                                                        "id": "addon_03",
+                                                        "name": "Livraison express",
+                                                        "price_ht": 50,
+                                                        "price_ttc": 60
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "⚠️ Missing required fields or invalid request",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "success": false,
+                                "error": "Invalid request body"
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "🔒 Unauthorized — missing or invalid JWT token",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "success": false,
+                                "error": "Unauthorized"
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "❌ Contract package not found",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "success": false,
+                                "error": "Contract package not found"
+                            }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Internal Server Error — Failed to update contract package",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "success": false,
+                                "error": "Failed to update contract package"
+                            }
+                        }
+                    }
+                }
             }
-          }
-        },
-        "400": {
-          "description": "⚠️ Missing required fields or invalid request",
-          "content": {
-            "application/json": {
-              "example": {
-                "success": false,
-                "error": "Invalid request body"
-              }
-            }
-          }
-        },
-        "401": {
-          "description": "🔒 Unauthorized — missing or invalid JWT token",
-          "content": {
-            "application/json": {
-              "example": {
-                "success": false,
-                "error": "Unauthorized"
-              }
-            }
-          }
-        },
-        "404": {
-          "description": "❌ Contract package not found",
-          "content": {
-            "application/json": {
-              "example": {
-                "success": false,
-                "error": "Contract package not found"
-              }
-            }
-          }
-        },
-        "500": {
-          "description": "💥 Internal Server Error — Failed to update contract package",
-          "content": {
-            "application/json": {
-              "example": {
-                "success": false,
-                "error": "Failed to update contract package"
-              }
-            }
-          }
         }
-      }
     }
-  }
 }

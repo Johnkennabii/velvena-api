@@ -1,99 +1,99 @@
 {
-  "/avatars": {
-    "post": {
-      "tags": ["Avatars"],
-      "summary": "Upload a new avatar",
-      "description": "Uploads a new avatar image to the Hetzner Object Storage `avatar` bucket. The uploaded file is stored under a unique UUID key and returned with its public URL.",
-      "operationId": "uploadAvatar",
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "multipart/form-data": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "file": {
-                  "type": "string",
-                  "format": "binary",
-                  "description": "Avatar image file to upload"
+    "/avatars": {
+        "post": {
+            "tags": ["Avatars"],
+            "summary": "Upload a new avatar",
+            "description": "Uploads a new avatar image to the Hetzner Object Storage `avatar` bucket. The uploaded file is stored under a unique UUID key and returned with its public URL.",
+            "operationId": "uploadAvatar",
+            "security": [
+                {
+                    "bearerAuth": []
                 }
-              },
-              "required": ["file"]
-            },
-            "examples": {
-              "exampleUpload": {
-                "summary": "Example file upload request",
-                "value": {
-                  "file": "avatar.png"
-                }
-              }
-            }
-          }
-        }
-      },
-      "responses": {
-        "200": {
-          "description": "✅ Avatar successfully uploaded",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UploadAvatarResponse"
-              },
-              "examples": {
-                "success": {
-                  "summary": "Example: Avatar uploaded successfully",
-                  "value": {
-                    "success": true,
-                    "file": {
-                      "id": "8d7b4a61-0b9d-4b7a-8ef8-dbdc66a6e9ef",
-                      "name": "8d7b4a61-0b9d-4b7a-8ef8-dbdc66a6e9ef",
-                      "url": "https://avatar.hel1.your-objectstorage.com/8d7b4a61-0b9d-4b7a-8ef8-dbdc66a6e9ef"
+            ],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "multipart/form-data": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "file": {
+                                    "type": "string",
+                                    "format": "binary",
+                                    "description": "Avatar image file to upload"
+                                }
+                            },
+                            "required": ["file"]
+                        },
+                        "examples": {
+                            "exampleUpload": {
+                                "summary": "Example file upload request",
+                                "value": {
+                                    "file": "avatar.png"
+                                }
+                            }
+                        }
                     }
-                  }
                 }
-              }
+            },
+            "responses": {
+                "200": {
+                    "description": "✅ Avatar successfully uploaded",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UploadAvatarResponse"
+                            },
+                            "examples": {
+                                "success": {
+                                    "summary": "Example: Avatar uploaded successfully",
+                                    "value": {
+                                        "success": true,
+                                        "file": {
+                                            "id": "8d7b4a61-0b9d-4b7a-8ef8-dbdc66a6e9ef",
+                                            "name": "8d7b4a61-0b9d-4b7a-8ef8-dbdc66a6e9ef",
+                                            "url": "https://avatar.hel1.your-objectstorage.com/8d7b4a61-0b9d-4b7a-8ef8-dbdc66a6e9ef"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "❌ No file uploaded",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "success": false,
+                                "error": "No file uploaded"
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "🔒 Unauthorized - Missing or invalid token",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "success": false,
+                                "error": "Unauthorized"
+                            }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Internal server error - Failed to upload avatar",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "success": false,
+                                "error": "Failed to upload avatar"
+                            }
+                        }
+                    }
+                }
             }
-          }
-        },
-        "400": {
-          "description": "❌ No file uploaded",
-          "content": {
-            "application/json": {
-              "example": {
-                "success": false,
-                "error": "No file uploaded"
-              }
-            }
-          }
-        },
-        "401": {
-          "description": "🔒 Unauthorized - Missing or invalid token",
-          "content": {
-            "application/json": {
-              "example": {
-                "success": false,
-                "error": "Unauthorized"
-              }
-            }
-          }
-        },
-        "500": {
-          "description": "💥 Internal server error - Failed to upload avatar",
-          "content": {
-            "application/json": {
-              "example": {
-                "success": false,
-                "error": "Failed to upload avatar"
-              }
-            }
-          }
         }
-      }
     }
-  }
 }

@@ -1,51 +1,51 @@
 {
-  "/profiles": {
-    "get": {
-      "tags": ["Profiles"],
-      "summary": "Get all profiles",
-      "description": "Retrieves all user profiles from the database, including related information if any.",
-      "operationId": "getProfiles",
-      "security": [{ "bearerAuth": [] }],
-      "responses": {
-        "200": {
-          "description": "✅ Successfully retrieved all profiles",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/GetProfilesResponse" },
-              "example": {
-                "success": true,
-                "data": [
-                  {
-                    "id": "ba0a9b52-d0e9-4b9c-b8b8-4d6b229f5c56",
-                    "firstname": "Emma",
-                    "lastname": "Dupont",
-                    "email": "emma.dupont@email.fr",
-                    "phone": "+33611223344",
-                    "role_id": "3b2b6ad7-5b42-4b15-82b8-1f23e02c85a1"
-                  },
-                  {
-                    "id": "24d1a66b-11f5-4ac5-8338-94ac8737ef24",
-                    "firstname": "Lucas",
-                    "lastname": "Martin",
-                    "email": "lucas.martin@email.fr",
-                    "phone": "+33655667788",
-                    "role_id": "2c0e53b9-77e0-4af7-9371-57e7cd3e44ac"
-                  }
-                ]
-              }
+    "/profiles": {
+        "get": {
+            "tags": ["Profiles"],
+            "summary": "Get all profiles",
+            "description": "Retrieves all user profiles from the database, including related information if any.",
+            "operationId": "getProfiles",
+            "security": [{ "bearerAuth": [] }],
+            "responses": {
+                "200": {
+                    "description": "✅ Successfully retrieved all profiles",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/GetProfilesResponse" },
+                            "example": {
+                                "success": true,
+                                "data": [
+                                    {
+                                        "id": "ba0a9b52-d0e9-4b9c-b8b8-4d6b229f5c56",
+                                        "firstname": "Emma",
+                                        "lastname": "Dupont",
+                                        "email": "emma.dupont@email.fr",
+                                        "phone": "+33611223344",
+                                        "role_id": "3b2b6ad7-5b42-4b15-82b8-1f23e02c85a1"
+                                    },
+                                    {
+                                        "id": "24d1a66b-11f5-4ac5-8338-94ac8737ef24",
+                                        "firstname": "Lucas",
+                                        "lastname": "Martin",
+                                        "email": "lucas.martin@email.fr",
+                                        "phone": "+33655667788",
+                                        "role_id": "2c0e53b9-77e0-4af7-9371-57e7cd3e44ac"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Internal server error while fetching profiles",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                            "example": { "success": false, "error": "Failed to fetch profiles" }
+                        }
+                    }
+                }
             }
-          }
-        },
-        "500": {
-          "description": "💥 Internal server error while fetching profiles",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-              "example": { "success": false, "error": "Failed to fetch profiles" }
-            }
-          }
         }
-      }
     }
-  }
 }

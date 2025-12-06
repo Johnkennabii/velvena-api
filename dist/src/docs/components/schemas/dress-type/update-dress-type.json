@@ -1,25 +1,25 @@
 {
-  "UpdateDressTypeRequest": {
-    "type": "object",
-    "properties": {
-      "name": { "type": "string", "example": "Robe de gala" },
-      "description": { "type": ["string", "null"], "example": "Robe longue et élégante" }
-    }
-  },
-  "UpdateDressTypeResponse": {
-    "type": "object",
-    "properties": {
-      "success": { "type": "boolean" },
-      "data": {
+    "UpdateDressTypeRequest": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "description": { "type": ["string", "null"] },
-          "updated_by": { "type": ["string", "null"], "format": "uuid" },
-          "updated_at": { "type": "string", "format": "date-time" }
+            "name": { "type": "string", "example": "Robe de gala" },
+            "description": { "type": ["string", "null"], "example": "Robe longue et élégante" }
         }
-      }
+    },
+    "UpdateDressTypeResponse": {
+        "type": "object",
+        "properties": {
+            "success": { "type": "boolean" },
+            "data": {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "string", "format": "uuid" },
+                    "name": { "type": "string" },
+                    "description": { "type": ["string", "null"] },
+                    "updated_by": { "type": ["string", "null"], "format": "uuid" },
+                    "updated_at": { "type": "string", "format": "date-time" }
+                }
+            }
+        }
     }
-  }
 }

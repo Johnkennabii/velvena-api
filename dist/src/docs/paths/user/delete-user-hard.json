@@ -1,28 +1,28 @@
 {
-  "/users/{id}": {
-    "delete": {
-      "tags": ["Users"],
-      "summary": "Hard delete a user",
-      "description": "Permanently deletes a user and their profile from the database.",
-      "operationId": "hardDeleteUser",
-      "security": [{ "bearerAuth": [] }],
-      "parameters": [
-        { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ User hard deleted successfully",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/HardDeleteUserResponse" },
-              "example": {
-                "success": true,
-                "data": { "message": "User permanently deleted" }
-              }
+    "/users/{id}": {
+        "delete": {
+            "tags": ["Users"],
+            "summary": "Hard delete a user",
+            "description": "Permanently deletes a user and their profile from the database.",
+            "operationId": "hardDeleteUser",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ User hard deleted successfully",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/HardDeleteUserResponse" },
+                            "example": {
+                                "success": true,
+                                "data": { "message": "User permanently deleted" }
+                            }
+                        }
+                    }
+                }
             }
-          }
         }
-      }
     }
-  }
 }

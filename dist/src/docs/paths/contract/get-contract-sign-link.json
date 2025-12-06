@@ -1,195 +1,195 @@
 {
-  "/sign-links/{token}": {
-    "get": {
-      "summary": "Récupérer les informations d’un lien de signature électronique",
-      "description": "Permet de vérifier la validité d’un lien de signature électronique (token) et de récupérer les informations du contrat associé, incluant le client, le type de contrat, le package et les robes liées. Retourne une erreur si le lien est expiré ou invalide.",
-      "operationId": "getContractSignLink",
-      "tags": ["Contracts"],
-      "parameters": [
-        {
-          "name": "token",
-          "in": "path",
-          "required": true,
-          "description": "Token unique du lien de signature électronique",
-          "schema": {
-            "type": "string",
-            "example": "ec761633-8a87-4d58-8373-afacc03a602a"
-          }
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "Lien de signature valide et contrat trouvé",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "success": { "type": "boolean", "example": true },
-                  "data": {
-                    "type": "object",
-                    "properties": {
-                      "id": { "type": "string", "format": "uuid", "example": "698cf95d-ca73-4520-aee6-02c07e7ae51f" },
-                      "contract_id": { "type": "string", "format": "uuid", "example": "79b4ebae-f107-4ca4-953e-b53b2e66e57a" },
-                      "customer_id": { "type": "string", "format": "uuid", "example": "4d8fdff7-10b5-4ee4-b5a4-68ff0ceec443" },
-                      "token": { "type": "string", "example": "ec761633-8a87-4d58-8373-afacc03a602a" },
-                      "expires_at": { "type": "string", "format": "date-time", "example": "2025-11-13T09:40:58.208Z" },
-                      "contract": {
-                        "type": "object",
-                        "properties": {
-                          "id": { "type": "string", "format": "uuid", "example": "79b4ebae-f107-4ca4-953e-b53b2e66e57a" },
-                          "contract_number": { "type": "string", "example": "CT-2025-0012" },
-                          "status": { "type": "string", "example": "DRAFT" },
-                          "start_datetime": { "type": "string", "format": "date-time", "example": "2025-11-05T11:00:00.000Z" },
-                          "end_datetime": { "type": "string", "format": "date-time", "example": "2025-11-06T11:00:00.000Z" },
-                          "total_price_ht": { "type": "number", "example": 2083.33 },
-                          "total_price_ttc": { "type": "number", "example": 2500.0 },
-                          "deposit_payment_method": { "type": "string", "example": "card" },
-                          "contract_type": {
-                            "type": "object",
-                            "properties": {
-                              "id": { "type": "string", "format": "uuid", "example": "9eacb1d1-5c9e-4f12-a828-8aafc4ec95f3" },
-                              "name": { "type": "string", "example": "Location journalière" }
-                            }
-                          },
-                          "package": {
-                            "type": "object",
-                            "nullable": true,
-                            "properties": {
-                              "id": { "type": "string", "format": "uuid", "example": "23e1c2b2-3c11-4dc3-bcfa-3bc7a6a046e0" },
-                              "name": { "type": "string", "example": "Formule 3 robes" },
-                              "price_ttc": { "type": "number", "example": 2500.0 }
-                            }
-                          },
-                          "customer": {
-                            "type": "object",
-                            "properties": {
-                              "id": { "type": "string", "format": "uuid", "example": "4d8fdff7-10b5-4ee4-b5a4-68ff0ceec443" },
-                              "firstname": { "type": "string", "example": "Lina" },
-                              "lastname": { "type": "string", "example": "Dupont" },
-                              "email": { "type": "string", "example": "lina.dupont@email.com" },
-                              "phone": { "type": "string", "example": "+33612345678" },
-                              "city": { "type": "string", "example": "Paris" }
-                            }
-                          },
-                          "dresses": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "id": { "type": "string", "format": "uuid", "example": "e5f789ad-2bbf-45a3-9a3c-02bce5a64d73" },
-                                "dress": {
-                                  "type": "object",
-                                  "properties": {
-                                    "id": { "type": "string", "example": "d1a2f3b4-5678-4321-9abc-1234567890de" },
-                                    "name": { "type": "string", "example": "Robe de soirée rouge" },
-                                    "reference": { "type": "string", "example": "DR-RED-42" },
-                                    "price_ttc": { "type": "number", "example": 800.0 }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
+    "/sign-links/{token}": {
+        "get": {
+            "summary": "Récupérer les informations d’un lien de signature électronique",
+            "description": "Permet de vérifier la validité d’un lien de signature électronique (token) et de récupérer les informations du contrat associé, incluant le client, le type de contrat, le package et les robes liées. Retourne une erreur si le lien est expiré ou invalide.",
+            "operationId": "getContractSignLink",
+            "tags": ["Contracts"],
+            "parameters": [
+                {
+                    "name": "token",
+                    "in": "path",
+                    "required": true,
+                    "description": "Token unique du lien de signature électronique",
+                    "schema": {
+                        "type": "string",
+                        "example": "ec761633-8a87-4d58-8373-afacc03a602a"
                     }
-                  }
                 }
-              },
-              "example": {
-                "success": true,
-                "data": {
-                  "id": "698cf95d-ca73-4520-aee6-02c07e7ae51f",
-                  "contract_id": "79b4ebae-f107-4ca4-953e-b53b2e66e57a",
-                  "customer_id": "4d8fdff7-10b5-4ee4-b5a4-68ff0ceec443",
-                  "token": "ec761633-8a87-4d58-8373-afacc03a602a",
-                  "expires_at": "2025-11-13T09:40:58.208Z",
-                  "contract": {
-                    "id": "79b4ebae-f107-4ca4-953e-b53b2e66e57a",
-                    "contract_number": "CT-2025-0012",
-                    "status": "DRAFT",
-                    "start_datetime": "2025-11-05T11:00:00.000Z",
-                    "end_datetime": "2025-11-06T11:00:00.000Z",
-                    "total_price_ht": 2083.33,
-                    "total_price_ttc": 2500,
-                    "deposit_payment_method": "card",
-                    "contract_type": {
-                      "id": "9eacb1d1-5c9e-4f12-a828-8aafc4ec95f3",
-                      "name": "Location journalière"
-                    },
-                    "package": {
-                      "id": "23e1c2b2-3c11-4dc3-bcfa-3bc7a6a046e0",
-                      "name": "Formule 3 robes",
-                      "price_ttc": 2500
-                    },
-                    "customer": {
-                      "id": "4d8fdff7-10b5-4ee4-b5a4-68ff0ceec443",
-                      "firstname": "Lina",
-                      "lastname": "Dupont",
-                      "email": "lina.dupont@email.com",
-                      "phone": "+33612345678",
-                      "city": "Paris"
-                    },
-                    "dresses": [
-                      {
-                        "id": "e5f789ad-2bbf-45a3-9a3c-02bce5a64d73",
-                        "dress": {
-                          "id": "d1a2f3b4-5678-4321-9abc-1234567890de",
-                          "name": "Robe de soirée rouge",
-                          "reference": "DR-RED-42",
-                          "price_ttc": 800
+            ],
+            "responses": {
+                "200": {
+                    "description": "Lien de signature valide et contrat trouvé",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "success": { "type": "boolean", "example": true },
+                                    "data": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": { "type": "string", "format": "uuid", "example": "698cf95d-ca73-4520-aee6-02c07e7ae51f" },
+                                            "contract_id": { "type": "string", "format": "uuid", "example": "79b4ebae-f107-4ca4-953e-b53b2e66e57a" },
+                                            "customer_id": { "type": "string", "format": "uuid", "example": "4d8fdff7-10b5-4ee4-b5a4-68ff0ceec443" },
+                                            "token": { "type": "string", "example": "ec761633-8a87-4d58-8373-afacc03a602a" },
+                                            "expires_at": { "type": "string", "format": "date-time", "example": "2025-11-13T09:40:58.208Z" },
+                                            "contract": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": { "type": "string", "format": "uuid", "example": "79b4ebae-f107-4ca4-953e-b53b2e66e57a" },
+                                                    "contract_number": { "type": "string", "example": "CT-2025-0012" },
+                                                    "status": { "type": "string", "example": "DRAFT" },
+                                                    "start_datetime": { "type": "string", "format": "date-time", "example": "2025-11-05T11:00:00.000Z" },
+                                                    "end_datetime": { "type": "string", "format": "date-time", "example": "2025-11-06T11:00:00.000Z" },
+                                                    "total_price_ht": { "type": "number", "example": 2083.33 },
+                                                    "total_price_ttc": { "type": "number", "example": 2500.0 },
+                                                    "deposit_payment_method": { "type": "string", "example": "card" },
+                                                    "contract_type": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": { "type": "string", "format": "uuid", "example": "9eacb1d1-5c9e-4f12-a828-8aafc4ec95f3" },
+                                                            "name": { "type": "string", "example": "Location journalière" }
+                                                        }
+                                                    },
+                                                    "package": {
+                                                        "type": "object",
+                                                        "nullable": true,
+                                                        "properties": {
+                                                            "id": { "type": "string", "format": "uuid", "example": "23e1c2b2-3c11-4dc3-bcfa-3bc7a6a046e0" },
+                                                            "name": { "type": "string", "example": "Formule 3 robes" },
+                                                            "price_ttc": { "type": "number", "example": 2500.0 }
+                                                        }
+                                                    },
+                                                    "customer": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": { "type": "string", "format": "uuid", "example": "4d8fdff7-10b5-4ee4-b5a4-68ff0ceec443" },
+                                                            "firstname": { "type": "string", "example": "Lina" },
+                                                            "lastname": { "type": "string", "example": "Dupont" },
+                                                            "email": { "type": "string", "example": "lina.dupont@email.com" },
+                                                            "phone": { "type": "string", "example": "+33612345678" },
+                                                            "city": { "type": "string", "example": "Paris" }
+                                                        }
+                                                    },
+                                                    "dresses": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "id": { "type": "string", "format": "uuid", "example": "e5f789ad-2bbf-45a3-9a3c-02bce5a64d73" },
+                                                                "dress": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "id": { "type": "string", "example": "d1a2f3b4-5678-4321-9abc-1234567890de" },
+                                                                        "name": { "type": "string", "example": "Robe de soirée rouge" },
+                                                                        "reference": { "type": "string", "example": "DR-RED-42" },
+                                                                        "price_ttc": { "type": "number", "example": 800.0 }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "example": {
+                                "success": true,
+                                "data": {
+                                    "id": "698cf95d-ca73-4520-aee6-02c07e7ae51f",
+                                    "contract_id": "79b4ebae-f107-4ca4-953e-b53b2e66e57a",
+                                    "customer_id": "4d8fdff7-10b5-4ee4-b5a4-68ff0ceec443",
+                                    "token": "ec761633-8a87-4d58-8373-afacc03a602a",
+                                    "expires_at": "2025-11-13T09:40:58.208Z",
+                                    "contract": {
+                                        "id": "79b4ebae-f107-4ca4-953e-b53b2e66e57a",
+                                        "contract_number": "CT-2025-0012",
+                                        "status": "DRAFT",
+                                        "start_datetime": "2025-11-05T11:00:00.000Z",
+                                        "end_datetime": "2025-11-06T11:00:00.000Z",
+                                        "total_price_ht": 2083.33,
+                                        "total_price_ttc": 2500,
+                                        "deposit_payment_method": "card",
+                                        "contract_type": {
+                                            "id": "9eacb1d1-5c9e-4f12-a828-8aafc4ec95f3",
+                                            "name": "Location journalière"
+                                        },
+                                        "package": {
+                                            "id": "23e1c2b2-3c11-4dc3-bcfa-3bc7a6a046e0",
+                                            "name": "Formule 3 robes",
+                                            "price_ttc": 2500
+                                        },
+                                        "customer": {
+                                            "id": "4d8fdff7-10b5-4ee4-b5a4-68ff0ceec443",
+                                            "firstname": "Lina",
+                                            "lastname": "Dupont",
+                                            "email": "lina.dupont@email.com",
+                                            "phone": "+33612345678",
+                                            "city": "Paris"
+                                        },
+                                        "dresses": [
+                                            {
+                                                "id": "e5f789ad-2bbf-45a3-9a3c-02bce5a64d73",
+                                                "dress": {
+                                                    "id": "d1a2f3b4-5678-4321-9abc-1234567890de",
+                                                    "name": "Robe de soirée rouge",
+                                                    "reference": "DR-RED-42",
+                                                    "price_ttc": 800
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
                         }
-                      }
-                    ]
-                  }
+                    }
+                },
+                "404": {
+                    "description": "Le token ne correspond à aucun lien de signature valide",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "success": { "type": "boolean", "example": false },
+                                    "error": { "type": "string", "example": "Lien de signature introuvable" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "410": {
+                    "description": "Le lien de signature a expiré",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "success": { "type": "boolean", "example": false },
+                                    "error": { "type": "string", "example": "Lien expiré" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "Erreur interne du serveur",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "success": { "type": "boolean", "example": false },
+                                    "error": { "type": "string", "example": "Erreur interne serveur" }
+                                }
+                            }
+                        }
+                    }
                 }
-              }
             }
-          }
-        },
-        "404": {
-          "description": "Le token ne correspond à aucun lien de signature valide",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "success": { "type": "boolean", "example": false },
-                  "error": { "type": "string", "example": "Lien de signature introuvable" }
-                }
-              }
-            }
-          }
-        },
-        "410": {
-          "description": "Le lien de signature a expiré",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "success": { "type": "boolean", "example": false },
-                  "error": { "type": "string", "example": "Lien expiré" }
-                }
-              }
-            }
-          }
-        },
-        "500": {
-          "description": "Erreur interne du serveur",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "success": { "type": "boolean", "example": false },
-                  "error": { "type": "string", "example": "Erreur interne serveur" }
-                }
-              }
-            }
-          }
         }
-      }
     }
-  }
 }

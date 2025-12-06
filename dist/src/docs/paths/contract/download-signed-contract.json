@@ -1,125 +1,125 @@
 {
-  "/contracts/download/{contractId}/{token}": {
-    "get": {
-      "summary": "Télécharger le contrat signé (PUBLIC)",
-      "description": "Endpoint public permettant de télécharger le PDF d'un contrat signé. Nécessite l'ID du contrat et un token de sécurité (signature_reference). Redirige vers l'URL du PDF signé stocké sur Hetzner Object Storage. Cet endpoint ne nécessite pas d'authentification.",
-      "operationId": "downloadSignedContract",
-      "tags": ["Contracts"],
-      "security": [],
-      "parameters": [
-        {
-          "name": "contractId",
-          "in": "path",
-          "required": true,
-          "description": "UUID du contrat dont on veut télécharger le PDF signé",
-          "schema": {
-            "type": "string",
-            "format": "uuid",
-            "example": "79b4ebae-f107-4ca4-953e-b53b2e66e57a"
-          }
-        },
-        {
-          "name": "token",
-          "in": "path",
-          "required": true,
-          "description": "Token de sécurité (signature_reference) généré lors de la signature du contrat",
-          "schema": {
-            "type": "string",
-            "example": "ec761633-8a87-4d58-8373-afacc03a602a"
-          }
-        }
-      ],
-      "responses": {
-        "302": {
-          "description": "Redirection vers l'URL du PDF signé",
-          "headers": {
-            "Location": {
-              "description": "URL du PDF signé sur Hetzner Object Storage",
-              "schema": {
-                "type": "string",
-                "format": "uri",
-                "example": "https://media-allure-creation.hel1.your-objectstorage.com/contracts/79b4ebae-f107-4ca4-953e-b53b2e66e57a/signed_1730944132000.pdf"
-              }
-            }
-          }
-        },
-        "400": {
-          "description": "Paramètres manquants (contractId ou token)",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "success": { "type": "boolean", "example": false },
-                  "error": { "type": "string", "example": "Contract ID et token sont requis" }
-                }
-              }
-            }
-          }
-        },
-        "403": {
-          "description": "Token invalide ou ne correspond pas au contrat",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "success": { "type": "boolean", "example": false },
-                  "error": { "type": "string", "example": "Token invalide" }
-                }
-              }
-            }
-          }
-        },
-        "404": {
-          "description": "Contrat introuvable ou aucun PDF signé disponible",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "success": { "type": "boolean", "example": false },
-                  "error": {
-                    "type": "string",
-                    "example": "Contrat introuvable",
-                    "enum": ["Contrat introuvable", "Aucun PDF signé disponible pour ce contrat"]
-                  }
-                }
-              },
-              "examples": {
-                "contractNotFound": {
-                  "summary": "Contrat introuvable",
-                  "value": {
-                    "success": false,
-                    "error": "Contrat introuvable"
-                  }
+    "/contracts/download/{contractId}/{token}": {
+        "get": {
+            "summary": "Télécharger le contrat signé (PUBLIC)",
+            "description": "Endpoint public permettant de télécharger le PDF d'un contrat signé. Nécessite l'ID du contrat et un token de sécurité (signature_reference). Redirige vers l'URL du PDF signé stocké sur Hetzner Object Storage. Cet endpoint ne nécessite pas d'authentification.",
+            "operationId": "downloadSignedContract",
+            "tags": ["Contracts"],
+            "security": [],
+            "parameters": [
+                {
+                    "name": "contractId",
+                    "in": "path",
+                    "required": true,
+                    "description": "UUID du contrat dont on veut télécharger le PDF signé",
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "79b4ebae-f107-4ca4-953e-b53b2e66e57a"
+                    }
                 },
-                "noPdf": {
-                  "summary": "Aucun PDF signé",
-                  "value": {
-                    "success": false,
-                    "error": "Aucun PDF signé disponible pour ce contrat"
-                  }
+                {
+                    "name": "token",
+                    "in": "path",
+                    "required": true,
+                    "description": "Token de sécurité (signature_reference) généré lors de la signature du contrat",
+                    "schema": {
+                        "type": "string",
+                        "example": "ec761633-8a87-4d58-8373-afacc03a602a"
+                    }
                 }
-              }
-            }
-          }
-        },
-        "500": {
-          "description": "Erreur interne du serveur",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "success": { "type": "boolean", "example": false },
-                  "error": { "type": "string", "example": "Erreur interne lors du téléchargement du contrat" }
+            ],
+            "responses": {
+                "302": {
+                    "description": "Redirection vers l'URL du PDF signé",
+                    "headers": {
+                        "Location": {
+                            "description": "URL du PDF signé sur Hetzner Object Storage",
+                            "schema": {
+                                "type": "string",
+                                "format": "uri",
+                                "example": "https://media-allure-creation.hel1.your-objectstorage.com/contracts/79b4ebae-f107-4ca4-953e-b53b2e66e57a/signed_1730944132000.pdf"
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "Paramètres manquants (contractId ou token)",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "success": { "type": "boolean", "example": false },
+                                    "error": { "type": "string", "example": "Contract ID et token sont requis" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "403": {
+                    "description": "Token invalide ou ne correspond pas au contrat",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "success": { "type": "boolean", "example": false },
+                                    "error": { "type": "string", "example": "Token invalide" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "Contrat introuvable ou aucun PDF signé disponible",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "success": { "type": "boolean", "example": false },
+                                    "error": {
+                                        "type": "string",
+                                        "example": "Contrat introuvable",
+                                        "enum": ["Contrat introuvable", "Aucun PDF signé disponible pour ce contrat"]
+                                    }
+                                }
+                            },
+                            "examples": {
+                                "contractNotFound": {
+                                    "summary": "Contrat introuvable",
+                                    "value": {
+                                        "success": false,
+                                        "error": "Contrat introuvable"
+                                    }
+                                },
+                                "noPdf": {
+                                    "summary": "Aucun PDF signé",
+                                    "value": {
+                                        "success": false,
+                                        "error": "Aucun PDF signé disponible pour ce contrat"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "Erreur interne du serveur",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "success": { "type": "boolean", "example": false },
+                                    "error": { "type": "string", "example": "Erreur interne lors du téléchargement du contrat" }
+                                }
+                            }
+                        }
+                    }
                 }
-              }
             }
-          }
         }
-      }
     }
-  }
 }

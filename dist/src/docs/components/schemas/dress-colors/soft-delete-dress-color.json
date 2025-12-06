@@ -1,38 +1,37 @@
 {
-  "SoftDeleteDressColorResponse": {
-    "type": "object",
-    "properties": {
-      "success": { "type": "boolean", "example": true },
-      "data": {
+    "SoftDeleteDressColorResponse": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "example": "7f736acb-7b51-4d07-9c18-13dbffeaabf8"
-          },
-          "name": { "type": "string", "example": "Rouge Cerise" },
-          "hex_code": { "type": "string", "example": "#A10035" },
-          "deleted_by": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "example": "a91c8e7a-5f0d-4fa2-8fcb-92694b0b7b45"
-          },
-          "deleted_at": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2025-10-09T21:00:00.000Z"
-          }
+            "success": { "type": "boolean", "example": true },
+            "data": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "7f736acb-7b51-4d07-9c18-13dbffeaabf8"
+                    },
+                    "name": { "type": "string", "example": "Rouge Cerise" },
+                    "hex_code": { "type": "string", "example": "#A10035" },
+                    "deleted_by": {
+                        "type": ["string", "null"],
+                        "format": "uuid",
+                        "example": "a91c8e7a-5f0d-4fa2-8fcb-92694b0b7b45"
+                    },
+                    "deleted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-09T21:00:00.000Z"
+                    }
+                }
+            }
         }
-      }
+    },
+    "ErrorResponse": {
+        "type": "object",
+        "properties": {
+            "success": { "type": "boolean", "example": false },
+            "error": { "type": "string", "example": "Failed to soft delete color" }
+        }
     }
-  },
-
-  "ErrorResponse": {
-    "type": "object",
-    "properties": {
-      "success": { "type": "boolean", "example": false },
-      "error": { "type": "string", "example": "Failed to soft delete color" }
-    }
-  }
 }

@@ -1,22 +1,22 @@
 {
-  "GetProfilesResponse": {
-    "type": "object",
-    "properties": {
-      "success": { "type": "boolean", "example": true },
-      "data": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "id": { "type": "string", "format": "uuid" },
-            "firstname": { "type": "string" },
-            "lastname": { "type": "string" },
-            "email": { "type": "string", "format": "email" },
-            "phone": { "type": "string" },
-            "role_id": { "type": "string", "format": "uuid" }
-          }
+    "GetProfilesResponse": {
+        "type": "object",
+        "properties": {
+            "success": { "type": "boolean", "example": true },
+            "data": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "firstname": { "type": "string" },
+                        "lastname": { "type": "string" },
+                        "email": { "type": "string", "format": "email" },
+                        "phone": { "type": "string" },
+                        "role_id": { "type": "string", "format": "uuid" }
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }

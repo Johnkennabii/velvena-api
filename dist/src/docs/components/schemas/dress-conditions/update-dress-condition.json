@@ -1,46 +1,45 @@
 {
-  "UpdateDressConditionRequest": {
-    "type": "object",
-    "required": ["name"],
-    "properties": {
-      "name": {
-        "type": "string",
-        "example": "Bon état général"
-      }
-    }
-  },
-
-  "UpdateDressConditionResponse": {
-    "type": "object",
-    "properties": {
-      "success": {
-        "type": "boolean",
-        "example": true
-      },
-      "data": {
+    "UpdateDressConditionRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+            "name": {
+                "type": "string",
+                "example": "Bon état général"
+            }
+        }
+    },
+    "UpdateDressConditionResponse": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "example": "7b83a4d0-d662-42e2-9351-f5c80cb0cc43"
-          },
-          "name": {
-            "type": "string",
-            "example": "Bon état général"
-          },
-          "updated_by": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "example": "a91c8e7a-5f0d-4fa2-8fcb-92694b0b7b45"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2025-10-09T21:30:00.000Z"
-          }
+            "success": {
+                "type": "boolean",
+                "example": true
+            },
+            "data": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "7b83a4d0-d662-42e2-9351-f5c80cb0cc43"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Bon état général"
+                    },
+                    "updated_by": {
+                        "type": ["string", "null"],
+                        "format": "uuid",
+                        "example": "a91c8e7a-5f0d-4fa2-8fcb-92694b0b7b45"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-09T21:30:00.000Z"
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }

@@ -1,63 +1,63 @@
 {
-  "/dress-conditions": {
-    "get": {
-      "tags": ["Dresses - Conditions"],
-      "summary": "Get all dress conditions",
-      "description": "Retrieves all active (non-deleted) dress conditions ordered alphabetically by name.",
-      "operationId": "getDressConditions",
-      "security": [
-        { "bearerAuth": [] }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ Successfully retrieved all dress conditions",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetDressConditionsResponse"
-              },
-              "examples": {
-                "success": {
-                  "summary": "Example response",
-                  "value": {
-                    "success": true,
-                    "data": [
-                      {
-                        "id": "3bf7f7e0-c461-4ba5-8fea-a4fd2b8eeea8",
-                        "name": "Neuf",
-                        "created_at": "2025-10-09T20:00:00.000Z"
-                      },
-                      {
-                        "id": "7b83a4d0-d662-42e2-9351-f5c80cb0cc43",
-                        "name": "Bon état",
-                        "created_at": "2025-10-08T17:00:00.000Z"
-                      }
-                    ]
-                  }
+    "/dress-conditions": {
+        "get": {
+            "tags": ["Dresses - Conditions"],
+            "summary": "Get all dress conditions",
+            "description": "Retrieves all active (non-deleted) dress conditions ordered alphabetically by name.",
+            "operationId": "getDressConditions",
+            "security": [
+                { "bearerAuth": [] }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ Successfully retrieved all dress conditions",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GetDressConditionsResponse"
+                            },
+                            "examples": {
+                                "success": {
+                                    "summary": "Example response",
+                                    "value": {
+                                        "success": true,
+                                        "data": [
+                                            {
+                                                "id": "3bf7f7e0-c461-4ba5-8fea-a4fd2b8eeea8",
+                                                "name": "Neuf",
+                                                "created_at": "2025-10-09T20:00:00.000Z"
+                                            },
+                                            {
+                                                "id": "7b83a4d0-d662-42e2-9351-f5c80cb0cc43",
+                                                "name": "Bon état",
+                                                "created_at": "2025-10-08T17:00:00.000Z"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Server error while fetching dress conditions",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ErrorResponse"
+                            },
+                            "examples": {
+                                "serverError": {
+                                    "value": {
+                                        "success": false,
+                                        "error": "Failed to fetch dress conditions"
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-              }
             }
-          }
-        },
-        "500": {
-          "description": "💥 Server error while fetching dress conditions",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "serverError": {
-                  "value": {
-                    "success": false,
-                    "error": "Failed to fetch dress conditions"
-                  }
-                }
-              }
-            }
-          }
         }
-      }
     }
-  }
 }

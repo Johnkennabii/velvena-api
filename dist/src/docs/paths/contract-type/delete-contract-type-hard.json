@@ -1,56 +1,56 @@
 {
-  "/contract-types/{id}/hard": {
-    "delete": {
-      "tags": ["Contract Types"],
-      "summary": "Permanently delete a contract type",
-      "description": "Completely removes a contract type from the database. Use with caution — this action cannot be undone.",
-      "operationId": "hardDeleteContractType",
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "description": "The UUID of the contract type to delete permanently",
-          "schema": { "type": "string", "format": "uuid" },
-          "example": "bca0d9f7-9f33-4d8e-b3e3-7a22ed1b6ac7"
+    "/contract-types/{id}/hard": {
+        "delete": {
+            "tags": ["Contract Types"],
+            "summary": "Permanently delete a contract type",
+            "description": "Completely removes a contract type from the database. Use with caution — this action cannot be undone.",
+            "operationId": "hardDeleteContractType",
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "The UUID of the contract type to delete permanently",
+                    "schema": { "type": "string", "format": "uuid" },
+                    "example": "bca0d9f7-9f33-4d8e-b3e3-7a22ed1b6ac7"
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ Contract type permanently deleted",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteContractTypeHardResponse"
+                            },
+                            "example": {
+                                "success": true,
+                                "message": "Contract type permanently deleted"
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "⚠️ Missing or invalid ID",
+                    "content": {
+                        "application/json": {
+                            "example": { "success": false, "error": "ID is required" }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Internal server error — Failed to delete contract type",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "success": false,
+                                "error": "Failed to hard delete contract type"
+                            }
+                        }
+                    }
+                }
+            },
+            "security": [{ "bearerAuth": [] }]
         }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ Contract type permanently deleted",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DeleteContractTypeHardResponse"
-              },
-              "example": {
-                "success": true,
-                "message": "Contract type permanently deleted"
-              }
-            }
-          }
-        },
-        "400": {
-          "description": "⚠️ Missing or invalid ID",
-          "content": {
-            "application/json": {
-              "example": { "success": false, "error": "ID is required" }
-            }
-          }
-        },
-        "500": {
-          "description": "💥 Internal server error — Failed to delete contract type",
-          "content": {
-            "application/json": {
-              "example": {
-                "success": false,
-                "error": "Failed to hard delete contract type"
-              }
-            }
-          }
-        }
-      },
-      "security": [{ "bearerAuth": [] }]
     }
-  }
 }

@@ -1,0 +1,342 @@
+/**
+ * Subscription Manager - Gestion des abonnements, quotas et features
+ *
+ * Système complet pour :
+ * - Vérifier les limites d'usage (quotas)
+ * - Contrôler l'accès aux fonctionnalités (feature gates)
+ * - Tracker l'utilisation
+ * - Gérer les upgrades/downgrades
+ */
+import prisma from "../lib/prisma.js";
+import logger from "../lib/logger.js";
+// ============================================
+// QUOTA MANAGEMENT
+// ============================================
+/**
+ * Check if organization can create a new resource
+ */
+export async function checkQuota(organizationId, resourceType) {
+    try {
+        // Get organization with subscription
+        const org = await prisma.organization.findUnique({
+            where: { id: organizationId },
+            include: {
+                subscription: true,
+            },
+        });
+        if (!org) {
+            throw new Error("Organization not found");
+        }
+        // Get subscription limits
+        const limits = org.subscription?.limits || getDefaultLimits();
+        const limitKey = resourceType === "contracts" ? "contracts_per_month" : resourceType;
+        const limit = limits[limitKey];
+        // Get current usage
+        let currentUsage = 0;
+        switch (resourceType) {
+            case "users":
+                currentUsage = await prisma.user.count({
+                    where: { organization_id: organizationId, deleted_at: null },
+                });
+                break;
+            case "dresses":
+                currentUsage = await prisma.dress.count({
+                    where: { organization_id: organizationId, deleted_at: null },
+                });
+                break;
+            case "customers":
+                currentUsage = await prisma.customer.count({
+                    where: { organization_id: organizationId, deleted_at: null },
+                });
+                break;
+            case "contracts":
+                // Count contracts this month
+                const startOfMonth = new Date();
+                startOfMonth.setDate(1);
+                startOfMonth.setHours(0, 0, 0, 0);
+                currentUsage = await prisma.contract.count({
+                    where: {
+                        organization_id: organizationId,
+                        deleted_at: null,
+                        created_at: { gte: startOfMonth },
+                    },
+                });
+                break;
+            case "api_calls":
+                // Count API calls today
+                const startOfDay = new Date();
+                startOfDay.setHours(0, 0, 0, 0);
+                const eventMonth = new Date().toISOString().slice(0, 7); // "2025-12"
+                const eventDay = startOfDay.toISOString().slice(0, 10); // "2025-12-06"
+                currentUsage = await prisma.usageEvent.count({
+                    where: {
+                        organization_id: organizationId,
+                        event_type: "api_call",
+                        event_day: eventDay,
+                    },
+                });
+                break;
+        }
+        const remaining = Math.max(0, limit - currentUsage);
+        const percentageUsed = limit > 0 ? (currentUsage / limit) * 100 : 0;
+        const allowed = currentUsage < limit;
+        return {
+            allowed,
+            current_usage: currentUsage,
+            limit,
+            remaining,
+            percentage_used: Math.round(percentageUsed),
+        };
+    }
+    catch (err) {
+        logger.error({ err, organizationId, resourceType }, "Failed to check quota");
+        // En cas d'erreur, autoriser par défaut (fail open)
+        return {
+            allowed: true,
+            current_usage: 0,
+            limit: Infinity,
+            remaining: Infinity,
+            percentage_used: 0,
+        };
+    }
+}
+/**
+ * Check multiple quotas at once
+ */
+export async function checkQuotas(organizationId, resourceTypes) {
+    const results = {};
+    for (const resourceType of resourceTypes) {
+        results[resourceType] = await checkQuota(organizationId, resourceType);
+    }
+    return results;
+}
+// ============================================
+// FEATURE GATES
+// ============================================
+/**
+ * Check if organization has access to a feature
+ */
+export async function checkFeature(organizationId, featureName) {
+    try {
+        const org = await prisma.organization.findUnique({
+            where: { id: organizationId },
+            include: {
+                subscription: true,
+            },
+        });
+        if (!org) {
+            throw new Error("Organization not found");
+        }
+        const features = org.subscription?.features || getDefaultFeatures();
+        const allowed = features[featureName] === true;
+        let upgradeRequired;
+        if (!allowed) {
+            // Suggest upgrade plan
+            upgradeRequired = suggestUpgradePlan(featureName);
+        }
+        return {
+            allowed,
+            feature_name: featureName,
+            upgrade_required: upgradeRequired,
+        };
+    }
+    catch (err) {
+        logger.error({ err, organizationId, featureName }, "Failed to check feature");
+        // En cas d'erreur, autoriser par défaut (fail open)
+        return {
+            allowed: true,
+            feature_name: featureName,
+        };
+    }
+}
+/**
+ * Check multiple features at once
+ */
+export async function checkFeatures(organizationId, featureNames) {
+    const results = {};
+    for (const featureName of featureNames) {
+        results[featureName] = await checkFeature(organizationId, featureName);
+    }
+    return results;
+}
+// ============================================
+// USAGE TRACKING
+// ============================================
+/**
+ * Track a usage event
+ */
+export async function trackUsage(organizationId, eventType, resourceType, resourceId, metadata) {
+    try {
+        const now = new Date();
+        const eventMonth = now.toISOString().slice(0, 7); // "2025-12"
+        const eventDay = now.toISOString().slice(0, 10); // "2025-12-06"
+        await prisma.usageEvent.create({
+            data: {
+                organization_id: organizationId,
+                event_type: eventType,
+                resource_type: resourceType,
+                resource_id: resourceId,
+                metadata,
+                event_date: now,
+                event_month: eventMonth,
+                event_day: eventDay,
+            },
+        });
+        logger.debug({ organizationId, eventType, resourceType, resourceId }, "Usage event tracked");
+    }
+    catch (err) {
+        // Don't throw - tracking errors shouldn't break the app
+        logger.error({ err, organizationId, eventType }, "Failed to track usage");
+    }
+}
+/**
+ * Update cached usage counts in organization
+ */
+export async function updateCachedUsage(organizationId) {
+    try {
+        const [usersCount, dressesCount, customersCount] = await Promise.all([
+            prisma.user.count({
+                where: { organization_id: organizationId, deleted_at: null },
+            }),
+            prisma.dress.count({
+                where: { organization_id: organizationId, deleted_at: null },
+            }),
+            prisma.customer.count({
+                where: { organization_id: organizationId, deleted_at: null },
+            }),
+        ]);
+        // Contracts this month
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        const contractsThisMonth = await prisma.contract.count({
+            where: {
+                organization_id: organizationId,
+                deleted_at: null,
+                created_at: { gte: startOfMonth },
+            },
+        });
+        await prisma.organization.update({
+            where: { id: organizationId },
+            data: {
+                current_usage: {
+                    users: usersCount,
+                    dresses: dressesCount,
+                    customers: customersCount,
+                    contracts_this_month: contractsThisMonth,
+                    last_updated: new Date().toISOString(),
+                },
+            },
+        });
+        logger.debug({ organizationId }, "Cached usage updated");
+    }
+    catch (err) {
+        logger.error({ err, organizationId }, "Failed to update cached usage");
+    }
+}
+// ============================================
+// SUBSCRIPTION MANAGEMENT
+// ============================================
+/**
+ * Get organization's subscription status
+ */
+export async function getSubscriptionStatus(organizationId) {
+    const org = await prisma.organization.findUnique({
+        where: { id: organizationId },
+        include: {
+            subscription: true,
+        },
+    });
+    if (!org) {
+        throw new Error("Organization not found");
+    }
+    const now = new Date();
+    const isTrial = org.subscription_status === "trial";
+    const isTrialExpired = org.trial_ends_at && org.trial_ends_at < now;
+    const isSubscriptionExpired = org.subscription_ends_at && org.subscription_ends_at < now;
+    return {
+        status: org.subscription_status,
+        plan: org.subscription,
+        is_trial: isTrial,
+        is_trial_expired: isTrialExpired,
+        is_subscription_expired: isSubscriptionExpired,
+        is_active: org.is_active && !isTrialExpired && !isSubscriptionExpired,
+        trial_ends_at: org.trial_ends_at,
+        subscription_ends_at: org.subscription_ends_at,
+        days_remaining: org.trial_ends_at
+            ? Math.ceil((org.trial_ends_at.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+            : null,
+    };
+}
+/**
+ * Upgrade/Change subscription plan
+ */
+export async function changeSubscriptionPlan(organizationId, newPlanId, userId) {
+    const newPlan = await prisma.subscriptionPlan.findUnique({
+        where: { id: newPlanId },
+    });
+    if (!newPlan) {
+        throw new Error("Subscription plan not found");
+    }
+    await prisma.organization.update({
+        where: { id: organizationId },
+        data: {
+            subscription_plan_id: newPlanId,
+            subscription_status: "active",
+            subscription_started_at: new Date(),
+            updated_by: userId,
+        },
+    });
+    logger.info({ organizationId, newPlanId, planName: newPlan.name }, "Subscription plan changed");
+}
+// ============================================
+// DEFAULTS & HELPERS
+// ============================================
+function getDefaultLimits() {
+    return {
+        users: 1,
+        dresses: 10,
+        customers: 50,
+        contracts_per_month: 5,
+        storage_gb: 1,
+        api_calls_per_day: 100,
+        email_notifications: 10,
+    };
+}
+function getDefaultFeatures() {
+    return {
+        prospect_management: false,
+        contract_generation: true,
+        electronic_signature: false,
+        inventory_management: true,
+        customer_portal: false,
+        advanced_analytics: false,
+        export_data: false,
+        api_access: false,
+        white_label: false,
+        sms_notifications: false,
+    };
+}
+function suggestUpgradePlan(featureName) {
+    // Map features to minimum required plan
+    const featurePlanMap = {
+        prospect_management: "basic",
+        contract_generation: "basic",
+        electronic_signature: "pro",
+        inventory_management: "basic",
+        customer_portal: "pro",
+        advanced_analytics: "pro",
+        export_data: "basic",
+        api_access: "pro",
+        white_label: "enterprise",
+        sms_notifications: "pro",
+    };
+    return featurePlanMap[featureName] || "pro";
+}
+/**
+ * Check if organization should be warned about quota
+ */
+export function shouldWarnAboutQuota(quotaCheck) {
+    return quotaCheck.percentage_used >= 80 && !quotaCheck.allowed;
+}
+//# sourceMappingURL=subscriptionManager.js.map

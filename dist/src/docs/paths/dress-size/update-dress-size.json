@@ -1,64 +1,64 @@
 {
-  "/dress-sizes/{id}": {
-    "put": {
-      "tags": ["Dresses - Sizes"],
-      "summary": "Update a dress size",
-      "description": "Updates a dress size by its ID. The field `name` is required.",
-      "operationId": "updateDressSize",
-      "security": [{ "bearerAuth": [] }],
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string", "format": "uuid" },
-          "description": "The UUID of the dress size to update"
-        }
-      ],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": { "$ref": "#/components/schemas/UpdateDressSizeRequest" },
-            "example": { "name": "L" }
-          }
-        }
-      },
-      "responses": {
-        "200": {
-          "description": "✅ Dress size successfully updated",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/UpdateDressSizeResponse" },
-              "example": {
-                "success": true,
-                "data": {
-                  "id": "b912a2d1-8f12-4a17-8d1e-8c71b9f9e3e1",
-                  "name": "L"
+    "/dress-sizes/{id}": {
+        "put": {
+            "tags": ["Dresses - Sizes"],
+            "summary": "Update a dress size",
+            "description": "Updates a dress size by its ID. The field `name` is required.",
+            "operationId": "updateDressSize",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": { "type": "string", "format": "uuid" },
+                    "description": "The UUID of the dress size to update"
                 }
-              }
+            ],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": { "$ref": "#/components/schemas/UpdateDressSizeRequest" },
+                        "example": { "name": "L" }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "✅ Dress size successfully updated",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/UpdateDressSizeResponse" },
+                            "example": {
+                                "success": true,
+                                "data": {
+                                    "id": "b912a2d1-8f12-4a17-8d1e-8c71b9f9e3e1",
+                                    "name": "L"
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "❌ Dress size not found",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                            "example": { "success": false, "error": "Dress size not found" }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Internal server error - Failed to update dress size",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                            "example": { "success": false, "error": "Failed to update dress size" }
+                        }
+                    }
+                }
             }
-          }
-        },
-        "404": {
-          "description": "❌ Dress size not found",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-              "example": { "success": false, "error": "Dress size not found" }
-            }
-          }
-        },
-        "500": {
-          "description": "💥 Internal server error - Failed to update dress size",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-              "example": { "success": false, "error": "Failed to update dress size" }
-            }
-          }
         }
-      }
     }
-  }
 }

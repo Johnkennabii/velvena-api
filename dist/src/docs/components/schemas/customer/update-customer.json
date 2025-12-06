@@ -1,23 +1,23 @@
 {
-  "UpdateCustomerRequest": {
-    "type": "object",
-    "properties": {
-      "firstname": { "type": "string" },
-      "lastname": { "type": "string" },
-      "email": { "type": "string", "format": "email" },
-      "phone": { "type": "string" },
-      "birthday": { "type": "string", "format": "date-time" },
-      "country": { "type": "string" },
-      "city": { "type": "string" },
-      "address": { "type": "string" },
-      "postal_code": { "type": "string" }
+    "UpdateCustomerRequest": {
+        "type": "object",
+        "properties": {
+            "firstname": { "type": "string" },
+            "lastname": { "type": "string" },
+            "email": { "type": "string", "format": "email" },
+            "phone": { "type": "string" },
+            "birthday": { "type": "string", "format": "date-time" },
+            "country": { "type": "string" },
+            "city": { "type": "string" },
+            "address": { "type": "string" },
+            "postal_code": { "type": "string" }
+        }
+    },
+    "UpdateCustomerResponse": {
+        "type": "object",
+        "properties": {
+            "success": { "type": "boolean" },
+            "data": { "$ref": "#/components/schemas/Customer" }
+        }
     }
-  },
-  "UpdateCustomerResponse": {
-    "type": "object",
-    "properties": {
-      "success": { "type": "boolean" },
-      "data": { "$ref": "#/components/schemas/Customer" }
-    }
-  }
 }

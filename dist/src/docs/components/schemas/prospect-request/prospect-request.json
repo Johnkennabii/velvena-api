@@ -1,158 +1,158 @@
 {
-  "ProspectRequest": {
-    "type": "object",
-    "properties": {
-      "id": {
-        "type": "string",
-        "format": "uuid",
-        "example": "550e8400-e29b-41d4-a716-446655440000"
-      },
-      "request_number": {
-        "type": "string",
-        "example": "REQ-20251205-0001"
-      },
-      "prospect_id": {
-        "type": "string",
-        "format": "uuid",
-        "example": "abc123-def456"
-      },
-      "status": {
-        "type": "string",
-        "enum": ["draft", "sent", "confirmed", "cancelled"],
-        "example": "draft"
-      },
-      "total_estimated_ht": {
-        "type": "number",
-        "example": 500.00
-      },
-      "total_estimated_ttc": {
-        "type": "number",
-        "example": 600.00
-      },
-      "notes": {
-        "type": "string",
-        "example": "Client VIP"
-      },
-      "created_at": {
-        "type": "string",
-        "format": "date-time",
-        "example": "2025-12-05T10:00:00.000Z"
-      },
-      "updated_at": {
-        "type": "string",
-        "format": "date-time",
-        "example": "2025-12-05T10:00:00.000Z"
-      },
-      "dresses": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/ProspectRequestDress"
-        }
-      }
-    }
-  },
-  "ProspectRequestDress": {
-    "type": "object",
-    "properties": {
-      "id": {
-        "type": "string",
-        "format": "uuid",
-        "example": "req-dress-001"
-      },
-      "request_id": {
-        "type": "string",
-        "format": "uuid",
-        "example": "550e8400-e29b-41d4-a716-446655440000"
-      },
-      "dress_id": {
-        "type": "string",
-        "format": "uuid",
-        "example": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f"
-      },
-      "rental_start_date": {
-        "type": "string",
-        "format": "date-time",
-        "example": "2025-12-10T00:00:00.000Z"
-      },
-      "rental_end_date": {
-        "type": "string",
-        "format": "date-time",
-        "example": "2025-12-15T00:00:00.000Z"
-      },
-      "rental_days": {
-        "type": "integer",
-        "example": 6
-      },
-      "estimated_price_ht": {
-        "type": "number",
-        "example": 250.00
-      },
-      "estimated_price_ttc": {
-        "type": "number",
-        "example": 300.00
-      },
-      "notes": {
-        "type": "string",
-        "example": "Pour mariage"
-      },
-      "created_at": {
-        "type": "string",
-        "format": "date-time",
-        "example": "2025-12-05T10:00:00.000Z"
-      },
-      "dress": {
+    "ProspectRequest": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "reference": {
-            "type": "string"
-          },
-          "price_per_day_ht": {
-            "type": "number"
-          },
-          "price_per_day_ttc": {
-            "type": "number"
-          },
-          "type": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string"
-              }
+            "id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "550e8400-e29b-41d4-a716-446655440000"
+            },
+            "request_number": {
+                "type": "string",
+                "example": "REQ-20251205-0001"
+            },
+            "prospect_id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "abc123-def456"
+            },
+            "status": {
+                "type": "string",
+                "enum": ["draft", "sent", "confirmed", "cancelled"],
+                "example": "draft"
+            },
+            "total_estimated_ht": {
+                "type": "number",
+                "example": 500.00
+            },
+            "total_estimated_ttc": {
+                "type": "number",
+                "example": 600.00
+            },
+            "notes": {
+                "type": "string",
+                "example": "Client VIP"
+            },
+            "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2025-12-05T10:00:00.000Z"
+            },
+            "updated_at": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2025-12-05T10:00:00.000Z"
+            },
+            "dresses": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/ProspectRequestDress"
+                }
             }
-          },
-          "size": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string"
-              }
-            }
-          },
-          "color": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string"
-              }
-            }
-          },
-          "condition": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string"
-              }
-            }
-          }
         }
-      }
+    },
+    "ProspectRequestDress": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "req-dress-001"
+            },
+            "request_id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "550e8400-e29b-41d4-a716-446655440000"
+            },
+            "dress_id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f"
+            },
+            "rental_start_date": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2025-12-10T00:00:00.000Z"
+            },
+            "rental_end_date": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2025-12-15T00:00:00.000Z"
+            },
+            "rental_days": {
+                "type": "integer",
+                "example": 6
+            },
+            "estimated_price_ht": {
+                "type": "number",
+                "example": 250.00
+            },
+            "estimated_price_ttc": {
+                "type": "number",
+                "example": 300.00
+            },
+            "notes": {
+                "type": "string",
+                "example": "Pour mariage"
+            },
+            "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2025-12-05T10:00:00.000Z"
+            },
+            "dress": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "reference": {
+                        "type": "string"
+                    },
+                    "price_per_day_ht": {
+                        "type": "number"
+                    },
+                    "price_per_day_ttc": {
+                        "type": "number"
+                    },
+                    "type": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "size": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "color": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "condition": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
-  }
 }

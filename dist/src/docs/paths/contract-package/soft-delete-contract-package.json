@@ -1,88 +1,88 @@
 {
-  "/contract-packages/{id}/soft": {
-    "patch": {
-      "tags": ["Contract Packages"],
-      "summary": "Soft delete a contract package",
-      "description": "Marks a contract package as deleted without permanently removing it from the database. The field `deleted_at` is set with the current timestamp and `deleted_by` stores the user ID of the authenticated user.",
-      "operationId": "softDeleteContractPackage",
-      "security": [
-        { "bearerAuth": [] }
-      ],
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "description": "UUID of the contract package to soft delete",
-          "schema": { "type": "string", "format": "uuid" },
-          "example": "pkg_001"
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ Contract package successfully soft deleted",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SoftDeleteContractPackageResponse"
-              },
-              "examples": {
-                "success": {
-                  "summary": "Example: Successful soft delete",
-                  "value": {
-                    "success": true,
-                    "message": "Contract package soft deleted"
-                  }
+    "/contract-packages/{id}/soft": {
+        "patch": {
+            "tags": ["Contract Packages"],
+            "summary": "Soft delete a contract package",
+            "description": "Marks a contract package as deleted without permanently removing it from the database. The field `deleted_at` is set with the current timestamp and `deleted_by` stores the user ID of the authenticated user.",
+            "operationId": "softDeleteContractPackage",
+            "security": [
+                { "bearerAuth": [] }
+            ],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "UUID of the contract package to soft delete",
+                    "schema": { "type": "string", "format": "uuid" },
+                    "example": "pkg_001"
                 }
-              }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ Contract package successfully soft deleted",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SoftDeleteContractPackageResponse"
+                            },
+                            "examples": {
+                                "success": {
+                                    "summary": "Example: Successful soft delete",
+                                    "value": {
+                                        "success": true,
+                                        "message": "Contract package soft deleted"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "⚠️ Invalid request — missing or malformed ID",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "success": false,
+                                "error": "ID is required"
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "🔒 Unauthorized — Missing or invalid JWT token",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "success": false,
+                                "error": "Unauthorized"
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "❌ Contract package not found",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "success": false,
+                                "error": "Contract package not found"
+                            }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Internal Server Error — Failed to soft delete contract package",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "success": false,
+                                "error": "Failed to delete contract package"
+                            }
+                        }
+                    }
+                }
             }
-          }
-        },
-        "400": {
-          "description": "⚠️ Invalid request — missing or malformed ID",
-          "content": {
-            "application/json": {
-              "example": {
-                "success": false,
-                "error": "ID is required"
-              }
-            }
-          }
-        },
-        "401": {
-          "description": "🔒 Unauthorized — Missing or invalid JWT token",
-          "content": {
-            "application/json": {
-              "example": {
-                "success": false,
-                "error": "Unauthorized"
-              }
-            }
-          }
-        },
-        "404": {
-          "description": "❌ Contract package not found",
-          "content": {
-            "application/json": {
-              "example": {
-                "success": false,
-                "error": "Contract package not found"
-              }
-            }
-          }
-        },
-        "500": {
-          "description": "💥 Internal Server Error — Failed to soft delete contract package",
-          "content": {
-            "application/json": {
-              "example": {
-                "success": false,
-                "error": "Failed to delete contract package"
-              }
-            }
-          }
         }
-      }
     }
-  }
 }

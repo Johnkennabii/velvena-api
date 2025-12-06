@@ -7,14 +7,23 @@ export const register = async (req, res) => {
     try {
         const { email, password, roleName } = req.body;
         logger.info({ email, userId: req.user?.id }, "Attempting to register user");
-        if (!req.user?.id) {
+        if (!req.user?.id || !req.user?.organizationId) {
             return res.status(401).json({ error: "Unauthorized: only authenticated users can create accounts" });
         }
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
             return res.status(400).json({ error: "User with this email already exists" });
         }
-        const role = await prisma.role.findFirst({ where: { name: roleName } });
+        // Find role within the same organization (or global roles)
+        const role = await prisma.role.findFirst({
+            where: {
+                name: roleName,
+                OR: [
+                    { organization_id: req.user.organizationId },
+                    { organization_id: null }, // Allow global roles
+                ],
+            },
+        });
         if (!role)
             return res.status(400).json({ error: "Role not found" });
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -23,6 +32,7 @@ export const register = async (req, res) => {
             data: {
                 email,
                 password: hashedPassword,
+                organization_id: req.user.organizationId, // Inherit organization from creator
                 created_at: now,
                 created_by: req.user.id,
                 profile: {
@@ -50,18 +60,42 @@ export const login = async (req, res) => {
         logger.info({ email }, "Attempting to login user");
         const user = await prisma.user.findUnique({
             where: { email },
-            include: { profile: { include: { role: true } } },
+            include: {
+                profile: { include: { role: true } },
+                organization: {
+                    select: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                        is_active: true,
+                    },
+                },
+            },
         });
         if (!user)
             return res.status(401).json({ error: "User not found" });
+        // Check if organization is active
+        if (!user.organization.is_active) {
+            return res.status(403).json({ error: "Organization is inactive" });
+        }
         const valid = await bcrypt.compare(password, user.password);
         if (!valid)
             return res.status(401).json({ error: "Invalid password" });
         await prisma.user.update({ where: { id: user.id }, data: { last_signin_at: new Date() } });
         const roleName = user.profile?.role?.name ?? null;
         const token = jwt.sign({ id: user.id, email: user.email, role: roleName }, JWT_SECRET, { expiresIn: "6h" });
-        logger.info({ userId: user.id, email: user.email, role: roleName, token }, "User logged in with token");
-        res.json({ token, id: user.id, email: user.email, role: roleName });
+        logger.info({ userId: user.id, email: user.email, role: roleName, organizationId: user.organization_id }, "User logged in");
+        res.json({
+            token,
+            id: user.id,
+            email: user.email,
+            role: roleName,
+            organization: {
+                id: user.organization.id,
+                name: user.organization.name,
+                slug: user.organization.slug,
+            },
+        });
     }
     catch (err) {
         logger.error({ err }, "Failed to login user");
@@ -76,7 +110,16 @@ export const me = async (req, res) => {
         logger.info({ userId: req.user.id }, "Fetching current user info");
         const user = await prisma.user.findUnique({
             where: { id: req.user.id },
-            include: { profile: { include: { role: true } } },
+            include: {
+                profile: { include: { role: true } },
+                organization: {
+                    select: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                    },
+                },
+            },
         });
         if (!user) {
             return res.status(404).json({ error: "User not found" });
@@ -90,6 +133,7 @@ export const me = async (req, res) => {
             email: user.email,
             role: roleName,
             profile: user.profile,
+            organization: user.organization,
         });
     }
     catch (err) {
@@ -102,16 +146,25 @@ export const refresh = async (req, res) => {
         return res.status(401).json({ error: "Unauthorized" });
     }
     try {
-        // Récupération de l’utilisateur depuis la DB pour vérifier qu’il existe toujours
+        // Récupération de l'utilisateur depuis la DB pour vérifier qu'il existe toujours
         const user = await prisma.user.findUnique({
             where: { id: req.user.id },
-            include: { profile: { include: { role: true } } },
+            include: {
+                profile: { include: { role: true } },
+                organization: {
+                    select: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                    },
+                },
+            },
         });
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
         const roleName = user.profile?.role?.name ?? null;
-        // Génération d’un nouveau JWT
+        // Génération d'un nouveau JWT
         const token = jwt.sign({ id: user.id, email: user.email, role: roleName }, JWT_SECRET, { expiresIn: "6h" });
         res.json({
             token,
@@ -119,6 +172,7 @@ export const refresh = async (req, res) => {
             email: user.email,
             role: roleName,
             profile: user.profile,
+            organization: user.organization,
         });
     }
     catch (err) {

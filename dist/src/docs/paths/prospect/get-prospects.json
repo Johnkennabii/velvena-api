@@ -1,109 +1,109 @@
 {
-  "/prospects": {
-    "get": {
-      "tags": ["Prospects"],
-      "summary": "Get all prospects",
-      "description": "Retrieves a paginated list of prospects with their dress reservations. Each prospect includes detailed dress information, rental period, number of days, estimated cost per dress, and total estimated cost. Supports search, status filter and pagination via query parameters.",
-      "operationId": "getProspects",
-      "security": [{ "bearerAuth": [] }],
-      "parameters": [
-        {
-          "name": "search",
-          "in": "query",
-          "required": false,
-          "schema": { "type": "string" },
-          "description": "Search term (applies to firstname, lastname, email, phone)."
-        },
-        {
-          "name": "status",
-          "in": "query",
-          "required": false,
-          "schema": { "type": "string" },
-          "description": "Filter by status (new, contacted, qualified, converted, etc.)."
-        },
-        {
-          "name": "page",
-          "in": "query",
-          "required": false,
-          "schema": { "type": "integer", "default": 1 },
-          "description": "Page number (for pagination)."
-        },
-        {
-          "name": "limit",
-          "in": "query",
-          "required": false,
-          "schema": { "type": "integer", "default": 20 },
-          "description": "Number of results per page."
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ Prospects successfully retrieved with dress reservations and cost calculations",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/GetProspectsResponse" },
-              "example": {
-                "success": true,
-                "page": 1,
-                "limit": 20,
-                "total": 45,
-                "data": [
-                  {
-                    "id": "f93d3b8c-9b1e-41b5-83df-1dcdacb9c324",
-                    "firstname": "Sophie",
-                    "lastname": "Martin",
-                    "email": "sophie.martin@email.fr",
-                    "phone": "+33612345678",
-                    "status": "new",
-                    "source": "website",
-                    "created_at": "2025-11-30T10:00:00.000Z",
-                    "dress_reservations": [
-                      {
-                        "id": "res-001",
-                        "dress_id": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f",
-                        "rental_start_date": "2025-06-15T00:00:00.000Z",
-                        "rental_end_date": "2025-06-17T00:00:00.000Z",
-                        "rental_days": 3,
-                        "estimated_cost": 360,
-                        "dress": {
-                          "id": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f",
-                          "name": "Robe de mariée Élégance",
-                          "reference": "REF-2025-001",
-                          "price_per_day_ttc": 120,
-                          "type": { "name": "Robe de mariée" },
-                          "size": { "name": "M" },
-                          "color": { "name": "Blanc" }
+    "/prospects": {
+        "get": {
+            "tags": ["Prospects"],
+            "summary": "Get all prospects",
+            "description": "Retrieves a paginated list of prospects with their dress reservations. Each prospect includes detailed dress information, rental period, number of days, estimated cost per dress, and total estimated cost. Supports search, status filter and pagination via query parameters.",
+            "operationId": "getProspects",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                    "name": "search",
+                    "in": "query",
+                    "required": false,
+                    "schema": { "type": "string" },
+                    "description": "Search term (applies to firstname, lastname, email, phone)."
+                },
+                {
+                    "name": "status",
+                    "in": "query",
+                    "required": false,
+                    "schema": { "type": "string" },
+                    "description": "Filter by status (new, contacted, qualified, converted, etc.)."
+                },
+                {
+                    "name": "page",
+                    "in": "query",
+                    "required": false,
+                    "schema": { "type": "integer", "default": 1 },
+                    "description": "Page number (for pagination)."
+                },
+                {
+                    "name": "limit",
+                    "in": "query",
+                    "required": false,
+                    "schema": { "type": "integer", "default": 20 },
+                    "description": "Number of results per page."
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ Prospects successfully retrieved with dress reservations and cost calculations",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/GetProspectsResponse" },
+                            "example": {
+                                "success": true,
+                                "page": 1,
+                                "limit": 20,
+                                "total": 45,
+                                "data": [
+                                    {
+                                        "id": "f93d3b8c-9b1e-41b5-83df-1dcdacb9c324",
+                                        "firstname": "Sophie",
+                                        "lastname": "Martin",
+                                        "email": "sophie.martin@email.fr",
+                                        "phone": "+33612345678",
+                                        "status": "new",
+                                        "source": "website",
+                                        "created_at": "2025-11-30T10:00:00.000Z",
+                                        "dress_reservations": [
+                                            {
+                                                "id": "res-001",
+                                                "dress_id": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f",
+                                                "rental_start_date": "2025-06-15T00:00:00.000Z",
+                                                "rental_end_date": "2025-06-17T00:00:00.000Z",
+                                                "rental_days": 3,
+                                                "estimated_cost": 360,
+                                                "dress": {
+                                                    "id": "7d2f6f3a-18c5-43aa-812e-8df1b0b61f6f",
+                                                    "name": "Robe de mariée Élégance",
+                                                    "reference": "REF-2025-001",
+                                                    "price_per_day_ttc": 120,
+                                                    "type": { "name": "Robe de mariée" },
+                                                    "size": { "name": "M" },
+                                                    "color": { "name": "Blanc" }
+                                                }
+                                            }
+                                        ],
+                                        "total_estimated_cost": 360
+                                    },
+                                    {
+                                        "id": "abc-123-def-456",
+                                        "firstname": "Marie",
+                                        "lastname": "Dubois",
+                                        "email": "marie.dubois@email.fr",
+                                        "phone": "+33698765432",
+                                        "status": "contacted",
+                                        "source": "phone",
+                                        "created_at": "2025-11-29T14:30:00.000Z",
+                                        "dress_reservations": [],
+                                        "total_estimated_cost": 0
+                                    }
+                                ]
+                            }
                         }
-                      }
-                    ],
-                    "total_estimated_cost": 360
-                  },
-                  {
-                    "id": "abc-123-def-456",
-                    "firstname": "Marie",
-                    "lastname": "Dubois",
-                    "email": "marie.dubois@email.fr",
-                    "phone": "+33698765432",
-                    "status": "contacted",
-                    "source": "phone",
-                    "created_at": "2025-11-29T14:30:00.000Z",
-                    "dress_reservations": [],
-                    "total_estimated_cost": 0
-                  }
-                ]
-              }
+                    }
+                },
+                "500": {
+                    "description": "💥 Server error fetching prospects",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                        }
+                    }
+                }
             }
-          }
-        },
-        "500": {
-          "description": "💥 Server error fetching prospects",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-            }
-          }
         }
-      }
     }
-  }
 }

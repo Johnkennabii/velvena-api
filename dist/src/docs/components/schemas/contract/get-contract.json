@@ -1,77 +1,77 @@
 {
-  "openapi": "3.0.0",
-  "info": {
-    "title": "Contracts API",
-    "version": "1.0.0",
-    "description": "API for retrieving contracts"
-  },
-  "paths": {
-    "/contracts": {
-      "get": {
-        "summary": "Retrieve a list of contracts",
-        "description": "Returns a list of contracts with detailed information.",
-        "responses": {
-          "200": {
-            "description": "A list of contracts",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Contract"
-                  }
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Contracts API",
+        "version": "1.0.0",
+        "description": "API for retrieving contracts"
+    },
+    "paths": {
+        "/contracts": {
+            "get": {
+                "summary": "Retrieve a list of contracts",
+                "description": "Returns a list of contracts with detailed information.",
+                "responses": {
+                    "200": {
+                        "description": "A list of contracts",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Contract"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
                 }
-              }
             }
-          },
-          "400": {
-            "description": "Invalid request"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
         }
-      }
+    },
+    "components": {
+        "schemas": {
+            "Contract": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Unique identifier for the contract"
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "Title of the contract"
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Start date of the contract"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "End date of the contract"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["active", "pending", "terminated"],
+                        "description": "Current status of the contract"
+                    },
+                    "parties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "List of parties involved in the contract"
+                    }
+                },
+                "required": ["id", "title", "startDate", "status"]
+            }
+        }
     }
-  },
-  "components": {
-    "schemas": {
-      "Contract": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the contract"
-          },
-          "title": {
-            "type": "string",
-            "description": "Title of the contract"
-          },
-          "startDate": {
-            "type": "string",
-            "format": "date",
-            "description": "Start date of the contract"
-          },
-          "endDate": {
-            "type": "string",
-            "format": "date",
-            "description": "End date of the contract"
-          },
-          "status": {
-            "type": "string",
-            "enum": ["active", "pending", "terminated"],
-            "description": "Current status of the contract"
-          },
-          "parties": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "List of parties involved in the contract"
-          }
-        },
-        "required": ["id", "title", "startDate", "status"]
-      }
-    }
-  }
 }

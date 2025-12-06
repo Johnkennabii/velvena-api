@@ -1,60 +1,60 @@
 {
-  "/customer-notes/{id}": {
-    "patch": {
-      "tags": ["Customer Notes"],
-      "summary": "Soft delete a note",
-      "description": "Marks a customer note as deleted without permanently removing it from the database.",
-      "operationId": "softDeleteCustomerNote",
-      "security": [{ "bearerAuth": [] }],
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string", "format": "uuid" },
-          "description": "Note ID"
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ Note successfully soft deleted",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/SoftDeleteCustomerNoteResponse" },
-              "example": {
-                "success": true,
-                "data": {
-                  "id": "note-uuid",
-                  "customer_id": "customer-uuid",
-                  "content": "Client préfère les couleurs vives",
-                  "created_at": "2025-11-29T12:00:00.000Z",
-                  "created_by": "user-uuid",
-                  "updated_at": null,
-                  "updated_by": null,
-                  "deleted_at": "2025-11-29T14:00:00.000Z",
-                  "deleted_by": "user-uuid"
+    "/customer-notes/{id}": {
+        "patch": {
+            "tags": ["Customer Notes"],
+            "summary": "Soft delete a note",
+            "description": "Marks a customer note as deleted without permanently removing it from the database.",
+            "operationId": "softDeleteCustomerNote",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": { "type": "string", "format": "uuid" },
+                    "description": "Note ID"
                 }
-              }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ Note successfully soft deleted",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/SoftDeleteCustomerNoteResponse" },
+                            "example": {
+                                "success": true,
+                                "data": {
+                                    "id": "note-uuid",
+                                    "customer_id": "customer-uuid",
+                                    "content": "Client préfère les couleurs vives",
+                                    "created_at": "2025-11-29T12:00:00.000Z",
+                                    "created_by": "user-uuid",
+                                    "updated_at": null,
+                                    "updated_by": null,
+                                    "deleted_at": "2025-11-29T14:00:00.000Z",
+                                    "deleted_by": "user-uuid"
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "❌ Note not found",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Server error",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                        }
+                    }
+                }
             }
-          }
-        },
-        "404": {
-          "description": "❌ Note not found",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-            }
-          }
-        },
-        "500": {
-          "description": "💥 Server error",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-            }
-          }
         }
-      }
     }
-  }
 }

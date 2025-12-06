@@ -12,6 +12,10 @@ import usersRoutes from "./routes/userRoutes/users.js";
 import profilesRoutes from "./routes/userRoutes/profiles.js";
 import rolesRoutes from "./routes/userRoutes/roles.js";
 
+import organizationRoutes from "./routes/organizations.js";
+import serviceTypeRoutes from "./routes/serviceTypes.js";
+import pricingRuleRoutes from "./routes/pricingRules.js";
+
 import avatarRoutes from "./routes/bucketRoutes/avatar.js";
 import dressStorage from "./routes/bucketRoutes/dressStorageRoutes.js";
 
@@ -37,6 +41,7 @@ import mailRoutes from "./routes/mailRoutes.js";
 import emailRoutes from "./routes/emailRoutes.js";
 import apiKeyRoutes from "./routes/apiKeys.js";
 import maintenanceRoutes from "./routes/maintenanceRoutes.js";
+import healthRoutes from "./routes/health.js";
 
 import {
   getContractSignLink,
@@ -110,6 +115,10 @@ app.use("/users", usersRoutes);
 app.use("/profiles", profilesRoutes);
 app.use("/roles", rolesRoutes);
 
+app.use("/organizations", organizationRoutes);
+app.use("/service-types", serviceTypeRoutes);
+app.use("/pricing-rules", pricingRuleRoutes);
+
 app.use("/avatars", avatarRoutes);
 app.use("/dress-storage", dressStorage);
 
@@ -139,6 +148,9 @@ app.use("/mails", mailRoutes);
 app.use("/emails", emailRoutes);
 app.use("/api-keys", apiKeyRoutes);
 app.use("/api", maintenanceRoutes);
+
+// Health check routes (no auth required)
+app.use(healthRoutes);
 
 // ✅ Route racine
 app.get("/", (req: Request, res: Response) => {

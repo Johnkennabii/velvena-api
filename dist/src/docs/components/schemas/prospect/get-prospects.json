@@ -1,129 +1,129 @@
 {
-  "GetProspectsResponse": {
-    "type": "object",
-    "properties": {
-      "success": {
-        "type": "boolean",
-        "example": true
-      },
-      "data": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/Prospect"
+    "GetProspectsResponse": {
+        "type": "object",
+        "properties": {
+            "success": {
+                "type": "boolean",
+                "example": true
+            },
+            "data": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/Prospect"
+                }
+            },
+            "page": {
+                "type": "integer",
+                "example": 1
+            },
+            "limit": {
+                "type": "integer",
+                "example": 20
+            },
+            "total": {
+                "type": "integer",
+                "example": 45
+            }
         }
-      },
-      "page": {
-        "type": "integer",
-        "example": 1
-      },
-      "limit": {
-        "type": "integer",
-        "example": 20
-      },
-      "total": {
-        "type": "integer",
-        "example": 45
-      }
+    },
+    "Prospect": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "string",
+                "format": "uuid"
+            },
+            "firstname": {
+                "type": "string"
+            },
+            "lastname": {
+                "type": "string"
+            },
+            "email": {
+                "type": "string",
+                "format": "email"
+            },
+            "phone": {
+                "type": "string",
+                "nullable": true
+            },
+            "birthday": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+            },
+            "country": {
+                "type": "string",
+                "nullable": true
+            },
+            "city": {
+                "type": "string",
+                "nullable": true
+            },
+            "address": {
+                "type": "string",
+                "nullable": true
+            },
+            "postal_code": {
+                "type": "string",
+                "nullable": true
+            },
+            "status": {
+                "type": "string",
+                "example": "new"
+            },
+            "source": {
+                "type": "string",
+                "nullable": true
+            },
+            "notes": {
+                "type": "string",
+                "nullable": true
+            },
+            "created_at": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "created_by": {
+                "type": "string",
+                "format": "uuid",
+                "nullable": true
+            },
+            "updated_at": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+            },
+            "updated_by": {
+                "type": "string",
+                "format": "uuid",
+                "nullable": true
+            },
+            "deleted_at": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+            },
+            "deleted_by": {
+                "type": "string",
+                "format": "uuid",
+                "nullable": true
+            },
+            "converted_at": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+            },
+            "converted_by": {
+                "type": "string",
+                "format": "uuid",
+                "nullable": true
+            },
+            "converted_to": {
+                "type": "string",
+                "format": "uuid",
+                "nullable": true
+            }
+        }
     }
-  },
-  "Prospect": {
-    "type": "object",
-    "properties": {
-      "id": {
-        "type": "string",
-        "format": "uuid"
-      },
-      "firstname": {
-        "type": "string"
-      },
-      "lastname": {
-        "type": "string"
-      },
-      "email": {
-        "type": "string",
-        "format": "email"
-      },
-      "phone": {
-        "type": "string",
-        "nullable": true
-      },
-      "birthday": {
-        "type": "string",
-        "format": "date-time",
-        "nullable": true
-      },
-      "country": {
-        "type": "string",
-        "nullable": true
-      },
-      "city": {
-        "type": "string",
-        "nullable": true
-      },
-      "address": {
-        "type": "string",
-        "nullable": true
-      },
-      "postal_code": {
-        "type": "string",
-        "nullable": true
-      },
-      "status": {
-        "type": "string",
-        "example": "new"
-      },
-      "source": {
-        "type": "string",
-        "nullable": true
-      },
-      "notes": {
-        "type": "string",
-        "nullable": true
-      },
-      "created_at": {
-        "type": "string",
-        "format": "date-time"
-      },
-      "created_by": {
-        "type": "string",
-        "format": "uuid",
-        "nullable": true
-      },
-      "updated_at": {
-        "type": "string",
-        "format": "date-time",
-        "nullable": true
-      },
-      "updated_by": {
-        "type": "string",
-        "format": "uuid",
-        "nullable": true
-      },
-      "deleted_at": {
-        "type": "string",
-        "format": "date-time",
-        "nullable": true
-      },
-      "deleted_by": {
-        "type": "string",
-        "format": "uuid",
-        "nullable": true
-      },
-      "converted_at": {
-        "type": "string",
-        "format": "date-time",
-        "nullable": true
-      },
-      "converted_by": {
-        "type": "string",
-        "format": "uuid",
-        "nullable": true
-      },
-      "converted_to": {
-        "type": "string",
-        "format": "uuid",
-        "nullable": true
-      }
-    }
-  }
 }

@@ -1,83 +1,83 @@
 {
-  "/contract-types/{id}": {
-    "get": {
-      "tags": ["Contract Types"],
-      "summary": "Get a contract type by ID",
-      "description": "Fetch a specific contract type using its unique ID. Returns 404 if the type does not exist or has been soft-deleted.",
-      "operationId": "getContractTypeById",
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "example": "ct_9a8d7f6e"
-          },
-          "description": "Unique identifier of the contract type."
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ Contract type successfully retrieved",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ContractTypeResponse"
-              },
-              "example": {
-                "success": true,
-                "data": {
-                  "id": "ct_9a8d7f6e",
-                  "name": "Location courte durée",
-                  "description": "Contrat de location pour une période de moins de 30 jours",
-                  "created_at": "2025-03-15T10:22:00.000Z",
-                  "updated_at": "2025-04-02T09:45:00.000Z",
-                  "deleted_at": null
+    "/contract-types/{id}": {
+        "get": {
+            "tags": ["Contract Types"],
+            "summary": "Get a contract type by ID",
+            "description": "Fetch a specific contract type using its unique ID. Returns 404 if the type does not exist or has been soft-deleted.",
+            "operationId": "getContractTypeById",
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "example": "ct_9a8d7f6e"
+                    },
+                    "description": "Unique identifier of the contract type."
                 }
-              }
-            }
-          }
-        },
-        "400": {
-          "description": "⚠️ Missing ID parameter",
-          "content": {
-            "application/json": {
-              "example": {
-                "success": false,
-                "error": "ID is required"
-              }
-            }
-          }
-        },
-        "404": {
-          "description": "🚫 Contract type not found or soft-deleted",
-          "content": {
-            "application/json": {
-              "example": {
-                "success": false,
-                "error": "Contract type not found"
-              }
-            }
-          }
-        },
-        "500": {
-          "description": "💥 Internal server error",
-          "content": {
-            "application/json": {
-              "example": {
-                "success": false,
-                "error": "Failed to fetch contract type"
-              }
-            }
-          }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ Contract type successfully retrieved",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ContractTypeResponse"
+                            },
+                            "example": {
+                                "success": true,
+                                "data": {
+                                    "id": "ct_9a8d7f6e",
+                                    "name": "Location courte durée",
+                                    "description": "Contrat de location pour une période de moins de 30 jours",
+                                    "created_at": "2025-03-15T10:22:00.000Z",
+                                    "updated_at": "2025-04-02T09:45:00.000Z",
+                                    "deleted_at": null
+                                }
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "⚠️ Missing ID parameter",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "success": false,
+                                "error": "ID is required"
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "🚫 Contract type not found or soft-deleted",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "success": false,
+                                "error": "Contract type not found"
+                            }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Internal server error",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "success": false,
+                                "error": "Failed to fetch contract type"
+                            }
+                        }
+                    }
+                }
+            },
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ]
         }
-      },
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ]
     }
-  }
 }

@@ -7,10 +7,105 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Organization {
+  id                String    @id @default(uuid())
+  name              String
+  slug              String    @unique // URL-friendly identifier (ex: "boutique-paris")
+  email             String?
+  phone             String?
+  address           String?
+  city              String?
+  postal_code       String?
+  country           String?
+  logo_url          String?
+  settings          Json?     // Organization-specific settings (deprecated, use business_rules)
+
+  // Business Rules Configuration
+  business_rules    Json?     // Configurable business rules (pricing, services, etc.)
+  /* Example business_rules structure:
+  {
+    "pricing": {
+      "default_strategy": "per_day",
+      "tax_rate": 20,
+      "currency": "EUR",
+      "allow_custom_pricing": true
+    },
+    "services": {
+      "rental_types": ["short_term", "long_term", "event"],
+      "default_rental_duration": 3
+    },
+    "billing": {
+      "deposit_required": true,
+      "deposit_percentage": 30,
+      "payment_terms_days": 30
+    }
+  }
+  */
+
+  // Subscription Management
+  subscription_plan_id String?   // Reference to SubscriptionPlan
+  subscription_status  String    @default("trial") // trial, active, suspended, cancelled
+  subscription_started_at DateTime? @default(now())
+  trial_ends_at        DateTime?
+  subscription_ends_at DateTime? // For cancelled subscriptions
+
+  // Deprecated - use subscription_plan_id instead
+  subscription_plan    String?   @default("free") // free, basic, pro, enterprise
+
+  // Usage & Quotas (cached for performance)
+  current_usage        Json?     // Cached usage counts
+  /* Example:
+  {
+    "users": 5,
+    "dresses": 120,
+    "customers": 89,
+    "contracts_this_month": 12,
+    "last_updated": "2025-12-06T10:00:00Z"
+  }
+  */
+
+  is_active            Boolean   @default(true)
+  created_at           DateTime  @default(now())
+  created_by           String?
+  updated_at           DateTime? @updatedAt
+  updated_by           String?
+  deleted_at           DateTime?
+  deleted_by           String?
+
+  // Relations
+  users                        User[]
+  dresses                      Dress[]
+  customers                    Customer[]
+  prospects                    Prospect[]
+  contracts                    Contract[]
+
+  // Reference data (organization-specific)
+  dress_types                  DressType[]
+  dress_sizes                  DressSize[]
+  dress_colors                 DressColor[]
+  dress_conditions             DressCondition[]
+  contract_types               ContractType[]
+  contract_packages            ContractPackage[]
+  contract_addons              ContractAddon[]
+  roles                        Role[]
+  service_types                ServiceType[]
+  pricing_rules                PricingRule[]
+
+  // Subscription & Usage
+  subscription                 SubscriptionPlan? @relation(fields: [subscription_plan_id], references: [id])
+  usage_events                 UsageEvent[]
+
+  @@index([slug])
+  @@index([is_active])
+  @@index([subscription_plan_id])
+  @@index([subscription_status])
+}
+
 model User {
   id                 String                 @id @default(uuid())
   email              String                 @unique
   password           String
+  organization_id    String
   created_at         DateTime               @default(now())
   created_by         String?
   deleted_at         DateTime?
@@ -19,8 +114,11 @@ model User {
   raw_user_meta_data Json?
   updated_at         DateTime?              @updatedAt
   updated_by         String?
+  organization       Organization           @relation(fields: [organization_id], references: [id])
   profile            Profile?
   notifications      NotificationUserLink[]
+
+  @@index([organization_id])
 }
 
 model Profile {
@@ -46,146 +144,187 @@ model Profile {
 }
 
 model Role {
-  id          String    @id @default(uuid())
-  name        String    @unique
-  description String?
-  created_at  DateTime  @default(now())
-  created_by  String?
-  updated_at  DateTime? @updatedAt
-  updated_by  String?
-  deleted_at  DateTime?
-  deleted_by  String?
-  profiles    Profile[]
+  id              String        @id @default(uuid())
+  name            String
+  organization_id String?       // null = global role (system roles)
+  description     String?
+  created_at      DateTime      @default(now())
+  created_by      String?
+  updated_at      DateTime?     @updatedAt
+  updated_by      String?
+  deleted_at      DateTime?
+  deleted_by      String?
+  organization    Organization? @relation(fields: [organization_id], references: [id])
+  profiles        Profile[]
+
+  @@unique([name, organization_id]) // Unique per organization
+  @@index([organization_id])
 }
 
 model DressType {
-  id          String    @id @default(uuid())
-  name        String    @unique
-  description String?
-  created_at  DateTime  @default(now())
-  created_by  String?
-  updated_at  DateTime? @updatedAt
-  updated_by  String?
-  deleted_at  DateTime?
-  deleted_by  String?
-  dresses     Dress[]
+  id              String        @id @default(uuid())
+  name            String
+  organization_id String?       // null = global (shared across all orgs)
+  description     String?
+  created_at      DateTime      @default(now())
+  created_by      String?
+  updated_at      DateTime?     @updatedAt
+  updated_by      String?
+  deleted_at      DateTime?
+  deleted_by      String?
+  organization    Organization? @relation(fields: [organization_id], references: [id])
+  dresses         Dress[]
+
+  @@unique([name, organization_id]) // Unique per organization
+  @@index([organization_id])
 }
 
 model DressSize {
-  id         String    @id @default(uuid())
-  name       String    @unique
-  created_at DateTime  @default(now())
-  created_by String?
-  updated_at DateTime? @updatedAt
-  updated_by String?
-  deleted_at DateTime?
-  deleted_by String?
-  dresses    Dress[]
+  id              String        @id @default(uuid())
+  name            String
+  organization_id String?       // null = global (shared across all orgs)
+  created_at      DateTime      @default(now())
+  created_by      String?
+  updated_at      DateTime?     @updatedAt
+  updated_by      String?
+  deleted_at      DateTime?
+  deleted_by      String?
+  organization    Organization? @relation(fields: [organization_id], references: [id])
+  dresses         Dress[]
+
+  @@unique([name, organization_id]) // Unique per organization
+  @@index([organization_id])
 }
 
 model DressCondition {
-  id         String    @id @default(uuid())
-  name       String    @unique
-  created_at DateTime  @default(now())
-  created_by String?
-  updated_at DateTime? @updatedAt
-  updated_by String?
-  deleted_at DateTime?
-  deleted_by String?
-  dresses    Dress[]
+  id              String        @id @default(uuid())
+  name            String
+  organization_id String?       // null = global (shared across all orgs)
+  created_at      DateTime      @default(now())
+  created_by      String?
+  updated_at      DateTime?     @updatedAt
+  updated_by      String?
+  deleted_at      DateTime?
+  deleted_by      String?
+  organization    Organization? @relation(fields: [organization_id], references: [id])
+  dresses         Dress[]
+
+  @@unique([name, organization_id]) // Unique per organization
+  @@index([organization_id])
 }
 
 model DressColor {
-  id         String    @id @default(uuid())
-  name       String    @unique
-  hex_code   String    @unique
-  created_at DateTime  @default(now())
-  created_by String?
-  updated_at DateTime? @updatedAt
-  updated_by String?
-  deleted_at DateTime?
-  deleted_by String?
-  dresses    Dress[]
+  id              String        @id @default(uuid())
+  name            String
+  hex_code        String
+  organization_id String?       // null = global (shared across all orgs)
+  created_at      DateTime      @default(now())
+  created_by      String?
+  updated_at      DateTime?     @updatedAt
+  updated_by      String?
+  deleted_at      DateTime?
+  deleted_by      String?
+  organization    Organization? @relation(fields: [organization_id], references: [id])
+  dresses         Dress[]
+
+  @@unique([name, organization_id]) // Unique per organization
+  @@unique([hex_code, organization_id]) // Unique per organization
+  @@index([organization_id])
 }
 
 model Dress {
-  id                     String                      @id @default(uuid())
-  name                   String
-  reference              String                      @unique
-  price_ht               Decimal
-  price_ttc              Decimal
-  images                 String[]
-  created_at             DateTime                    @default(now())
-  created_by             String?
-  updated_at             DateTime?                   @updatedAt
-  updated_by             String?
-  deleted_at             DateTime?
-  deleted_by             String?
-  published_at           DateTime?
-  published_by           String?
-  published_post         Boolean                     @default(false)
-  type_id                String?
-  size_id                String?
-  condition_id           String?
-  color_id               String?
-  price_per_day_ht       Decimal
-  price_per_day_ttc      Decimal
-  ContractDress          ContractDress[]
-  prospect_reservations  ProspectDressReservation[]
+  id                       String                      @id @default(uuid())
+  name                     String
+  reference                String
+  organization_id          String
+  price_ht                 Decimal
+  price_ttc                Decimal
+  images                   String[]
+  created_at               DateTime                    @default(now())
+  created_by               String?
+  updated_at               DateTime?                   @updatedAt
+  updated_by               String?
+  deleted_at               DateTime?
+  deleted_by               String?
+  published_at             DateTime?
+  published_by             String?
+  published_post           Boolean                     @default(false)
+  type_id                  String?
+  size_id                  String?
+  condition_id             String?
+  color_id                 String?
+  price_per_day_ht         Decimal
+  price_per_day_ttc        Decimal
+  organization             Organization                @relation(fields: [organization_id], references: [id])
+  ContractDress            ContractDress[]
+  prospect_reservations    ProspectDressReservation[]
   prospect_request_dresses ProspectRequestDress[]
-  color                  DressColor?                 @relation(fields: [color_id], references: [id])
-  condition              DressCondition?             @relation(fields: [condition_id], references: [id])
-  size                   DressSize?                  @relation(fields: [size_id], references: [id])
-  type                   DressType?                  @relation(fields: [type_id], references: [id])
+  color                    DressColor?                 @relation(fields: [color_id], references: [id])
+  condition                DressCondition?             @relation(fields: [condition_id], references: [id])
+  size                     DressSize?                  @relation(fields: [size_id], references: [id])
+  type                     DressType?                  @relation(fields: [type_id], references: [id])
+
+  @@unique([reference, organization_id]) // Reference unique per organization
+  @@index([organization_id])
 }
 
 model Customer {
-  id          String             @id @default(uuid())
-  firstname   String
-  lastname    String
-  email       String             @unique
-  phone       String?
-  birthday    DateTime?
-  country     String?
-  city        String?
-  address     String?
-  postal_code String?
-  created_by  String?
-  created_at  DateTime           @default(now())
-  updated_at  DateTime?          @updatedAt
-  updated_by  String?
-  deleted_at  DateTime?
-  deleted_by  String?
-  contracts   Contract[]
-  sign_links  ContractSignLink[]
-  notes       CustomerNote[]
+  id              String             @id @default(uuid())
+  firstname       String
+  lastname        String
+  email           String
+  organization_id String
+  phone           String?
+  birthday        DateTime?
+  country         String?
+  city            String?
+  address         String?
+  postal_code     String?
+  created_by      String?
+  created_at      DateTime           @default(now())
+  updated_at      DateTime?          @updatedAt
+  updated_by      String?
+  deleted_at      DateTime?
+  deleted_by      String?
+  organization    Organization       @relation(fields: [organization_id], references: [id])
+  contracts       Contract[]
+  sign_links      ContractSignLink[]
+  notes           CustomerNote[]
+
+  @@unique([email, organization_id]) // Email unique per organization
+  @@index([organization_id])
 }
 
 model Prospect {
-  id                    String                      @id @default(uuid())
-  firstname             String
-  lastname              String
-  email                 String                      @unique
-  phone                 String?
-  birthday              DateTime?
-  country               String?
-  city                  String?
-  address               String?
-  postal_code           String?
-  status                String                      @default("new")
-  source                String?
-  notes                 String?
-  created_by            String?
-  created_at            DateTime                    @default(now())
-  updated_at            DateTime?                   @updatedAt
-  updated_by            String?
-  deleted_at            DateTime?
-  deleted_by            String?
-  converted_at          DateTime?
-  converted_by          String?
-  converted_to          String?
-  dress_reservations    ProspectDressReservation[]
-  requests              ProspectRequest[]
+  id                 String                      @id @default(uuid())
+  firstname          String
+  lastname           String
+  email              String
+  organization_id    String
+  phone              String?
+  birthday           DateTime?
+  country            String?
+  city               String?
+  address            String?
+  postal_code        String?
+  status             String                      @default("new")
+  source             String?
+  notes              String?
+  created_by         String?
+  created_at         DateTime                    @default(now())
+  updated_at         DateTime?                   @updatedAt
+  updated_by         String?
+  deleted_at         DateTime?
+  deleted_by         String?
+  converted_at       DateTime?
+  converted_by       String?
+  converted_to       String?
+  organization       Organization                @relation(fields: [organization_id], references: [id])
+  dress_reservations ProspectDressReservation[]
+  requests           ProspectRequest[]
+
+  @@unique([email, organization_id]) // Email unique per organization
+  @@index([organization_id])
 }
 
 model ProspectDressReservation {
@@ -258,53 +397,69 @@ model ProspectRequestDress {
 }
 
 model ContractType {
-  id         String     @id @default(uuid())
-  name       String
-  created_at DateTime   @default(now())
-  created_by String?
-  updated_at DateTime?  @updatedAt
-  updated_by String?
-  deleted_at DateTime?
-  deleted_by String?
-  contracts  Contract[]
+  id              String        @id @default(uuid())
+  name            String
+  organization_id String?       // null = global (shared across all orgs)
+  created_at      DateTime      @default(now())
+  created_by      String?
+  updated_at      DateTime?     @updatedAt
+  updated_by      String?
+  deleted_at      DateTime?
+  deleted_by      String?
+  organization    Organization? @relation(fields: [organization_id], references: [id])
+  contracts       Contract[]
+
+  @@unique([name, organization_id]) // Unique per organization
+  @@index([organization_id])
 }
 
 model ContractPackage {
-  id          String         @id @default(uuid())
-  name        String
-  num_dresses Int
-  price_ht    Decimal
-  price_ttc   Decimal
-  created_at  DateTime       @default(now())
-  created_by  String?
-  updated_at  DateTime?      @updatedAt
-  updated_by  String?
-  deleted_at  DateTime?
-  deleted_by  String?
-  contracts   Contract[]
-  addons      PackageAddon[]
+  id              String         @id @default(uuid())
+  name            String
+  organization_id String?        // null = global (shared across all orgs)
+  num_dresses     Int
+  price_ht        Decimal
+  price_ttc       Decimal
+  created_at      DateTime       @default(now())
+  created_by      String?
+  updated_at      DateTime?      @updatedAt
+  updated_by      String?
+  deleted_at      DateTime?
+  deleted_by      String?
+  organization    Organization?  @relation(fields: [organization_id], references: [id])
+  contracts       Contract[]
+  addons          PackageAddon[]
+
+  @@unique([name, organization_id]) // Unique per organization
+  @@index([organization_id])
 }
 
 model ContractAddon {
-  id             String              @id @default(uuid())
-  name           String
-  description    String?
-  price_ht       Decimal             @default(0)
-  price_ttc      Decimal             @default(0)
-  included       Boolean             @default(false)
-  created_at     DateTime            @default(now())
-  created_by     String?
-  updated_at     DateTime?           @updatedAt
-  updated_by     String?
-  deleted_at     DateTime?
-  deleted_by     String?
-  contract_links ContractAddonLink[]
-  packages       PackageAddon[]
+  id              String              @id @default(uuid())
+  name            String
+  organization_id String?             // null = global (shared across all orgs)
+  description     String?
+  price_ht        Decimal             @default(0)
+  price_ttc       Decimal             @default(0)
+  included        Boolean             @default(false)
+  created_at      DateTime            @default(now())
+  created_by      String?
+  updated_at      DateTime?           @updatedAt
+  updated_by      String?
+  deleted_at      DateTime?
+  deleted_by      String?
+  organization    Organization?       @relation(fields: [organization_id], references: [id])
+  contract_links  ContractAddonLink[]
+  packages        PackageAddon[]
+
+  @@unique([name, organization_id]) // Unique per organization
+  @@index([organization_id])
 }
 
 model Contract {
   id                     String              @id @default(uuid())
-  contract_number        String              @unique
+  contract_number        String
+  organization_id        String
   customer_id            String
   start_datetime         DateTime
   end_datetime           DateTime
@@ -333,12 +488,16 @@ model Contract {
   signature_ip           String?
   signature_location     String?
   signature_reference    String?
+  organization           Organization        @relation(fields: [organization_id], references: [id])
   contract_type          ContractType        @relation(fields: [contract_type_id], references: [id])
   customer               Customer            @relation(fields: [customer_id], references: [id])
   package                ContractPackage?    @relation(fields: [package_id], references: [id])
   addon_links            ContractAddonLink[]
   dresses                ContractDress[]
   sign_link              ContractSignLink?   @relation("ContractToSignLink")
+
+  @@unique([contract_number, organization_id]) // Contract number unique per organization
+  @@index([organization_id])
 }
 
 model ContractAddonLink {
@@ -424,4 +583,228 @@ model ApiKey {
   created_by  String?
   revoked_at  DateTime?
   revoked_by  String?
+}
+
+// ============================================
+// BUSINESS RULES MODELS
+// ============================================
+
+model ServiceType {
+  id              String        @id @default(uuid())
+  name            String        // Ex: "Location courte durée", "Location longue durée", "Vente"
+  code            String        // Ex: "rental_short", "rental_long", "sale"
+  organization_id String?       // null = global service type
+  description     String?
+  is_active       Boolean       @default(true)
+
+  // Configuration spécifique
+  config          Json?         // Service-specific configuration
+  /* Example config:
+  {
+    "min_duration_days": 1,
+    "max_duration_days": 7,
+    "requires_deposit": true,
+    "default_deposit_percentage": 30
+  }
+  */
+
+  created_at      DateTime      @default(now())
+  created_by      String?
+  updated_at      DateTime?     @updatedAt
+  updated_by      String?
+  deleted_at      DateTime?
+  deleted_by      String?
+
+  organization    Organization? @relation(fields: [organization_id], references: [id])
+  pricing_rules   PricingRule[]
+
+  @@unique([code, organization_id])
+  @@index([organization_id])
+  @@index([is_active])
+}
+
+model PricingRule {
+  id              String        @id @default(uuid())
+  name            String        // Ex: "Location journalière standard"
+  organization_id String?       // null = global pricing rule
+  service_type_id String?       // Lié à un type de service (optionnel)
+
+  // Pricing Strategy
+  strategy        String        // "per_day", "flat_rate", "fixed_price", "tiered"
+  /*
+  - per_day: Prix total = prix_par_jour × nombre_de_jours
+  - flat_rate: Prix total = prix_par_jour (forfait période, ex: weekend)
+  - fixed_price: Prix total = forfait fixe défini
+  - tiered: Prix dégressif selon durée (ex: -10% après 7 jours)
+  */
+
+  // Configuration de calcul
+  calculation_config Json?
+  /* Example for per_day:
+  {
+    "base_price_source": "dress", // "dress" | "contract" | "custom"
+    "apply_tax": true,
+    "tax_rate": 20,
+    "rounding": "up" // "up" | "down" | "nearest"
+  }
+
+  Example for tiered:
+  {
+    "tiers": [
+      { "min_days": 1, "max_days": 3, "discount_percentage": 0 },
+      { "min_days": 4, "max_days": 7, "discount_percentage": 10 },
+      { "min_days": 8, "max_days": null, "discount_percentage": 20 }
+    ]
+  }
+
+  Example for flat_rate:
+  {
+    "applies_to_period": "weekend", // "day" | "weekend" | "week" | "month"
+    "fixed_multiplier": 1.0
+  }
+
+  Example for fixed_price:
+  {
+    "fixed_amount_ht": 150.00,
+    "fixed_amount_ttc": 180.00
+  }
+  */
+
+  // Applicability rules
+  applies_to      Json?         // Conditions d'application
+  /* Example:
+  {
+    "dress_types": ["robe_soiree", "robe_cocktail"],
+    "min_duration_days": 3,
+    "max_duration_days": null,
+    "customer_types": ["vip", "regular"]
+  }
+  */
+
+  priority        Int           @default(0) // Higher = higher priority
+  is_active       Boolean       @default(true)
+
+  created_at      DateTime      @default(now())
+  created_by      String?
+  updated_at      DateTime?     @updatedAt
+  updated_by      String?
+  deleted_at      DateTime?
+  deleted_by      String?
+
+  organization    Organization? @relation(fields: [organization_id], references: [id])
+  service_type    ServiceType?  @relation(fields: [service_type_id], references: [id])
+
+  @@unique([name, organization_id])
+  @@index([organization_id])
+  @@index([service_type_id])
+  @@index([strategy])
+  @@index([is_active])
+  @@index([priority])
+}
+
+// ============================================
+// SUBSCRIPTION & BILLING MODELS
+// ============================================
+
+model SubscriptionPlan {
+  id                  String    @id @default(uuid())
+  name                String    @unique // "Free", "Basic", "Pro", "Enterprise"
+  code                String    @unique // "free", "basic", "pro", "enterprise"
+  description         String?
+
+  // Pricing
+  price_monthly       Decimal   @default(0) // Prix mensuel HT
+  price_yearly        Decimal   @default(0) // Prix annuel HT (avec réduction)
+  currency            String    @default("EUR")
+
+  // Trial
+  trial_days          Int       @default(14) // Jours d'essai gratuit
+
+  // Feature Limits (Quotas)
+  limits              Json      // Limites du plan
+  /* Example limits:
+  {
+    "users": 5,                    // Max users
+    "dresses": 100,                // Max robes
+    "customers": 500,              // Max clients
+    "contracts_per_month": 50,     // Max contrats/mois
+    "storage_gb": 10,              // Stockage en GB
+    "api_calls_per_day": 1000,     // Appels API/jour
+    "custom_branding": false,      // Personnalisation
+    "advanced_pricing": false,     // Règles de pricing avancées
+    "multi_location": false,       // Multi-emplacements
+    "priority_support": false,     // Support prioritaire
+    "custom_reports": false,       // Rapports personnalisés
+    "integrations": ["basic"],     // Intégrations disponibles
+    "email_notifications": 100     // Emails/mois
+  }
+  */
+
+  // Features (Boolean flags)
+  features            Json      // Fonctionnalités activées
+  /* Example features:
+  {
+    "prospect_management": true,
+    "contract_generation": true,
+    "electronic_signature": false,
+    "inventory_management": true,
+    "customer_portal": false,
+    "advanced_analytics": false,
+    "export_data": true,
+    "api_access": false,
+    "white_label": false,
+    "sms_notifications": false
+  }
+  */
+
+  // Display
+  is_public           Boolean   @default(true) // Visible sur la page pricing
+  is_popular          Boolean   @default(false) // Badge "Populaire"
+  sort_order          Int       @default(0) // Ordre d'affichage
+
+  created_at          DateTime  @default(now())
+  updated_at          DateTime? @updatedAt
+
+  // Relations
+  organizations       Organization[]
+
+  @@index([code])
+  @@index([is_public])
+}
+
+model UsageEvent {
+  id              String       @id @default(uuid())
+  organization_id String
+
+  // Event details
+  event_type      String       // "user_created", "dress_created", "contract_created", etc.
+  resource_type   String       // "user", "dress", "contract", "api_call", etc.
+  resource_id     String?      // ID de la ressource concernée
+
+  // Metadata
+  metadata        Json?        // Données supplémentaires
+  /* Example:
+  {
+    "user_id": "uuid",
+    "action": "create",
+    "ip_address": "192.168.1.1",
+    "user_agent": "..."
+  }
+  */
+
+  // Aggregation fields (for efficient querying)
+  event_date      DateTime     @default(now()) // Date de l'événement
+  event_month     String       // Format: "2025-12" (for monthly quotas)
+  event_day       String       // Format: "2025-12-06" (for daily quotas)
+
+  created_at      DateTime     @default(now())
+
+  organization    Organization @relation(fields: [organization_id], references: [id])
+
+  @@index([organization_id])
+  @@index([event_type])
+  @@index([resource_type])
+  @@index([event_month])
+  @@index([event_day])
+  @@index([created_at])
 }

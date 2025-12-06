@@ -1,74 +1,74 @@
 {
-  "/customers": {
-    "get": {
-      "tags": ["Customers"],
-      "summary": "Get all customers",
-      "description": "Retrieves a paginated list of customers. Supports search and pagination via query parameters.",
-      "operationId": "getCustomers",
-      "security": [{ "bearerAuth": [] }],
-      "parameters": [
-        {
-          "name": "search",
-          "in": "query",
-          "required": false,
-          "schema": { "type": "string" },
-          "description": "Search term (applies to firstname, lastname, email, phone)."
-        },
-        {
-          "name": "page",
-          "in": "query",
-          "required": false,
-          "schema": { "type": "integer", "default": 1 },
-          "description": "Page number (for pagination)."
-        },
-        {
-          "name": "limit",
-          "in": "query",
-          "required": false,
-          "schema": { "type": "integer", "default": 20 },
-          "description": "Number of results per page."
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ Customers successfully retrieved",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/GetCustomersResponse" },
-              "example": {
-                "success": true,
-                "page": 1,
-                "limit": 20,
-                "total": 125,
-                "data": [
-                  {
-                    "id": "f93d3b8c-9b1e-41b5-83df-1dcdacb9c324",
-                    "firstname": "Emma",
-                    "lastname": "Dupont",
-                    "email": "emma.dupont@email.fr",
-                    "phone": "+33612345678",
-                    "city": "Paris",
-                    "country": "France",
-                    "created_at": "2025-10-10T10:00:00.000Z"
-                  }
-                ]
-              }
+    "/customers": {
+        "get": {
+            "tags": ["Customers"],
+            "summary": "Get all customers",
+            "description": "Retrieves a paginated list of customers. Supports search and pagination via query parameters.",
+            "operationId": "getCustomers",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                    "name": "search",
+                    "in": "query",
+                    "required": false,
+                    "schema": { "type": "string" },
+                    "description": "Search term (applies to firstname, lastname, email, phone)."
+                },
+                {
+                    "name": "page",
+                    "in": "query",
+                    "required": false,
+                    "schema": { "type": "integer", "default": 1 },
+                    "description": "Page number (for pagination)."
+                },
+                {
+                    "name": "limit",
+                    "in": "query",
+                    "required": false,
+                    "schema": { "type": "integer", "default": 20 },
+                    "description": "Number of results per page."
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ Customers successfully retrieved",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/GetCustomersResponse" },
+                            "example": {
+                                "success": true,
+                                "page": 1,
+                                "limit": 20,
+                                "total": 125,
+                                "data": [
+                                    {
+                                        "id": "f93d3b8c-9b1e-41b5-83df-1dcdacb9c324",
+                                        "firstname": "Emma",
+                                        "lastname": "Dupont",
+                                        "email": "emma.dupont@email.fr",
+                                        "phone": "+33612345678",
+                                        "city": "Paris",
+                                        "country": "France",
+                                        "created_at": "2025-10-10T10:00:00.000Z"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Server error fetching customers",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                            "example": {
+                                "success": false,
+                                "error": "Failed to fetch customers"
+                            }
+                        }
+                    }
+                }
             }
-          }
-        },
-        "500": {
-          "description": "💥 Server error fetching customers",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-              "example": {
-                "success": false,
-                "error": "Failed to fetch customers"
-              }
-            }
-          }
         }
-      }
     }
-  }
 }

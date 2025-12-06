@@ -1,10 +1,10 @@
 {
-  "HardDeleteDressTypeResponse": {
-    "type": "object",
-    "properties": {
-      "success": { "type": "boolean", "example": true },
-      "message": { "type": "string", "example": "Dress type hard deleted" },
-      "data": { "type": ["null", "object"], "example": null }
+    "HardDeleteDressTypeResponse": {
+        "type": "object",
+        "properties": {
+            "success": { "type": "boolean", "example": true },
+            "message": { "type": "string", "example": "Dress type hard deleted" },
+            "data": { "type": ["null", "object"], "example": null }
+        }
     }
-  }
 }

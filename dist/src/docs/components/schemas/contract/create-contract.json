@@ -1,180 +1,180 @@
 {
-  "post": {
-    "summary": "Create a new contract",
-    "description": "Endpoint to create a new contract in the system.",
-    "tags": [
-      "Contracts"
-    ],
-    "requestBody": {
-      "description": "Contract object that needs to be added",
-      "required": true,
-      "content": {
-        "application/json": {
-          "schema": {
-            "type": "object",
-            "required": [
-              "title",
-              "startDate",
-              "endDate",
-              "parties",
-              "terms"
-            ],
-            "properties": {
-              "title": {
-                "type": "string",
-                "description": "Title of the contract",
-                "example": "Service Agreement"
-              },
-              "startDate": {
-                "type": "string",
-                "format": "date",
-                "description": "Start date of the contract",
-                "example": "2024-01-01"
-              },
-              "endDate": {
-                "type": "string",
-                "format": "date",
-                "description": "End date of the contract",
-                "example": "2024-12-31"
-              },
-              "parties": {
-                "type": "array",
-                "description": "List of parties involved in the contract",
-                "items": {
-                  "type": "object",
-                  "required": [
-                    "name",
-                    "role"
-                  ],
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "Name of the party",
-                      "example": "Acme Corp"
+    "post": {
+        "summary": "Create a new contract",
+        "description": "Endpoint to create a new contract in the system.",
+        "tags": [
+            "Contracts"
+        ],
+        "requestBody": {
+            "description": "Contract object that needs to be added",
+            "required": true,
+            "content": {
+                "application/json": {
+                    "schema": {
+                        "type": "object",
+                        "required": [
+                            "title",
+                            "startDate",
+                            "endDate",
+                            "parties",
+                            "terms"
+                        ],
+                        "properties": {
+                            "title": {
+                                "type": "string",
+                                "description": "Title of the contract",
+                                "example": "Service Agreement"
+                            },
+                            "startDate": {
+                                "type": "string",
+                                "format": "date",
+                                "description": "Start date of the contract",
+                                "example": "2024-01-01"
+                            },
+                            "endDate": {
+                                "type": "string",
+                                "format": "date",
+                                "description": "End date of the contract",
+                                "example": "2024-12-31"
+                            },
+                            "parties": {
+                                "type": "array",
+                                "description": "List of parties involved in the contract",
+                                "items": {
+                                    "type": "object",
+                                    "required": [
+                                        "name",
+                                        "role"
+                                    ],
+                                    "properties": {
+                                        "name": {
+                                            "type": "string",
+                                            "description": "Name of the party",
+                                            "example": "Acme Corp"
+                                        },
+                                        "role": {
+                                            "type": "string",
+                                            "description": "Role of the party in the contract",
+                                            "example": "Client"
+                                        }
+                                    }
+                                }
+                            },
+                            "terms": {
+                                "type": "string",
+                                "description": "Terms and conditions of the contract",
+                                "example": "The service provider agrees to..."
+                            },
+                            "metadata": {
+                                "type": "object",
+                                "description": "Additional metadata for the contract",
+                                "properties": {
+                                    "createdBy": {
+                                        "type": "string",
+                                        "description": "User who created the contract",
+                                        "example": "jdoe"
+                                    },
+                                    "priority": {
+                                        "type": "string",
+                                        "description": "Priority level of the contract",
+                                        "enum": ["low", "medium", "high"],
+                                        "example": "high"
+                                    }
+                                }
+                            }
+                        }
                     },
-                    "role": {
-                      "type": "string",
-                      "description": "Role of the party in the contract",
-                      "example": "Client"
+                    "examples": {
+                        "contract": {
+                            "summary": "Example contract creation payload",
+                            "value": {
+                                "title": "Service Agreement",
+                                "startDate": "2024-01-01",
+                                "endDate": "2024-12-31",
+                                "parties": [
+                                    {
+                                        "name": "Acme Corp",
+                                        "role": "Client"
+                                    },
+                                    {
+                                        "name": "Beta Services",
+                                        "role": "Provider"
+                                    }
+                                ],
+                                "terms": "The service provider agrees to deliver the services as specified...",
+                                "metadata": {
+                                    "createdBy": "jdoe",
+                                    "priority": "high"
+                                }
+                            }
+                        }
                     }
-                  }
                 }
-              },
-              "terms": {
-                "type": "string",
-                "description": "Terms and conditions of the contract",
-                "example": "The service provider agrees to..."
-              },
-              "metadata": {
-                "type": "object",
-                "description": "Additional metadata for the contract",
-                "properties": {
-                  "createdBy": {
-                    "type": "string",
-                    "description": "User who created the contract",
-                    "example": "jdoe"
-                  },
-                  "priority": {
-                    "type": "string",
-                    "description": "Priority level of the contract",
-                    "enum": ["low", "medium", "high"],
-                    "example": "high"
-                  }
-                }
-              }
             }
-          },
-          "examples": {
-            "contract": {
-              "summary": "Example contract creation payload",
-              "value": {
-                "title": "Service Agreement",
-                "startDate": "2024-01-01",
-                "endDate": "2024-12-31",
-                "parties": [
-                  {
-                    "name": "Acme Corp",
-                    "role": "Client"
-                  },
-                  {
-                    "name": "Beta Services",
-                    "role": "Provider"
-                  }
-                ],
-                "terms": "The service provider agrees to deliver the services as specified...",
-                "metadata": {
-                  "createdBy": "jdoe",
-                  "priority": "high"
+        },
+        "responses": {
+            "201": {
+                "description": "Contract created successfully",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string",
+                                    "description": "Unique identifier for the created contract",
+                                    "example": "c1234567890abcdef"
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Contract created successfully"
+                                }
+                            }
+                        },
+                        "examples": {
+                            "success": {
+                                "summary": "Successful contract creation response",
+                                "value": {
+                                    "id": "c1234567890abcdef",
+                                    "message": "Contract created successfully"
+                                }
+                            }
+                        }
+                    }
                 }
-              }
-            }
-          }
-        }
-      }
-    },
-    "responses": {
-      "201": {
-        "description": "Contract created successfully",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "description": "Unique identifier for the created contract",
-                  "example": "c1234567890abcdef"
-                },
-                "message": {
-                  "type": "string",
-                  "example": "Contract created successfully"
-                }
-              }
             },
-            "examples": {
-              "success": {
-                "summary": "Successful contract creation response",
-                "value": {
-                  "id": "c1234567890abcdef",
-                  "message": "Contract created successfully"
+            "400": {
+                "description": "Invalid input",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string",
+                                    "example": "Invalid contract data"
+                                }
+                            }
+                        }
+                    }
                 }
-              }
-            }
-          }
-        }
-      },
-      "400": {
-        "description": "Invalid input",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "error": {
-                  "type": "string",
-                  "example": "Invalid contract data"
+            },
+            "500": {
+                "description": "Internal server error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string",
+                                    "example": "An unexpected error occurred"
+                                }
+                            }
+                        }
+                    }
                 }
-              }
             }
-          }
         }
-      },
-      "500": {
-        "description": "Internal server error",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "error": {
-                  "type": "string",
-                  "example": "An unexpected error occurred"
-                }
-              }
-            }
-          }
-        }
-      }
     }
-  }
 }

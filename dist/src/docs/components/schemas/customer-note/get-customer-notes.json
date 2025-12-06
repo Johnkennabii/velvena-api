@@ -1,71 +1,71 @@
 {
-  "GetCustomerNotesResponse": {
-    "type": "object",
-    "properties": {
-      "success": {
-        "type": "boolean",
-        "example": true
-      },
-      "data": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/CustomerNote"
+    "GetCustomerNotesResponse": {
+        "type": "object",
+        "properties": {
+            "success": {
+                "type": "boolean",
+                "example": true
+            },
+            "data": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/CustomerNote"
+                }
+            }
         }
-      }
+    },
+    "CustomerNote": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "f93d3b8c-9b1e-41b5-83df-1dcdacb9c324"
+            },
+            "customer_id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "customer-uuid-123"
+            },
+            "content": {
+                "type": "string",
+                "example": "Client préfère les couleurs vives"
+            },
+            "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2025-11-29T12:00:00.000Z"
+            },
+            "created_by": {
+                "type": "string",
+                "format": "uuid",
+                "nullable": true,
+                "example": "user-uuid-123"
+            },
+            "updated_at": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true,
+                "example": "2025-11-29T13:00:00.000Z"
+            },
+            "updated_by": {
+                "type": "string",
+                "format": "uuid",
+                "nullable": true,
+                "example": "user-uuid-123"
+            },
+            "deleted_at": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true,
+                "example": null
+            },
+            "deleted_by": {
+                "type": "string",
+                "format": "uuid",
+                "nullable": true,
+                "example": null
+            }
+        }
     }
-  },
-  "CustomerNote": {
-    "type": "object",
-    "properties": {
-      "id": {
-        "type": "string",
-        "format": "uuid",
-        "example": "f93d3b8c-9b1e-41b5-83df-1dcdacb9c324"
-      },
-      "customer_id": {
-        "type": "string",
-        "format": "uuid",
-        "example": "customer-uuid-123"
-      },
-      "content": {
-        "type": "string",
-        "example": "Client préfère les couleurs vives"
-      },
-      "created_at": {
-        "type": "string",
-        "format": "date-time",
-        "example": "2025-11-29T12:00:00.000Z"
-      },
-      "created_by": {
-        "type": "string",
-        "format": "uuid",
-        "nullable": true,
-        "example": "user-uuid-123"
-      },
-      "updated_at": {
-        "type": "string",
-        "format": "date-time",
-        "nullable": true,
-        "example": "2025-11-29T13:00:00.000Z"
-      },
-      "updated_by": {
-        "type": "string",
-        "format": "uuid",
-        "nullable": true,
-        "example": "user-uuid-123"
-      },
-      "deleted_at": {
-        "type": "string",
-        "format": "date-time",
-        "nullable": true,
-        "example": null
-      },
-      "deleted_by": {
-        "type": "string",
-        "format": "uuid",
-        "nullable": true,
-        "example": null
-      }
-    }
-  }
 }

@@ -1,25 +1,25 @@
 {
-  "UpdateCustomerNoteRequest": {
-    "type": "object",
-    "required": ["content"],
-    "properties": {
-      "content": {
-        "type": "string",
-        "description": "Updated note content",
-        "example": "Client préfère les couleurs vives et les robes longues (mise à jour)"
-      }
+    "UpdateCustomerNoteRequest": {
+        "type": "object",
+        "required": ["content"],
+        "properties": {
+            "content": {
+                "type": "string",
+                "description": "Updated note content",
+                "example": "Client préfère les couleurs vives et les robes longues (mise à jour)"
+            }
+        }
+    },
+    "UpdateCustomerNoteResponse": {
+        "type": "object",
+        "properties": {
+            "success": {
+                "type": "boolean",
+                "example": true
+            },
+            "data": {
+                "$ref": "#/components/schemas/CustomerNote"
+            }
+        }
     }
-  },
-  "UpdateCustomerNoteResponse": {
-    "type": "object",
-    "properties": {
-      "success": {
-        "type": "boolean",
-        "example": true
-      },
-      "data": {
-        "$ref": "#/components/schemas/CustomerNote"
-      }
-    }
-  }
 }

@@ -1,14 +1,14 @@
 {
-  "SoftDeleteProspectResponse": {
-    "type": "object",
-    "properties": {
-      "success": {
-        "type": "boolean",
-        "example": true
-      },
-      "data": {
-        "$ref": "#/components/schemas/Prospect"
-      }
+    "SoftDeleteProspectResponse": {
+        "type": "object",
+        "properties": {
+            "success": {
+                "type": "boolean",
+                "example": true
+            },
+            "data": {
+                "$ref": "#/components/schemas/Prospect"
+            }
+        }
     }
-  }
 }

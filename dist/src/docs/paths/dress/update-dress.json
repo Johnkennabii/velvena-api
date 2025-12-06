@@ -1,90 +1,90 @@
 {
-  "/dresses/{id}": {
-  "put": {
-    "tags": ["Dresses"],
-    "summary": "Update an existing dress",
-    "description": "Update an existing dress identified by its UUID. Supports both JSON body and multipart/form-data for optional file uploads. Only include the fields you wish to modify.",
-    "operationId": "updateDress",
-    "security": [{ "bearerAuth": [] }],
-    "parameters": [
-      {
-        "name": "id",
-        "in": "path",
-        "description": "UUID of the dress to update",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "requestBody": {
-      "required": true,
-      "content": {
-        "application/json": {
-          "schema": {
-            "$ref": "#/components/schemas/UpdateDressRequest"
-          },
-          "example": {
-            "name": "Robe revisité",
-            "reference": "RCB2025",
-            "price_ht": 200,
-            "price_ttc": 240,
-            "price_per_day_ht": 25,
-            "price_per_day_ttc": 30,
-            "type_id": "2502e841-b7a6-48dc-ad8a-f5b69dcda649",
-            "size_id": "e1385f86-b163-4c4c-a671-b269aa9ad7f4",
-            "condition_id": "3bf7f7e0-c461-4ba5-8fea-a4fd2b8eeea8",
-            "color_id": "7f736acb-7b51-4d07-9c18-13dbffeaabf8",
-            "images": [
-              "https://media-allure-creation.hel1.your-objectstorage.com/dresses/f48b273d-e41a-48a5-b2cf-30adcd0d96b9"
-            ]
-          }
-        },
-        "multipart/form-data": {
-          "schema": {
-            "type": "object",
-            "properties": {
-              "data": {
-                "type": "string",
-                "description": "Stringified JSON containing dress fields to update",
-                "example": "{\"name\":\"Robe revisité\",\"price_ht\":200,\"price_ttc\":240,\"images\":[]}"
-              },
-              "files": {
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "format": "binary"
-                },
-                "description": "Optional image files to upload (max 5)"
-              }
+    "/dresses/{id}": {
+        "put": {
+            "tags": ["Dresses"],
+            "summary": "Update an existing dress",
+            "description": "Update an existing dress identified by its UUID. Supports both JSON body and multipart/form-data for optional file uploads. Only include the fields you wish to modify.",
+            "operationId": "updateDress",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "description": "UUID of the dress to update",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/UpdateDressRequest"
+                        },
+                        "example": {
+                            "name": "Robe revisité",
+                            "reference": "RCB2025",
+                            "price_ht": 200,
+                            "price_ttc": 240,
+                            "price_per_day_ht": 25,
+                            "price_per_day_ttc": 30,
+                            "type_id": "2502e841-b7a6-48dc-ad8a-f5b69dcda649",
+                            "size_id": "e1385f86-b163-4c4c-a671-b269aa9ad7f4",
+                            "condition_id": "3bf7f7e0-c461-4ba5-8fea-a4fd2b8eeea8",
+                            "color_id": "7f736acb-7b51-4d07-9c18-13dbffeaabf8",
+                            "images": [
+                                "https://media-allure-creation.hel1.your-objectstorage.com/dresses/f48b273d-e41a-48a5-b2cf-30adcd0d96b9"
+                            ]
+                        }
+                    },
+                    "multipart/form-data": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "string",
+                                    "description": "Stringified JSON containing dress fields to update",
+                                    "example": "{\"name\":\"Robe revisité\",\"price_ht\":200,\"price_ttc\":240,\"images\":[]}"
+                                },
+                                "files": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "description": "Optional image files to upload (max 5)"
+                                }
+                            },
+                            "required": ["data"]
+                        }
+                    }
+                }
             },
-            "required": ["data"]
-          }
-        }
-      }
-    },
-    "responses": {
-      "200": {
-        "description": "Dress updated successfully",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/UpdateDressResponse"
+            "responses": {
+                "200": {
+                    "description": "Dress updated successfully",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateDressResponse"
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "Bad Request"
+                },
+                "404": {
+                    "description": "Dress not found"
+                },
+                "500": {
+                    "description": "Internal Server Error"
+                }
             }
-          }
         }
-      },
-      "400": {
-        "description": "Bad Request"
-      },
-      "404": {
-        "description": "Dress not found"
-      },
-      "500": {
-        "description": "Internal Server Error"
-      }
     }
-  }
-}
 }

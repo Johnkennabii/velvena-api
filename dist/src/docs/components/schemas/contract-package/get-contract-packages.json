@@ -1,77 +1,75 @@
 {
-  "ContractAddon": {
-    "type": "object",
-    "description": "Optional service or add-on linked to a contract package.",
-    "properties": {
-      "id": {
-        "type": "string",
-        "format": "uuid",
-        "example": "addon_01"
-      },
-      "name": {
-        "type": "string",
-        "example": "Pressing inclus"
-      },
-      "price_ht": {
-        "type": "number",
-        "example": 25
-      },
-      "price_ttc": {
-        "type": "number",
-        "example": 30
-      }
+    "ContractAddon": {
+        "type": "object",
+        "description": "Optional service or add-on linked to a contract package.",
+        "properties": {
+            "id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "addon_01"
+            },
+            "name": {
+                "type": "string",
+                "example": "Pressing inclus"
+            },
+            "price_ht": {
+                "type": "number",
+                "example": 25
+            },
+            "price_ttc": {
+                "type": "number",
+                "example": 30
+            }
+        }
+    },
+    "ContractPackageListItem": {
+        "type": "object",
+        "description": "Represents a summarized contract package item returned in the list view.",
+        "properties": {
+            "id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "pkg_001"
+            },
+            "name": {
+                "type": "string",
+                "example": "Formule Classique"
+            },
+            "description": {
+                "type": "string",
+                "example": "Location simple sans options supplémentaires"
+            },
+            "price_ht": {
+                "type": "number",
+                "example": 200
+            },
+            "price_ttc": {
+                "type": "number",
+                "example": 240
+            },
+            "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2025-05-14T09:15:30.000Z"
+            },
+            "addons": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/ContractAddon" }
+            }
+        }
+    },
+    "GetContractPackagesResponse": {
+        "type": "object",
+        "description": "Response schema for retrieving all active contract packages.",
+        "properties": {
+            "success": {
+                "type": "boolean",
+                "example": true
+            },
+            "data": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/ContractPackageListItem" }
+            }
+        }
     }
-  },
-
-  "ContractPackageListItem": {
-    "type": "object",
-    "description": "Represents a summarized contract package item returned in the list view.",
-    "properties": {
-      "id": {
-        "type": "string",
-        "format": "uuid",
-        "example": "pkg_001"
-      },
-      "name": {
-        "type": "string",
-        "example": "Formule Classique"
-      },
-      "description": {
-        "type": "string",
-        "example": "Location simple sans options supplémentaires"
-      },
-      "price_ht": {
-        "type": "number",
-        "example": 200
-      },
-      "price_ttc": {
-        "type": "number",
-        "example": 240
-      },
-      "created_at": {
-        "type": "string",
-        "format": "date-time",
-        "example": "2025-05-14T09:15:30.000Z"
-      },
-      "addons": {
-        "type": "array",
-        "items": { "$ref": "#/components/schemas/ContractAddon" }
-      }
-    }
-  },
-
-  "GetContractPackagesResponse": {
-    "type": "object",
-    "description": "Response schema for retrieving all active contract packages.",
-    "properties": {
-      "success": {
-        "type": "boolean",
-        "example": true
-      },
-      "data": {
-        "type": "array",
-        "items": { "$ref": "#/components/schemas/ContractPackageListItem" }
-      }
-    }
-  }
 }

@@ -1,188 +1,188 @@
 {
-  "/prospects/{id}": {
-    "get": {
-      "tags": ["Prospects"],
-      "summary": "Get a prospect by ID",
-      "description": "Retrieves detailed information about a specific prospect.",
-      "operationId": "getProspectById",
-      "security": [{ "bearerAuth": [] }],
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string", "format": "uuid" },
-          "description": "Prospect ID"
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ Prospect successfully retrieved",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/GetProspectResponse" }
+    "/prospects/{id}": {
+        "get": {
+            "tags": ["Prospects"],
+            "summary": "Get a prospect by ID",
+            "description": "Retrieves detailed information about a specific prospect.",
+            "operationId": "getProspectById",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": { "type": "string", "format": "uuid" },
+                    "description": "Prospect ID"
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ Prospect successfully retrieved",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/GetProspectResponse" }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "❌ Prospect not found",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Server error",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                        }
+                    }
+                }
             }
-          }
         },
-        "404": {
-          "description": "❌ Prospect not found",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+        "put": {
+            "tags": ["Prospects"],
+            "summary": "Update a prospect",
+            "description": "Updates an existing prospect. Cannot update a prospect that has already been converted to a customer.",
+            "operationId": "updateProspect",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": { "type": "string", "format": "uuid" },
+                    "description": "Prospect ID"
+                }
+            ],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": { "$ref": "#/components/schemas/UpdateProspectRequest" }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "✅ Prospect successfully updated",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/UpdateProspectResponse" }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "❌ Cannot update converted prospect",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "❌ Prospect not found",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Server error",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                        }
+                    }
+                }
             }
-          }
         },
-        "500": {
-          "description": "💥 Server error",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+        "patch": {
+            "tags": ["Prospects"],
+            "summary": "Soft delete a prospect",
+            "description": "Marks a prospect as deleted without permanently removing it from the database.",
+            "operationId": "softDeleteProspect",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": { "type": "string", "format": "uuid" },
+                    "description": "Prospect ID"
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ Prospect successfully soft deleted",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/SoftDeleteProspectResponse" }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "❌ Prospect not found",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Server error",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                        }
+                    }
+                }
             }
-          }
-        }
-      }
-    },
-    "put": {
-      "tags": ["Prospects"],
-      "summary": "Update a prospect",
-      "description": "Updates an existing prospect. Cannot update a prospect that has already been converted to a customer.",
-      "operationId": "updateProspect",
-      "security": [{ "bearerAuth": [] }],
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string", "format": "uuid" },
-          "description": "Prospect ID"
-        }
-      ],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": { "$ref": "#/components/schemas/UpdateProspectRequest" }
-          }
-        }
-      },
-      "responses": {
-        "200": {
-          "description": "✅ Prospect successfully updated",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/UpdateProspectResponse" }
-            }
-          }
         },
-        "400": {
-          "description": "❌ Cannot update converted prospect",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+        "delete": {
+            "tags": ["Prospects"],
+            "summary": "Hard delete a prospect",
+            "description": "Permanently removes a prospect from the database. This action cannot be undone.",
+            "operationId": "hardDeleteProspect",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": { "type": "string", "format": "uuid" },
+                    "description": "Prospect ID"
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ Prospect permanently deleted",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/HardDeleteProspectResponse" }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "❌ Prospect not found",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Server error",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                        }
+                    }
+                }
             }
-          }
-        },
-        "404": {
-          "description": "❌ Prospect not found",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-            }
-          }
-        },
-        "500": {
-          "description": "💥 Server error",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-            }
-          }
         }
-      }
-    },
-    "patch": {
-      "tags": ["Prospects"],
-      "summary": "Soft delete a prospect",
-      "description": "Marks a prospect as deleted without permanently removing it from the database.",
-      "operationId": "softDeleteProspect",
-      "security": [{ "bearerAuth": [] }],
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string", "format": "uuid" },
-          "description": "Prospect ID"
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ Prospect successfully soft deleted",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/SoftDeleteProspectResponse" }
-            }
-          }
-        },
-        "404": {
-          "description": "❌ Prospect not found",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-            }
-          }
-        },
-        "500": {
-          "description": "💥 Server error",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-            }
-          }
-        }
-      }
-    },
-    "delete": {
-      "tags": ["Prospects"],
-      "summary": "Hard delete a prospect",
-      "description": "Permanently removes a prospect from the database. This action cannot be undone.",
-      "operationId": "hardDeleteProspect",
-      "security": [{ "bearerAuth": [] }],
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string", "format": "uuid" },
-          "description": "Prospect ID"
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ Prospect permanently deleted",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/HardDeleteProspectResponse" }
-            }
-          }
-        },
-        "404": {
-          "description": "❌ Prospect not found",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-            }
-          }
-        },
-        "500": {
-          "description": "💥 Server error",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-            }
-          }
-        }
-      }
     }
-  }
 }

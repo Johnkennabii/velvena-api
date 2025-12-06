@@ -1,53 +1,53 @@
 {
-  "ContractType": {
-    "type": "object",
-    "description": "Represents a type of contract (e.g., daily rental, weekend rental).",
-    "properties": {
-      "id": {
-        "type": "string",
-        "format": "uuid",
-        "example": "8c1d72b3-6e91-47b9-8c1e-f13c19e5b4de",
-        "description": "Unique identifier of the contract type."
-      },
-      "name": {
-        "type": "string",
-        "example": "Location journalière",
-        "description": "Name of the contract type."
-      },
-      "description": {
-        "type": ["string", "null"],
-        "example": "Contrat de location à la journée",
-        "description": "Optional description providing more details about the contract type."
-      },
-      "created_at": {
-        "type": "string",
-        "format": "date-time",
-        "example": "2025-05-14T09:15:30.000Z",
-        "description": "Timestamp when this contract type was created."
-      },
-      "updated_at": {
-        "type": ["string", "null"],
-        "format": "date-time",
-        "example": "2025-06-01T10:00:00.000Z",
-        "description": "Timestamp when this contract type was last updated (null if never updated)."
-      }
+    "ContractType": {
+        "type": "object",
+        "description": "Represents a type of contract (e.g., daily rental, weekend rental).",
+        "properties": {
+            "id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "8c1d72b3-6e91-47b9-8c1e-f13c19e5b4de",
+                "description": "Unique identifier of the contract type."
+            },
+            "name": {
+                "type": "string",
+                "example": "Location journalière",
+                "description": "Name of the contract type."
+            },
+            "description": {
+                "type": ["string", "null"],
+                "example": "Contrat de location à la journée",
+                "description": "Optional description providing more details about the contract type."
+            },
+            "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2025-05-14T09:15:30.000Z",
+                "description": "Timestamp when this contract type was created."
+            },
+            "updated_at": {
+                "type": ["string", "null"],
+                "format": "date-time",
+                "example": "2025-06-01T10:00:00.000Z",
+                "description": "Timestamp when this contract type was last updated (null if never updated)."
+            }
+        }
+    },
+    "GetContractTypesResponse": {
+        "type": "object",
+        "description": "Response object returned by GET /contract-types.",
+        "properties": {
+            "success": {
+                "type": "boolean",
+                "example": true
+            },
+            "data": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/ContractType"
+                },
+                "description": "List of all contract types available in the system."
+            }
+        }
     }
-  },
-  "GetContractTypesResponse": {
-    "type": "object",
-    "description": "Response object returned by GET /contract-types.",
-    "properties": {
-      "success": {
-        "type": "boolean",
-        "example": true
-      },
-      "data": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/ContractType"
-        },
-        "description": "List of all contract types available in the system."
-      }
-    }
-  }
 }

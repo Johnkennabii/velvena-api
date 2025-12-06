@@ -58,6 +58,15 @@ import { prospectRequestSchemas } from "./components/schemas/prospect-request/in
 import rolesPath from "./paths/roles/index.js" ;
 import rolessSchemas from "./components/schemas/roles/index.js";
 
+import organizationPaths from "./paths/organization/index.js";
+import organizationSchemas from "./components/schemas/organization/index.js";
+
+import serviceTypePaths from "./paths/service-type/index.js";
+import serviceTypeSchemas from "./components/schemas/service-type/index.js";
+
+import pricingRulePaths from "./paths/pricing-rule/index.js";
+import pricingRuleSchemas from "./components/schemas/pricing-rule/index.js";
+
 import mailPath from "./paths/mail/index.js" ;
 import mailSchemas from "./components/schemas/mail/index.js";
 
@@ -72,7 +81,7 @@ export const swaggerDocument = {
   },
   servers: [
     { url: "https://api.allure-creation.fr", description: "Production Server" },
-    { url: "http://localhost:4000", description: "Local Development Server" },
+    { url: "http://localhost:3000", description: "Local Development Server" },
   ],
   tags: [
     { name: "Auth", description: "Authentication and user session endpoints" },
@@ -95,6 +104,9 @@ export const swaggerDocument = {
     { name: "Prospect Requests", description: "Endpoints related to prospect requests (demandes) with dress selections and estimates" },
     { name: "Roles", description: "Endpoints related to roles management" },
     { name: "Mail", description: "Endpoints related to email management (IMAP/SMTP)" },
+    { name: "Organizations", description: "Endpoints for managing organizations (multi-tenant)" },
+    { name: "Service Types", description: "Endpoints for managing service types (rental types, pricing methods)" },
+    { name: "Pricing Rules", description: "Endpoints for managing pricing rules and calculating rental prices" },
   ],
   paths: {
     ...userAuthPath,
@@ -117,6 +129,9 @@ export const swaggerDocument = {
     ...prospectRequestPaths,
     ...rolesPath,
     ...mailPath,
+    ...organizationPaths,
+    ...serviceTypePaths,
+    ...pricingRulePaths,
   },
   components: {
     schemas: {
@@ -140,6 +155,9 @@ export const swaggerDocument = {
       ...prospectRequestSchemas,
       ...rolessSchemas,
       ...mailSchemas,
+      ...organizationSchemas,
+      ...serviceTypeSchemas,
+      ...pricingRuleSchemas,
     },
     securitySchemes: {
       bearerAuth: {

@@ -1,66 +1,66 @@
 {
-  "/roles": {
-    "get": {
-      "tags": ["Roles"],
-      "summary": "Get all roles",
-      "description": "Retrieves the list of active roles (non supprimés) triés par nom croissant.",
-      "operationId": "getRoles",
-      "security": [{ "bearerAuth": [] }],
-      "responses": {
-        "200": {
-          "description": "✅ Successfully retrieved all roles",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/GetRolesResponse" },
-              "examples": {
-                "success": {
-                  "summary": "Example success response",
-                  "value": {
-                    "success": true,
-                    "data": [
-                      {
-                        "id": "84a1d6a4-77c6-4a2b-9c10-4d49a1abc123",
-                        "name": "ADMIN",
-                        "description": "Administrateur avec accès complet",
-                        "created_at": "2024-01-15T08:30:00Z",
-                        "created_by": "system",
-                        "updated_at": "2024-03-02T10:00:00Z",
-                        "updated_by": "super.admin@allure-creation.fr"
-                      },
-                      {
-                        "id": "6f9dd9bb-4f1c-46bf-8db8-905a1bbf0c11",
-                        "name": "MANAGER",
-                        "description": "Gestion des équipes et des événements",
-                        "created_at": "2024-02-01T11:20:00Z",
-                        "created_by": "super.admin@allure-creation.fr",
-                        "updated_at": null,
-                        "updated_by": null
-                      }
-                    ]
-                  }
+    "/roles": {
+        "get": {
+            "tags": ["Roles"],
+            "summary": "Get all roles",
+            "description": "Retrieves the list of active roles (non supprimés) triés par nom croissant.",
+            "operationId": "getRoles",
+            "security": [{ "bearerAuth": [] }],
+            "responses": {
+                "200": {
+                    "description": "✅ Successfully retrieved all roles",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/GetRolesResponse" },
+                            "examples": {
+                                "success": {
+                                    "summary": "Example success response",
+                                    "value": {
+                                        "success": true,
+                                        "data": [
+                                            {
+                                                "id": "84a1d6a4-77c6-4a2b-9c10-4d49a1abc123",
+                                                "name": "ADMIN",
+                                                "description": "Administrateur avec accès complet",
+                                                "created_at": "2024-01-15T08:30:00Z",
+                                                "created_by": "system",
+                                                "updated_at": "2024-03-02T10:00:00Z",
+                                                "updated_by": "super.admin@allure-creation.fr"
+                                            },
+                                            {
+                                                "id": "6f9dd9bb-4f1c-46bf-8db8-905a1bbf0c11",
+                                                "name": "MANAGER",
+                                                "description": "Gestion des équipes et des événements",
+                                                "created_at": "2024-02-01T11:20:00Z",
+                                                "created_by": "super.admin@allure-creation.fr",
+                                                "updated_at": null,
+                                                "updated_by": null
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Server error while fetching roles",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/RoleErrorResponse" },
+                            "examples": {
+                                "serverError": {
+                                    "summary": "Internal error example",
+                                    "value": {
+                                        "success": false,
+                                        "error": "Failed to fetch roles"
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-              }
             }
-          }
-        },
-        "500": {
-          "description": "💥 Server error while fetching roles",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/RoleErrorResponse" },
-              "examples": {
-                "serverError": {
-                  "summary": "Internal error example",
-                  "value": {
-                    "success": false,
-                    "error": "Failed to fetch roles"
-                  }
-                }
-              }
-            }
-          }
         }
-      }
     }
-  }
 }

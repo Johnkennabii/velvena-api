@@ -1,35 +1,35 @@
 {
-  "type": "object",
-  "properties": {
-    "contract": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Identifiant unique du contrat"
-        },
-        "title": {
-          "type": "string",
-          "description": "Titre du contrat"
-        },
-        "startDate": {
-          "type": "string",
-          "format": "date",
-          "description": "Date de début du contrat"
-        },
-        "endDate": {
-          "type": "string",
-          "format": "date",
-          "description": "Date de fin du contrat"
-        },
-        "status": {
-          "type": "string",
-          "description": "Statut actuel du contrat",
-          "enum": ["active", "pending", "terminated"]
+    "type": "object",
+    "properties": {
+        "contract": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "Identifiant unique du contrat"
+                },
+                "title": {
+                    "type": "string",
+                    "description": "Titre du contrat"
+                },
+                "startDate": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Date de début du contrat"
+                },
+                "endDate": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Date de fin du contrat"
+                },
+                "status": {
+                    "type": "string",
+                    "description": "Statut actuel du contrat",
+                    "enum": ["active", "pending", "terminated"]
+                }
+            },
+            "required": ["id", "title", "startDate", "status"]
         }
-      },
-      "required": ["id", "title", "startDate", "status"]
-    }
-  },
-  "required": ["contract"]
+    },
+    "required": ["contract"]
 }

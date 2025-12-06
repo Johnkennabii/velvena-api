@@ -1,58 +1,58 @@
 {
-  "/profiles": {
-    "post": {
-      "tags": ["Profiles"],
-      "summary": "Create a new profile",
-      "description": "Creates a new user profile in the database.",
-      "operationId": "createProfile",
-      "security": [{ "bearerAuth": [] }],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": { "$ref": "#/components/schemas/CreateProfileRequest" },
-            "example": {
-              "firstname": "Emma",
-              "lastname": "Dupont",
-              "email": "emma.dupont@email.fr",
-              "phone": "+33611223344",
-              "role_id": "3b2b6ad7-5b42-4b15-82b8-1f23e02c85a1",
-              "userId": "5af42e7c-721e-4cb2-902e-3d8e705a02f7"
-            }
-          }
-        }
-      },
-      "responses": {
-        "201": {
-          "description": "✅ Profile successfully created",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateProfileResponse" },
-              "example": {
-                "success": true,
-                "data": {
-                  "id": "f4b3216e-0de4-4d1c-89b2-91e2c5d2bb25",
-                  "firstname": "Emma",
-                  "lastname": "Dupont",
-                  "email": "emma.dupont@email.fr",
-                  "phone": "+33611223344",
-                  "role_id": "3b2b6ad7-5b42-4b15-82b8-1f23e02c85a1",
-                  "userId": "5af42e7c-721e-4cb2-902e-3d8e705a02f7"
+    "/profiles": {
+        "post": {
+            "tags": ["Profiles"],
+            "summary": "Create a new profile",
+            "description": "Creates a new user profile in the database.",
+            "operationId": "createProfile",
+            "security": [{ "bearerAuth": [] }],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": { "$ref": "#/components/schemas/CreateProfileRequest" },
+                        "example": {
+                            "firstname": "Emma",
+                            "lastname": "Dupont",
+                            "email": "emma.dupont@email.fr",
+                            "phone": "+33611223344",
+                            "role_id": "3b2b6ad7-5b42-4b15-82b8-1f23e02c85a1",
+                            "userId": "5af42e7c-721e-4cb2-902e-3d8e705a02f7"
+                        }
+                    }
                 }
-              }
+            },
+            "responses": {
+                "201": {
+                    "description": "✅ Profile successfully created",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/CreateProfileResponse" },
+                            "example": {
+                                "success": true,
+                                "data": {
+                                    "id": "f4b3216e-0de4-4d1c-89b2-91e2c5d2bb25",
+                                    "firstname": "Emma",
+                                    "lastname": "Dupont",
+                                    "email": "emma.dupont@email.fr",
+                                    "phone": "+33611223344",
+                                    "role_id": "3b2b6ad7-5b42-4b15-82b8-1f23e02c85a1",
+                                    "userId": "5af42e7c-721e-4cb2-902e-3d8e705a02f7"
+                                }
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "⚠️ Validation or creation error",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                            "example": { "success": false, "error": "Invalid email format" }
+                        }
+                    }
+                }
             }
-          }
-        },
-        "400": {
-          "description": "⚠️ Validation or creation error",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-              "example": { "success": false, "error": "Invalid email format" }
-            }
-          }
         }
-      }
     }
-  }
 }

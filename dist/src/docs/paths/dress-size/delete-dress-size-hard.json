@@ -1,31 +1,31 @@
 {
-  "/dress-sizes/{id}": {
-    "delete": {
-      "tags": ["Dresses - Sizes"],
-      "summary": "Hard delete a dress size",
-      "description": "Permanently deletes a dress size from the database. Use with caution — this cannot be undone.",
-      "operationId": "hardDeleteDressSize",
-      "security": [{ "bearerAuth": [] }],
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string", "format": "uuid" },
-          "description": "The UUID of the dress size to permanently delete"
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ Dress size permanently deleted",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/HardDeleteDressSizeResponse" },
-              "example": { "success": true, "message": "Dress size permanently deleted" }
+    "/dress-sizes/{id}": {
+        "delete": {
+            "tags": ["Dresses - Sizes"],
+            "summary": "Hard delete a dress size",
+            "description": "Permanently deletes a dress size from the database. Use with caution — this cannot be undone.",
+            "operationId": "hardDeleteDressSize",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": { "type": "string", "format": "uuid" },
+                    "description": "The UUID of the dress size to permanently delete"
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ Dress size permanently deleted",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/HardDeleteDressSizeResponse" },
+                            "example": { "success": true, "message": "Dress size permanently deleted" }
+                        }
+                    }
+                }
             }
-          }
         }
-      }
     }
-  }
 }

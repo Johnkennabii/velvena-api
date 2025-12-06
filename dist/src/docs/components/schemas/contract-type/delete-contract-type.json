@@ -1,49 +1,49 @@
 {
-  "DeleteContractTypeSoftResponse": {
-    "type": "object",
-    "description": "Response returned when a contract type is soft deleted.",
-    "properties": {
-      "success": {
-        "type": "boolean",
-        "example": true
-      },
-      "data": {
+    "DeleteContractTypeSoftResponse": {
         "type": "object",
+        "description": "Response returned when a contract type is soft deleted.",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "example": "8c1d72b3-6e91-47b9-8c1e-f13c19e5b4de"
-          },
-          "deleted_at": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2025-10-09T20:50:00.000Z"
-          },
-          "deleted_by": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "example": "16937819-c033-438f-bbad-543d83443371"
-          }
+            "success": {
+                "type": "boolean",
+                "example": true
+            },
+            "data": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "8c1d72b3-6e91-47b9-8c1e-f13c19e5b4de"
+                    },
+                    "deleted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-09T20:50:00.000Z"
+                    },
+                    "deleted_by": {
+                        "type": ["string", "null"],
+                        "format": "uuid",
+                        "example": "16937819-c033-438f-bbad-543d83443371"
+                    }
+                },
+                "additionalProperties": true
+            }
         },
-        "additionalProperties": true
-      }
+        "required": ["success", "data"]
     },
-    "required": ["success", "data"]
-  },
-  "DeleteContractTypeHardResponse": {
-    "type": "object",
-    "description": "Response returned when a contract type is permanently deleted.",
-    "properties": {
-      "success": {
-        "type": "boolean",
-        "example": true
-      },
-      "message": {
-        "type": "string",
-        "example": "Contract type permanently deleted"
-      }
-    },
-    "required": ["success", "message"]
-  }
+    "DeleteContractTypeHardResponse": {
+        "type": "object",
+        "description": "Response returned when a contract type is permanently deleted.",
+        "properties": {
+            "success": {
+                "type": "boolean",
+                "example": true
+            },
+            "message": {
+                "type": "string",
+                "example": "Contract type permanently deleted"
+            }
+        },
+        "required": ["success", "message"]
+    }
 }

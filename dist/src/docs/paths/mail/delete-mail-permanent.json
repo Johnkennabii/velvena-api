@@ -1,67 +1,67 @@
 {
-  "/mails/{mailbox}/{uid}/permanent": {
-    "delete": {
-      "tags": ["Mail"],
-      "summary": "Supprime définitivement un email",
-      "description": "Supprime définitivement un email. Cette action est irréversible.",
-      "operationId": "permanentlyDeleteMail",
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
-      "parameters": [
-        {
-          "name": "mailbox",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "enum": ["inbox", "sent", "trash", "spam", "drafts"]
-          },
-          "description": "Type de boîte mail"
-        },
-        {
-          "name": "uid",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "integer"
-          },
-          "description": "UID de l'email à supprimer définitivement"
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "Email supprimé définitivement",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "success": {
-                    "type": "boolean",
-                    "example": true
-                  },
-                  "message": {
-                    "type": "string",
-                    "example": "Email supprimé définitivement"
-                  }
+    "/mails/{mailbox}/{uid}/permanent": {
+        "delete": {
+            "tags": ["Mail"],
+            "summary": "Supprime définitivement un email",
+            "description": "Supprime définitivement un email. Cette action est irréversible.",
+            "operationId": "permanentlyDeleteMail",
+            "security": [
+                {
+                    "bearerAuth": []
                 }
-              }
+            ],
+            "parameters": [
+                {
+                    "name": "mailbox",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "enum": ["inbox", "sent", "trash", "spam", "drafts"]
+                    },
+                    "description": "Type de boîte mail"
+                },
+                {
+                    "name": "uid",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "description": "UID de l'email à supprimer définitivement"
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "Email supprimé définitivement",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "success": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "message": {
+                                        "type": "string",
+                                        "example": "Email supprimé définitivement"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "UID invalide"
+                },
+                "401": {
+                    "description": "Non autorisé"
+                },
+                "500": {
+                    "description": "Erreur serveur"
+                }
             }
-          }
-        },
-        "400": {
-          "description": "UID invalide"
-        },
-        "401": {
-          "description": "Non autorisé"
-        },
-        "500": {
-          "description": "Erreur serveur"
         }
-      }
     }
-  }
 }

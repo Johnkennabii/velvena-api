@@ -1,24 +1,24 @@
 {
-  "/customers/{id}": {
-    "patch": {
-      "tags": ["Customers"],
-      "summary": "Soft delete a customer",
-      "description": "Marks a customer as deleted by setting deleted_at and deleted_by.",
-      "operationId": "softDeleteCustomer",
-      "security": [{ "bearerAuth": [] }],
-      "parameters": [
-        { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ Customer soft deleted successfully",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/SoftDeleteCustomerResponse" }
+    "/customers/{id}": {
+        "patch": {
+            "tags": ["Customers"],
+            "summary": "Soft delete a customer",
+            "description": "Marks a customer as deleted by setting deleted_at and deleted_by.",
+            "operationId": "softDeleteCustomer",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ Customer soft deleted successfully",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/SoftDeleteCustomerResponse" }
+                        }
+                    }
+                }
             }
-          }
         }
-      }
     }
-  }
 }

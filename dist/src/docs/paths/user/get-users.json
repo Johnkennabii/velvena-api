@@ -1,54 +1,54 @@
 {
-  "/users": {
-    "get": {
-      "tags": ["Users"],
-      "summary": "Get all users",
-      "description": "Retrieves all users, including their profile and associated role.",
-      "operationId": "getUsers",
-      "security": [{ "bearerAuth": [] }],
-      "responses": {
-        "200": {
-          "description": "✅ Successfully retrieved all users",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/GetUsersResponse" },
-              "example": {
-                "success": true,
-                "count": 2,
-                "data": [
-                  {
-                    "id": "d45bfae1-5f67-4f39-89e5-1b8e8dcb3baf",
-                    "email": "admin@allure-creation.fr",
-                    "profile": {
-                      "firstname": "Emma",
-                      "lastname": "Dupont",
-                      "role": { "name": "ADMIN" }
+    "/users": {
+        "get": {
+            "tags": ["Users"],
+            "summary": "Get all users",
+            "description": "Retrieves all users, including their profile and associated role.",
+            "operationId": "getUsers",
+            "security": [{ "bearerAuth": [] }],
+            "responses": {
+                "200": {
+                    "description": "✅ Successfully retrieved all users",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/GetUsersResponse" },
+                            "example": {
+                                "success": true,
+                                "count": 2,
+                                "data": [
+                                    {
+                                        "id": "d45bfae1-5f67-4f39-89e5-1b8e8dcb3baf",
+                                        "email": "admin@allure-creation.fr",
+                                        "profile": {
+                                            "firstname": "Emma",
+                                            "lastname": "Dupont",
+                                            "role": { "name": "ADMIN" }
+                                        }
+                                    },
+                                    {
+                                        "id": "0aabde22-f1a3-42f1-a1b4-998f456a31d1",
+                                        "email": "user@allure-creation.fr",
+                                        "profile": {
+                                            "firstname": "Lina",
+                                            "lastname": "Bernard",
+                                            "role": { "name": "USER" }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
                     }
-                  },
-                  {
-                    "id": "0aabde22-f1a3-42f1-a1b4-998f456a31d1",
-                    "email": "user@allure-creation.fr",
-                    "profile": {
-                      "firstname": "Lina",
-                      "lastname": "Bernard",
-                      "role": { "name": "USER" }
+                },
+                "500": {
+                    "description": "💥 Internal server error",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                            "example": { "success": false, "error": "Failed to fetch users" }
+                        }
                     }
-                  }
-                ]
-              }
+                }
             }
-          }
-        },
-        "500": {
-          "description": "💥 Internal server error",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-              "example": { "success": false, "error": "Failed to fetch users" }
-            }
-          }
         }
-      }
     }
-  }
 }

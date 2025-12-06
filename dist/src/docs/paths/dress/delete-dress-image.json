@@ -1,261 +1,261 @@
 {
-  "/dresses/{id}/images": {
-    "delete": {
-      "tags": ["Dresses"],
-      "summary": "Remove one or multiple images from a dress",
-      "description": "Deletes every provided key from both the Hetzner Object Storage bucket and the dress record. Use this endpoint with:<br/>• a single `key` (string) to delete one image.<br/>• a `keys` array to delete many in a single request.<br/>For clients that prefer path parameters, you can also call `DELETE /dresses/{id}/images/{key}` (documented below) without a body.",
-      "operationId": "removeDressImages",
-      "security": [{ "bearerAuth": [] }],
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "description": "UUID of the dress whose images will be deleted.",
-          "schema": { "type": "string", "format": "uuid", "example": "f4a62e51-15cc-4d84-bd2a-8390abaf8a93" }
-        }
-      ],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "keys": {
-                  "type": "array",
-                  "description": "List of S3 object keys to delete (for bulk removal).",
-                  "items": { "type": "string" },
-                  "minItems": 1
-                },
-                "key": {
-                  "type": "string",
-                  "description": "Shortcut when deleting a single image key."
-                }
-              },
-              "oneOf": [
+    "/dresses/{id}/images": {
+        "delete": {
+            "tags": ["Dresses"],
+            "summary": "Remove one or multiple images from a dress",
+            "description": "Deletes every provided key from both the Hetzner Object Storage bucket and the dress record. Use this endpoint with:<br/>• a single `key` (string) to delete one image.<br/>• a `keys` array to delete many in a single request.<br/>For clients that prefer path parameters, you can also call `DELETE /dresses/{id}/images/{key}` (documented below) without a body.",
+            "operationId": "removeDressImages",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
                 {
-                  "required": ["keys"],
-                  "description": "Delete several images"
-                },
-                {
-                  "required": ["key"],
-                  "description": "Delete exactly one image"
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "UUID of the dress whose images will be deleted.",
+                    "schema": { "type": "string", "format": "uuid", "example": "f4a62e51-15cc-4d84-bd2a-8390abaf8a93" }
                 }
-              ]
+            ],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "keys": {
+                                    "type": "array",
+                                    "description": "List of S3 object keys to delete (for bulk removal).",
+                                    "items": { "type": "string" },
+                                    "minItems": 1
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "description": "Shortcut when deleting a single image key."
+                                }
+                            },
+                            "oneOf": [
+                                {
+                                    "required": ["keys"],
+                                    "description": "Delete several images"
+                                },
+                                {
+                                    "required": ["key"],
+                                    "description": "Delete exactly one image"
+                                }
+                            ]
+                        },
+                        "examples": {
+                            "multipleImages": {
+                                "summary": "Delete multiple images",
+                                "value": {
+                                    "keys": [
+                                        "b23c45de-67fg-89hi-01jk-23456lmnoqr2",
+                                        "c98d76ab-54ef-32dc-10ba-99887aaeeff0"
+                                    ]
+                                }
+                            },
+                            "singleImage": {
+                                "summary": "Delete a single image via body",
+                                "value": {
+                                    "key": "a12b34cd-56ef-78gh-90ij-12345klmnop1"
+                                }
+                            }
+                        }
+                    }
+                }
             },
-            "examples": {
-              "multipleImages": {
-                "summary": "Delete multiple images",
-                "value": {
-                  "keys": [
-                    "b23c45de-67fg-89hi-01jk-23456lmnoqr2",
-                    "c98d76ab-54ef-32dc-10ba-99887aaeeff0"
-                  ]
-                }
-              },
-              "singleImage": {
-                "summary": "Delete a single image via body",
-                "value": {
-                  "key": "a12b34cd-56ef-78gh-90ij-12345klmnop1"
-                }
-              }
-            }
-          }
-        }
-      },
-      "responses": {
-        "200": {
-          "description": "✅ Image(s) successfully removed from the dress and storage.",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "success": { "type": "boolean", "example": true },
-                  "removedKeys": {
-                    "type": "array",
-                    "description": "Keys that were effectively deleted.",
-                    "items": { "type": "string" }
-                  },
-                  "notFoundKeys": {
-                    "type": "array",
-                    "description": "Keys that were not present on the dress (if any).",
-                    "items": { "type": "string" }
-                  },
-                  "data": {
-                    "type": "object",
-                    "description": "Updated dress object after the removal.",
-                    "properties": {
-                      "id": { "type": "string", "format": "uuid" },
-                      "name": { "type": "string", "example": "Robe Élégance" },
-                      "reference": { "type": "string", "example": "RE-2025-001" },
-                      "images": {
-                        "type": "array",
-                        "items": { "type": "string", "format": "uri" }
-                      },
-                      "updated_by": { "type": "string", "format": "uuid", "example": "7d8e9f10-11aa-12bb-13cc-14ddeeff5566" },
-                      "updated_at": { "type": "string", "format": "date-time", "example": "2025-10-06T20:00:00.000Z" }
+            "responses": {
+                "200": {
+                    "description": "✅ Image(s) successfully removed from the dress and storage.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "success": { "type": "boolean", "example": true },
+                                    "removedKeys": {
+                                        "type": "array",
+                                        "description": "Keys that were effectively deleted.",
+                                        "items": { "type": "string" }
+                                    },
+                                    "notFoundKeys": {
+                                        "type": "array",
+                                        "description": "Keys that were not present on the dress (if any).",
+                                        "items": { "type": "string" }
+                                    },
+                                    "data": {
+                                        "type": "object",
+                                        "description": "Updated dress object after the removal.",
+                                        "properties": {
+                                            "id": { "type": "string", "format": "uuid" },
+                                            "name": { "type": "string", "example": "Robe Élégance" },
+                                            "reference": { "type": "string", "example": "RE-2025-001" },
+                                            "images": {
+                                                "type": "array",
+                                                "items": { "type": "string", "format": "uri" }
+                                            },
+                                            "updated_by": { "type": "string", "format": "uuid", "example": "7d8e9f10-11aa-12bb-13cc-14ddeeff5566" },
+                                            "updated_at": { "type": "string", "format": "date-time", "example": "2025-10-06T20:00:00.000Z" }
+                                        }
+                                    }
+                                }
+                            },
+                            "examples": {
+                                "successExample": {
+                                    "summary": "Example successful response",
+                                    "value": {
+                                        "success": true,
+                                        "removedKeys": [
+                                            "b23c45de-67fg-89hi-01jk-23456lmnoqr2",
+                                            "c98d76ab-54ef-32dc-10ba-99887aaeeff0"
+                                        ],
+                                        "notFoundKeys": [
+                                            "missing-key-123"
+                                        ],
+                                        "data": {
+                                            "id": "f4a62e51-15cc-4d84-bd2a-8390abaf8a93",
+                                            "name": "Robe Élégance",
+                                            "reference": "RE-2025-001",
+                                            "images": [
+                                                "https://bucket.hel1.your-objectstorage.com/d45e67fg-89hi-01jk-23lm-45678nopqrst"
+                                            ],
+                                            "updated_by": "7d8e9f10-11aa-12bb-13cc-14ddeeff5566",
+                                            "updated_at": "2025-10-06T20:00:00.000Z"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
-                  }
-                }
-              },
-              "examples": {
-                "successExample": {
-                  "summary": "Example successful response",
-                  "value": {
-                    "success": true,
-                    "removedKeys": [
-                      "b23c45de-67fg-89hi-01jk-23456lmnoqr2",
-                      "c98d76ab-54ef-32dc-10ba-99887aaeeff0"
-                    ],
-                    "notFoundKeys": [
-                      "missing-key-123"
-                    ],
-                    "data": {
-                      "id": "f4a62e51-15cc-4d84-bd2a-8390abaf8a93",
-                      "name": "Robe Élégance",
-                      "reference": "RE-2025-001",
-                      "images": [
-                        "https://bucket.hel1.your-objectstorage.com/d45e67fg-89hi-01jk-23lm-45678nopqrst"
-                      ],
-                      "updated_by": "7d8e9f10-11aa-12bb-13cc-14ddeeff5566",
-                      "updated_at": "2025-10-06T20:00:00.000Z"
+                },
+                "400": {
+                    "description": "⚠️ Invalid request (missing ID or image keys).",
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "missingParams": {
+                                    "summary": "Missing required parameters",
+                                    "value": { "success": false, "error": "Dress ID and at least one image key are required" }
+                                }
+                            }
+                        }
                     }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "400": {
-          "description": "⚠️ Invalid request (missing ID or image keys).",
-          "content": {
-            "application/json": {
-              "examples": {
-                "missingParams": {
-                  "summary": "Missing required parameters",
-                  "value": { "success": false, "error": "Dress ID and at least one image key are required" }
-                }
-              }
-            }
-          }
-        },
-        "404": {
-          "description": "❌ Dress not found or none of the keys belong to the dress.",
-          "content": {
-            "application/json": {
-              "examples": {
-                "dressNotFound": {
-                  "summary": "Dress not found",
-                  "value": { "success": false, "error": "Dress not found" }
                 },
-                "keysNotFound": {
-                  "summary": "Keys not found on dress",
-                  "value": { "success": false, "error": "None of the provided image keys belong to this dress" }
-                }
-              }
-            }
-          }
-        },
-        "500": {
-          "description": "💥 Internal server error — failed to delete image(s).",
-          "content": {
-            "application/json": {
-              "examples": {
-                "internalError": {
-                  "summary": "Server-side failure",
-                  "value": { "success": false, "error": "Failed to remove dress image" }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "/dresses/{id}/images/{key}": {
-    "delete": {
-      "tags": ["Dresses"],
-      "summary": "Remove a specific image from a dress (legacy path)",
-      "description": "Convenience route that forwards to the same logic as `/dresses/{id}/images`. Use it when you only need to delete one key without providing a request body.",
-      "operationId": "removeDressImage",
-      "security": [{ "bearerAuth": [] }],
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "description": "UUID of the dress whose image will be deleted.",
-          "schema": { "type": "string", "format": "uuid", "example": "f4a62e51-15cc-4d84-bd2a-8390abaf8a93" }
-        },
-        {
-          "name": "key",
-          "in": "path",
-          "required": true,
-          "description": "The S3 object key (filename) of the image to remove.",
-          "schema": { "type": "string", "example": "a12b34cd-56ef-78gh-90ij-12345klmnop1" }
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ Image successfully removed from the dress and storage.",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "success": { "type": "boolean", "example": true },
-                  "removedKeys": {
-                    "type": "array",
-                    "items": { "type": "string" },
-                    "example": ["a12b34cd-56ef-78gh-90ij-12345klmnop1"]
-                  },
-                  "notFoundKeys": {
-                    "type": "array",
-                    "items": { "type": "string" },
-                    "example": []
-                  },
-                  "data": {
-                    "type": "object",
-                    "description": "Updated dress object after image removal."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "404": {
-          "description": "❌ Dress or image not found.",
-          "content": {
-            "application/json": {
-              "examples": {
-                "dressNotFound": {
-                  "summary": "Dress not found",
-                  "value": { "success": false, "error": "Dress not found" }
+                "404": {
+                    "description": "❌ Dress not found or none of the keys belong to the dress.",
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "dressNotFound": {
+                                    "summary": "Dress not found",
+                                    "value": { "success": false, "error": "Dress not found" }
+                                },
+                                "keysNotFound": {
+                                    "summary": "Keys not found on dress",
+                                    "value": { "success": false, "error": "None of the provided image keys belong to this dress" }
+                                }
+                            }
+                        }
+                    }
                 },
-                "imageNotFound": {
-                  "summary": "Image not found in dress record",
-                  "value": { "success": false, "error": "None of the provided image keys belong to this dress" }
+                "500": {
+                    "description": "💥 Internal server error — failed to delete image(s).",
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "internalError": {
+                                    "summary": "Server-side failure",
+                                    "value": { "success": false, "error": "Failed to remove dress image" }
+                                }
+                            }
+                        }
+                    }
                 }
-              }
             }
-          }
-        },
-        "500": {
-          "description": "💥 Internal server error — failed to delete image.",
-          "content": {
-            "application/json": {
-              "examples": {
-                "internalError": {
-                  "summary": "Server-side failure",
-                  "value": { "success": false, "error": "Failed to remove dress image" }
-                }
-              }
-            }
-          }
         }
-      }
+    },
+    "/dresses/{id}/images/{key}": {
+        "delete": {
+            "tags": ["Dresses"],
+            "summary": "Remove a specific image from a dress (legacy path)",
+            "description": "Convenience route that forwards to the same logic as `/dresses/{id}/images`. Use it when you only need to delete one key without providing a request body.",
+            "operationId": "removeDressImage",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "UUID of the dress whose image will be deleted.",
+                    "schema": { "type": "string", "format": "uuid", "example": "f4a62e51-15cc-4d84-bd2a-8390abaf8a93" }
+                },
+                {
+                    "name": "key",
+                    "in": "path",
+                    "required": true,
+                    "description": "The S3 object key (filename) of the image to remove.",
+                    "schema": { "type": "string", "example": "a12b34cd-56ef-78gh-90ij-12345klmnop1" }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ Image successfully removed from the dress and storage.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "success": { "type": "boolean", "example": true },
+                                    "removedKeys": {
+                                        "type": "array",
+                                        "items": { "type": "string" },
+                                        "example": ["a12b34cd-56ef-78gh-90ij-12345klmnop1"]
+                                    },
+                                    "notFoundKeys": {
+                                        "type": "array",
+                                        "items": { "type": "string" },
+                                        "example": []
+                                    },
+                                    "data": {
+                                        "type": "object",
+                                        "description": "Updated dress object after image removal."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "❌ Dress or image not found.",
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "dressNotFound": {
+                                    "summary": "Dress not found",
+                                    "value": { "success": false, "error": "Dress not found" }
+                                },
+                                "imageNotFound": {
+                                    "summary": "Image not found in dress record",
+                                    "value": { "success": false, "error": "None of the provided image keys belong to this dress" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Internal server error — failed to delete image.",
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "internalError": {
+                                    "summary": "Server-side failure",
+                                    "value": { "success": false, "error": "Failed to remove dress image" }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
-  }
 }

@@ -1,9 +1,9 @@
 {
-  "GetCustomerByIdResponse": {
-    "type": "object",
-    "properties": {
-      "success": { "type": "boolean" },
-      "data": { "$ref": "#/components/schemas/Customer" }
+    "GetCustomerByIdResponse": {
+        "type": "object",
+        "properties": {
+            "success": { "type": "boolean" },
+            "data": { "$ref": "#/components/schemas/Customer" }
+        }
     }
-  }
 }

@@ -1,17 +1,17 @@
 {
-  "GetProspectRequestsResponse": {
-    "type": "object",
-    "properties": {
-      "success": {
-        "type": "boolean",
-        "example": true
-      },
-      "data": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/ProspectRequest"
+    "GetProspectRequestsResponse": {
+        "type": "object",
+        "properties": {
+            "success": {
+                "type": "boolean",
+                "example": true
+            },
+            "data": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/ProspectRequest"
+                }
+            }
         }
-      }
     }
-  }
 }

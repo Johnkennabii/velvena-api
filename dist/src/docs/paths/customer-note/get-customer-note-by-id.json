@@ -1,64 +1,64 @@
 {
-  "/customer-notes/{id}": {
-    "get": {
-      "tags": ["Customer Notes"],
-      "summary": "Get a specific note by ID",
-      "description": "Retrieves a single customer note by its ID.",
-      "operationId": "getCustomerNoteById",
-      "security": [{ "bearerAuth": [] }],
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string", "format": "uuid" },
-          "description": "Note ID"
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "✅ Note successfully retrieved",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/GetCustomerNoteResponse" },
-              "example": {
-                "success": true,
-                "data": {
-                  "id": "note-uuid",
-                  "customer_id": "customer-uuid",
-                  "content": "Client préfère les couleurs vives",
-                  "created_at": "2025-11-29T12:00:00.000Z",
-                  "created_by": "user-uuid",
-                  "updated_at": null,
-                  "updated_by": null,
-                  "deleted_at": null,
-                  "deleted_by": null
+    "/customer-notes/{id}": {
+        "get": {
+            "tags": ["Customer Notes"],
+            "summary": "Get a specific note by ID",
+            "description": "Retrieves a single customer note by its ID.",
+            "operationId": "getCustomerNoteById",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": { "type": "string", "format": "uuid" },
+                    "description": "Note ID"
                 }
-              }
+            ],
+            "responses": {
+                "200": {
+                    "description": "✅ Note successfully retrieved",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/GetCustomerNoteResponse" },
+                            "example": {
+                                "success": true,
+                                "data": {
+                                    "id": "note-uuid",
+                                    "customer_id": "customer-uuid",
+                                    "content": "Client préfère les couleurs vives",
+                                    "created_at": "2025-11-29T12:00:00.000Z",
+                                    "created_by": "user-uuid",
+                                    "updated_at": null,
+                                    "updated_by": null,
+                                    "deleted_at": null,
+                                    "deleted_by": null
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "❌ Note not found",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                            "example": {
+                                "success": false,
+                                "error": "Note not found"
+                            }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "💥 Server error",
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                        }
+                    }
+                }
             }
-          }
-        },
-        "404": {
-          "description": "❌ Note not found",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-              "example": {
-                "success": false,
-                "error": "Note not found"
-              }
-            }
-          }
-        },
-        "500": {
-          "description": "💥 Server error",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-            }
-          }
         }
-      }
     }
-  }
 }

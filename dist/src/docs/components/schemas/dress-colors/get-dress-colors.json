@@ -1,51 +1,49 @@
 {
-  "DressColor": {
-    "type": "object",
-    "properties": {
-      "id": {
-        "type": "string",
-        "format": "uuid",
-        "example": "7f736acb-7b51-4d07-9c18-13dbffeaabf8"
-      },
-      "name": {
-        "type": "string",
-        "example": "Rouge Bordeaux"
-      },
-      "hex_value": {
-        "type": "string",
-        "example": "#8A0303",
-        "description": "Hexadecimal color representation"
-      },
-      "created_at": {
-        "type": "string",
-        "format": "date-time",
-        "example": "2024-06-10T12:00:00Z"
-      },
-      "updated_at": {
-        "type": ["string", "null"],
-        "format": "date-time",
-        "example": null
-      }
+    "DressColor": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "7f736acb-7b51-4d07-9c18-13dbffeaabf8"
+            },
+            "name": {
+                "type": "string",
+                "example": "Rouge Bordeaux"
+            },
+            "hex_value": {
+                "type": "string",
+                "example": "#8A0303",
+                "description": "Hexadecimal color representation"
+            },
+            "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2024-06-10T12:00:00Z"
+            },
+            "updated_at": {
+                "type": ["string", "null"],
+                "format": "date-time",
+                "example": null
+            }
+        },
+        "required": ["id", "name"]
     },
-    "required": ["id", "name"]
-  },
-
-  "DressColorListResponse": {
-    "type": "object",
-    "properties": {
-      "success": { "type": "boolean", "example": true },
-      "data": {
-        "type": "array",
-        "items": { "$ref": "#/components/schemas/DressColor" }
-      }
+    "DressColorListResponse": {
+        "type": "object",
+        "properties": {
+            "success": { "type": "boolean", "example": true },
+            "data": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/DressColor" }
+            }
+        }
+    },
+    "ErrorResponse": {
+        "type": "object",
+        "properties": {
+            "success": { "type": "boolean", "example": false },
+            "error": { "type": "string", "example": "Failed to fetch colors" }
+        }
     }
-  },
-
-  "ErrorResponse": {
-    "type": "object",
-    "properties": {
-      "success": { "type": "boolean", "example": false },
-      "error": { "type": "string", "example": "Failed to fetch colors" }
-    }
-  }
 }

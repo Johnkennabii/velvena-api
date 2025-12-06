@@ -1,32 +1,32 @@
 {
-  "CreateProfileRequest": {
-    "type": "object",
-    "required": ["firstname", "lastname", "email", "role_id"],
-    "properties": {
-      "firstname": { "type": "string", "example": "Emma" },
-      "lastname": { "type": "string", "example": "Dupont" },
-      "email": { "type": "string", "format": "email", "example": "emma.dupont@email.fr" },
-      "phone": { "type": "string", "example": "+33611223344" },
-      "role_id": { "type": "string", "format": "uuid", "example": "3b2b6ad7-5b42-4b15-82b8-1f23e02c85a1" },
-      "userId": { "type": "string", "format": "uuid", "example": "5af42e7c-721e-4cb2-902e-3d8e705a02f7" }
-    }
-  },
-  "CreateProfileResponse": {
-    "type": "object",
-    "properties": {
-      "success": { "type": "boolean", "example": true },
-      "data": {
+    "CreateProfileRequest": {
+        "type": "object",
+        "required": ["firstname", "lastname", "email", "role_id"],
+        "properties": {
+            "firstname": { "type": "string", "example": "Emma" },
+            "lastname": { "type": "string", "example": "Dupont" },
+            "email": { "type": "string", "format": "email", "example": "emma.dupont@email.fr" },
+            "phone": { "type": "string", "example": "+33611223344" },
+            "role_id": { "type": "string", "format": "uuid", "example": "3b2b6ad7-5b42-4b15-82b8-1f23e02c85a1" },
+            "userId": { "type": "string", "format": "uuid", "example": "5af42e7c-721e-4cb2-902e-3d8e705a02f7" }
+        }
+    },
+    "CreateProfileResponse": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "firstname": { "type": "string" },
-          "lastname": { "type": "string" },
-          "email": { "type": "string" },
-          "phone": { "type": "string" },
-          "role_id": { "type": "string", "format": "uuid" },
-          "userId": { "type": "string", "format": "uuid" }
+            "success": { "type": "boolean", "example": true },
+            "data": {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "string", "format": "uuid" },
+                    "firstname": { "type": "string" },
+                    "lastname": { "type": "string" },
+                    "email": { "type": "string" },
+                    "phone": { "type": "string" },
+                    "role_id": { "type": "string", "format": "uuid" },
+                    "userId": { "type": "string", "format": "uuid" }
+                }
+            }
         }
-      }
     }
-  }
 }

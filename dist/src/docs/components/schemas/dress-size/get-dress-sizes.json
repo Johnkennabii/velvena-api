@@ -1,18 +1,18 @@
 {
-  "GetDressSizesResponse": {
-    "type": "object",
-    "properties": {
-      "success": { "type": "boolean", "example": true },
-      "data": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "id": { "type": "string", "format": "uuid" },
-            "name": { "type": "string", "example": "L" }
-          }
+    "GetDressSizesResponse": {
+        "type": "object",
+        "properties": {
+            "success": { "type": "boolean", "example": true },
+            "data": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "name": { "type": "string", "example": "L" }
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }

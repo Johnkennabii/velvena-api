@@ -1,46 +1,45 @@
 {
-  "CreateDressConditionRequest": {
-    "type": "object",
-    "required": ["name"],
-    "properties": {
-      "name": {
-        "type": "string",
-        "example": "Très bon état"
-      }
-    }
-  },
-
-  "CreateDressConditionResponse": {
-    "type": "object",
-    "properties": {
-      "success": {
-        "type": "boolean",
-        "example": true
-      },
-      "data": {
+    "CreateDressConditionRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+            "name": {
+                "type": "string",
+                "example": "Très bon état"
+            }
+        }
+    },
+    "CreateDressConditionResponse": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "example": "b4b5a6a7-9c8d-4e8f-b8e7-7c6f5d4e3f2a"
-          },
-          "name": {
-            "type": "string",
-            "example": "Très bon état"
-          },
-          "created_by": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "example": "a91c8e7a-5f0d-4fa2-8fcb-92694b0b7b45"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2025-10-09T21:10:00.000Z"
-          }
+            "success": {
+                "type": "boolean",
+                "example": true
+            },
+            "data": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "b4b5a6a7-9c8d-4e8f-b8e7-7c6f5d4e3f2a"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Très bon état"
+                    },
+                    "created_by": {
+                        "type": ["string", "null"],
+                        "format": "uuid",
+                        "example": "a91c8e7a-5f0d-4fa2-8fcb-92694b0b7b45"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-09T21:10:00.000Z"
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }

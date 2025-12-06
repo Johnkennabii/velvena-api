@@ -1,72 +1,72 @@
 {
-  "/contracts/{id}/upload-signed-pdf": {
-    "post": {
-      "tags": ["Contracts"],
-      "summary": "Upload a manually signed contract PDF",
-      "description": "Accepts a signed PDF (multipart/form-data), stores it in Hetzner Object Storage, updates the contract status to `SIGNED`, and persists the public link.",
-      "operationId": "uploadSignedContractPdf",
-      "security": [{ "bearerAuth": [] }],
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "description": "UUID of the contract to update.",
-          "schema": { "type": "string", "format": "uuid", "example": "b412afd1-f508-49dd-8828-d336408e0cb5" }
-        }
-      ],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "multipart/form-data": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "file": {
-                  "type": "string",
-                  "format": "binary",
-                  "description": "PDF file containing the signed contract."
+    "/contracts/{id}/upload-signed-pdf": {
+        "post": {
+            "tags": ["Contracts"],
+            "summary": "Upload a manually signed contract PDF",
+            "description": "Accepts a signed PDF (multipart/form-data), stores it in Hetzner Object Storage, updates the contract status to `SIGNED`, and persists the public link.",
+            "operationId": "uploadSignedContractPdf",
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "UUID of the contract to update.",
+                    "schema": { "type": "string", "format": "uuid", "example": "b412afd1-f508-49dd-8828-d336408e0cb5" }
                 }
-              },
-              "required": ["file"]
-            }
-          }
-        }
-      },
-      "responses": {
-        "200": {
-          "description": "✅ Signed PDF stored successfully.",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "success": { "type": "boolean", "example": true },
-                  "link": {
-                    "type": "string",
-                    "format": "uri",
-                    "description": "URL of the uploaded PDF."
-                  }
+            ],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "multipart/form-data": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "file": {
+                                    "type": "string",
+                                    "format": "binary",
+                                    "description": "PDF file containing the signed contract."
+                                }
+                            },
+                            "required": ["file"]
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "✅ Signed PDF stored successfully.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "success": { "type": "boolean", "example": true },
+                                    "link": {
+                                        "type": "string",
+                                        "format": "uri",
+                                        "description": "URL of the uploaded PDF."
+                                    }
+                                },
+                                "required": ["success", "link"]
+                            },
+                            "example": {
+                                "success": true,
+                                "link": "https://media-allure-creation.hel1.your-objectstorage.com/contracts/b412afd1-f508-49dd-8828-d336408e0cb5/signed_upload_1730944132000.pdf"
+                            }
+                        }
+                    }
                 },
-                "required": ["success", "link"]
-              },
-              "example": {
-                "success": true,
-                "link": "https://media-allure-creation.hel1.your-objectstorage.com/contracts/b412afd1-f508-49dd-8828-d336408e0cb5/signed_upload_1730944132000.pdf"
-              }
+                "400": {
+                    "description": "⚠️ Missing contract ID or PDF file."
+                },
+                "404": {
+                    "description": "❌ Contract not found."
+                },
+                "500": {
+                    "description": "💥 Internal server error while storing the PDF."
+                }
             }
-          }
-        },
-        "400": {
-          "description": "⚠️ Missing contract ID or PDF file."
-        },
-        "404": {
-          "description": "❌ Contract not found."
-        },
-        "500": {
-          "description": "💥 Internal server error while storing the PDF."
         }
-      }
     }
-  }
 }
