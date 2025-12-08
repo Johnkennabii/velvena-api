@@ -46,6 +46,7 @@ import apiKeyRoutes from "./routes/apiKeys.js";
 import maintenanceRoutes from "./routes/maintenanceRoutes.js";
 import healthRoutes from "./routes/health.js";
 import billingRoutes from "./routes/billing.js";
+import metricsRoutes from "./routes/metrics.js";
 
 import {
   getContractSignLink,
@@ -187,6 +188,27 @@ app.use(
 app.use(express.json());
 app.use(pinoHttp());
 
+// ✅ Middleware Prometheus - Collecter les métriques HTTP
+import { httpRequestCounter, httpRequestDuration } from "./utils/metrics.js";
+app.use((req, res, next) => {
+  const start = Date.now();
+
+  res.on("finish", () => {
+    const duration = (Date.now() - start) / 1000; // Convertir en secondes
+    const route = req.route?.path || req.path || "unknown";
+    const method = req.method;
+    const statusCode = res.statusCode.toString();
+
+    // Incrémenter le compteur de requêtes
+    httpRequestCounter.inc({ method, route, status_code: statusCode });
+
+    // Enregistrer la durée
+    httpRequestDuration.observe({ method, route, status_code: statusCode }, duration);
+  });
+
+  next();
+});
+
 // ✅ Swagger
 app.use(
   "/api-docs",
@@ -239,6 +261,9 @@ app.use("/billing", billingRoutes);
 
 // Health check routes (no auth required)
 app.use(healthRoutes);
+
+// Prometheus metrics endpoint (no auth required)
+app.use("/metrics", metricsRoutes);
 
 // ✅ Route racine
 app.get("/", (req: Request, res: Response) => {
