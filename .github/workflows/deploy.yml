@@ -103,7 +103,7 @@ jobs:
     needs: build
     environment:
       name: ${{ github.event.inputs.environment || 'production' }}
-      url: https://api.allure-creation.fr
+      url: https://api.velvena.fr
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
