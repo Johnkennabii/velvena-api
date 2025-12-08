@@ -1,7 +1,0 @@
-import getProfiles from "./get-profiles.json" with { type: "json" };
-import createProfile from "./create-profile.json" with { type: "json" };
-export default {
-    ...getProfiles,
-    ...createProfile,
-};
-//# sourceMappingURL=index.js.map
