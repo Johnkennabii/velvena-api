@@ -6,6 +6,9 @@ import swaggerUi from "swagger-ui-express";
 import { swaggerDocument } from "./docs/swagger.js";
 import { createServer } from "http"; // ⚠️ important
 import { Server as SocketIOServer } from "socket.io";
+import jwt from "jsonwebtoken";
+import prisma from "./lib/prisma.js";
+import pino from "./lib/logger.js";
 
 import authRoutes from "./routes/userRoutes/auth.js";
 import usersRoutes from "./routes/userRoutes/users.js";
@@ -42,6 +45,7 @@ import emailRoutes from "./routes/emailRoutes.js";
 import apiKeyRoutes from "./routes/apiKeys.js";
 import maintenanceRoutes from "./routes/maintenanceRoutes.js";
 import healthRoutes from "./routes/health.js";
+import billingRoutes from "./routes/billing.js";
 
 import {
   getContractSignLink,
@@ -71,10 +75,93 @@ export const io = new SocketIOServer(server, {
   },
 });
 
-// ✅ 4️⃣ Gestion des connexions Socket.IO
+// ✅ 4️⃣ Middleware d'authentification Socket.IO
+const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
+
+interface JwtPayload {
+  id: string;
+  email?: string;
+  role?: string;
+  organizationId?: string;
+}
+
+io.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      pino.warn("❌ Socket.IO: Missing token");
+      return next(new Error("Authentication error: Missing token"));
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+
+    // Fetch user with organization
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        email: true,
+        organization_id: true,
+        profile: {
+          select: {
+            role: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      pino.warn({ userId: decoded.id }, "❌ Socket.IO: User not found");
+      return next(new Error("Authentication error: User not found"));
+    }
+
+    if (!user.organization_id) {
+      pino.error({ userId: user.id }, "❌ Socket.IO: User has no organization");
+      return next(new Error("Authentication error: User not assigned to organization"));
+    }
+
+    // Store user data in socket
+    (socket as any).userId = user.id;
+    (socket as any).userEmail = user.email;
+    (socket as any).userRole = user.profile?.role?.name;
+    (socket as any).organizationId = user.organization_id;
+
+    pino.info(
+      { userId: user.id, organizationId: user.organization_id, socketId: socket.id },
+      "✅ Socket.IO: User authenticated"
+    );
+
+    next();
+  } catch (err) {
+    pino.error({ err }, "❌ Socket.IO: Authentication failed");
+    return next(new Error("Authentication error: Invalid token"));
+  }
+});
+
+// ✅ 5️⃣ Gestion des connexions Socket.IO avec rooms par organisation
 io.on("connection", (socket) => {
-  console.log("🟢 Nouvelle connexion Socket.IO :", socket.id);
-  socket.on("disconnect", () => console.log("🔴 Déconnexion :", socket.id));
+  const organizationId = (socket as any).organizationId;
+  const userId = (socket as any).userId;
+
+  // Rejoindre la room de l'organisation
+  socket.join(`org:${organizationId}`);
+
+  pino.info(
+    { socketId: socket.id, userId, organizationId },
+    `🟢 Socket.IO: User joined organization room org:${organizationId}`
+  );
+
+  socket.on("disconnect", () => {
+    pino.info(
+      { socketId: socket.id, userId, organizationId },
+      "🔴 Socket.IO: User disconnected"
+    );
+  });
 });
 
 // ✅ Middleware globaux
@@ -148,6 +235,7 @@ app.use("/mails", mailRoutes);
 app.use("/emails", emailRoutes);
 app.use("/api-keys", apiKeyRoutes);
 app.use("/api", maintenanceRoutes);
+app.use("/billing", billingRoutes);
 
 // Health check routes (no auth required)
 app.use(healthRoutes);

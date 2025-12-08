@@ -14,8 +14,11 @@ export const getProspects = async (req: AuthenticatedRequest, res: Response) => 
     const limit = req.query.limit ? Math.max(1, parseInt(String(req.query.limit), 10)) : 20;
     const skip = (page - 1) * limit;
 
-    // Build Prisma where condition
-    let where: any = { deleted_at: null };
+    // Build Prisma where condition - filter by organization
+    let where: any = {
+      deleted_at: null,
+      organization_id: req.user!.organizationId,
+    };
 
     if (status) {
       where.status = status;
@@ -129,7 +132,7 @@ export const getProspectById = async (req: AuthenticatedRequest, res: Response) 
         },
       },
     });
-    if (!prospect || prospect.deleted_at) {
+    if (!prospect || prospect.deleted_at || prospect.organization_id !== req.user!.organizationId) {
       return res.status(404).json({ success: false, error: "Prospect not found" });
     }
 
@@ -218,9 +221,14 @@ export const createProspect = async (req: AuthenticatedRequest, res: Response) =
 
     // Create prospect with dress reservations and requests in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Check if prospect with this email already exists
+      // Check if prospect with this email already exists in this organization
       const existingProspect = await tx.prospect.findUnique({
-        where: { email },
+        where: {
+          email_organization_id: {
+            email,
+            organization_id: req.user!.organizationId,
+          },
+        },
       });
 
       let prospect;
@@ -263,6 +271,7 @@ export const createProspect = async (req: AuthenticatedRequest, res: Response) =
             firstname,
             lastname,
             email,
+            organization_id: req.user!.organizationId,
             phone,
             birthday: birthday ? new Date(birthday) : null,
             country,
@@ -474,7 +483,7 @@ export const updateProspect = async (req: AuthenticatedRequest, res: Response) =
     } = req.body;
 
     const existing = await prisma.prospect.findUnique({ where: { id: String(id) } });
-    if (!existing || existing.deleted_at) {
+    if (!existing || existing.deleted_at || existing.organization_id !== req.user!.organizationId) {
       return res.status(404).json({ success: false, error: "Prospect not found" });
     }
 
@@ -493,7 +502,7 @@ export const updateProspect = async (req: AuthenticatedRequest, res: Response) =
         lastname,
         email,
         phone,
-        birthday,
+        birthday: birthday ? new Date(birthday) : undefined,
         country,
         city,
         address,
@@ -525,7 +534,7 @@ export const softDeleteProspect = async (req: AuthenticatedRequest, res: Respons
       return res.status(400).json({ success: false, error: "Prospect ID is required" });
     }
     const existing = await prisma.prospect.findUnique({ where: { id: String(id) } });
-    if (!existing || existing.deleted_at) {
+    if (!existing || existing.deleted_at || existing.organization_id !== req.user!.organizationId) {
       return res.status(404).json({ success: false, error: "Prospect not found" });
     }
 
@@ -556,7 +565,7 @@ export const hardDeleteProspect = async (req: AuthenticatedRequest, res: Respons
       return res.status(400).json({ success: false, error: "Prospect ID is required" });
     }
     const existing = await prisma.prospect.findUnique({ where: { id: String(id) } });
-    if (!existing) {
+    if (!existing || existing.organization_id !== req.user!.organizationId) {
       return res.status(404).json({ success: false, error: "Prospect not found" });
     }
 
@@ -601,7 +610,7 @@ export const convertProspectToCustomer = async (req: AuthenticatedRequest, res: 
       },
     });
 
-    if (!prospect || prospect.deleted_at) {
+    if (!prospect || prospect.deleted_at || prospect.organization_id !== req.user!.organizationId) {
       return res.status(404).json({ success: false, error: "Prospect not found" });
     }
 
@@ -614,9 +623,14 @@ export const convertProspectToCustomer = async (req: AuthenticatedRequest, res: 
       });
     }
 
-    // Check if email already exists in customers
+    // Check if email already exists in customers for this organization
     const existingCustomer = await prisma.customer.findUnique({
-      where: { email: prospect.email }
+      where: {
+        email_organization_id: {
+          email: prospect.email,
+          organization_id: prospect.organization_id,
+        },
+      },
     });
 
     if (existingCustomer) {
@@ -635,6 +649,7 @@ export const convertProspectToCustomer = async (req: AuthenticatedRequest, res: 
           firstname: prospect.firstname,
           lastname: prospect.lastname,
           email: prospect.email,
+          organization_id: prospect.organization_id,
           phone: prospect.phone,
           birthday: prospect.birthday,
           country: prospect.country,

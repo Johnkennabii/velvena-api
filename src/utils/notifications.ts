@@ -1,16 +1,25 @@
 // src/utils/notifications.ts
 import prisma from "../lib/prisma.js";
 import { io } from "../server.js";
+import pino from "../lib/logger.js";
 
 interface NotificationPayload {
   type: string;
   title: string;
   message?: string;
+  organization_id?: string; // ✅ Ajout du paramètre organization_id
   [key: string]: any;
 }
 
 export async function emitAndStoreNotification(payload: NotificationPayload) {
   try {
+    const organizationId = payload.organization_id;
+
+    if (!organizationId) {
+      pino.error("❌ organization_id is required for notifications");
+      throw new Error("organization_id is required for notifications");
+    }
+
     // 1️⃣ Crée la notification principale
     const notif = await prisma.notification.create({
       data: {
@@ -21,11 +30,12 @@ export async function emitAndStoreNotification(payload: NotificationPayload) {
       },
     });
 
-    // 2️⃣ Récupère tous les utilisateurs actifs
+    // 2️⃣ Récupère uniquement les utilisateurs de l'organisation spécifique
     const users = await prisma.user.findMany({
       select: { id: true },
       where: {
         deleted_at: null,
+        organization_id: organizationId, // ✅ Filtre par organisation
       },
     });
 
@@ -40,8 +50,8 @@ export async function emitAndStoreNotification(payload: NotificationPayload) {
       });
     }
 
-    // 4️⃣ Émet la notification via Socket.IO
-    io.emit("notification", {
+    // 4️⃣ Émet la notification uniquement à la room de l'organisation
+    io.to(`org:${organizationId}`).emit("notification", {
       id: notif.id,
       type: payload.type,
       title: payload.title,
@@ -50,10 +60,14 @@ export async function emitAndStoreNotification(payload: NotificationPayload) {
       created_at: notif.created_at,
     });
 
-    console.log(`📢 Notification envoyée à ${users.length} utilisateurs : ${payload.title}`);
+    pino.info(
+      { organizationId, notificationId: notif.id, usersCount: users.length },
+      `📢 Notification envoyée à ${users.length} utilisateurs de l'organisation : ${payload.title}`
+    );
 
     return notif;
   } catch (err) {
-    console.error("❌ Erreur stockage notification :", err);
+    pino.error({ err }, "❌ Erreur stockage notification");
+    throw err;
   }
 }

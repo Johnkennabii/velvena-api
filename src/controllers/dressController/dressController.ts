@@ -6,6 +6,8 @@ import pino from "../../lib/logger.js";
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
 import { emitAndStoreNotification } from "../../utils/notifications.js";
+import { buildStoragePath, buildPublicUrl, extractPathFromUrl } from "../../utils/storageHelper.js";
+import { requireOrganizationContext } from "../../utils/organizationHelper.js";
 
 const s3 = new S3Client({
   region: "eu-central-1",
@@ -15,29 +17,27 @@ const s3 = new S3Client({
     secretAccessKey: process.env.HETZNER_SECRET_KEY!,
   },
 });
-const hetznerBucket = process.env.HETZNER_BUCKET ?? "media-allure-creation";
-const DRESSES_FOLDER = "dresses";
-const DRESSES_PREFIX = `${DRESSES_FOLDER}/`;
+const hetznerBucket = process.env.HETZNER_BUCKET ?? "velvena-medias";
 const bucketUrlPrefix = `https://${hetznerBucket}.hel1.your-objectstorage.com/`;
 const legacyDressBucketUrlPrefix = "https://dresses.hel1.your-objectstorage.com/";
 
 if (!process.env.HETZNER_BUCKET) {
-  pino.warn("⚠️ HETZNER_BUCKET not set, defaulting to 'media-allure-creation'");
+  pino.warn("⚠️ HETZNER_BUCKET not set, defaulting to 'velvena-medias'");
 }
 
-const ensureDressKey = (key: string): string =>
-  key.startsWith(DRESSES_PREFIX) ? key : `${DRESSES_PREFIX}${key}`;
+// Helper functions for multi-tenant storage
+const buildDressKey = (organizationId: string): string =>
+  buildStoragePath(organizationId, 'dresses', randomUUID());
 
-const stripDressPrefix = (key: string): string =>
-  key.startsWith(DRESSES_PREFIX) ? key.slice(DRESSES_PREFIX.length) : key;
-
-const buildDressKey = (): string => `${DRESSES_PREFIX}${randomUUID()}`;
-
-const buildDressUrl = (key: string): string => `${bucketUrlPrefix}${key}`;
+const buildDressUrl = (key: string): string => buildPublicUrl(bucketUrlPrefix, key);
 
 // GET all dresses
 export const getDresses = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
     const {
       limit,
       offset,
@@ -68,7 +68,10 @@ export const getDresses = async (req: AuthenticatedRequest, res: Response) => {
     const sizeIds = toStringArray(sizeId);
     const colorIds = toStringArray(colorId);
 
-    const filters: Prisma.DressWhereInput[] = [{ deleted_at: null }];
+    const filters: Prisma.DressWhereInput[] = [
+      { deleted_at: null },
+      { organization_id: organizationId }, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+    ];
 
     if (typeNames.length > 0) {
       filters.push({
@@ -186,8 +189,16 @@ export const getDressById = async (req: AuthenticatedRequest, res: Response) => 
     if (!id) {
       return res.status(400).json({ success: false, error: "ID is required" });
     }
-    const dress = await prisma.dress.findUnique({
-      where: { id: id as string },
+
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
+    const dress = await prisma.dress.findFirst({
+      where: {
+        id: id as string,
+        organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+      },
       include: {
         type: true,
         size: true,
@@ -195,7 +206,7 @@ export const getDressById = async (req: AuthenticatedRequest, res: Response) => 
         color: true,
       },
     });
-    if (!dress) {
+    if (!dress || dress.deleted_at) {
       return res.status(404).json({ success: false, error: "Dress not found" });
     }
     res.status(200).json({ success: true, data: dress });
@@ -208,6 +219,10 @@ export const getDressById = async (req: AuthenticatedRequest, res: Response) => 
 // CREATE
 export const createDress = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
     const {
       name,
       reference,
@@ -250,7 +265,13 @@ export const createDress = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(400).json({ success: false, error: "price_per_day_ttc is required" });
     }
 
-    const existing = await prisma.dress.findUnique({ where: { reference } });
+    // Check reference uniqueness per organization
+    const existing = await prisma.dress.findFirst({
+      where: {
+        reference,
+        organization_id: organizationId,
+      },
+    });
     if (existing) {
       return res.status(400).json({ success: false, error: "Reference already exists" });
     }
@@ -272,7 +293,7 @@ export const createDress = async (req: AuthenticatedRequest, res: Response) => {
       );
       uploadedFiles = await Promise.all(
         files.slice(0, 5).map(async (file) => {
-          const key = buildDressKey();
+          const key = buildDressKey(organizationId);
           await s3.send(
             new PutObjectCommand({
               Bucket: hetznerBucket,
@@ -299,11 +320,12 @@ export const createDress = async (req: AuthenticatedRequest, res: Response) => {
     const data = {
       name,
       reference,
+      organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
       price_ht: parseFloat(price_ht),
       price_ttc: parseFloat(price_ttc),
       price_per_day_ht: parseFloat(price_per_day_ht),
       price_per_day_ttc: parseFloat(price_per_day_ttc),
-      images: finalImages, // toujours [] si pas d’images
+      images: finalImages, // toujours [] si pas d'images
       type_id,
       size_id,
       condition_id,
@@ -338,6 +360,7 @@ await emitAndStoreNotification({
   type: "DRESS_CREATED",
   title: "Nouvelle robe ajoutée",
   message: `La robe "${newDress.name}" (ref: ${newDress.reference}) a été ajoutée au catalogue par ${creatorFullName ?? "un utilisateur"}.`,
+  organization_id: req.user!.organizationId,
   reference: newDress.reference,
   creator: {
     id: req.user?.id ?? null,
@@ -362,10 +385,19 @@ export const updateDress = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(400).json({ success: false, error: "ID is required" });
     }
 
-    // Vérifier si la robe existe
-    const existing = await prisma.dress.findUnique({ where: { id } });
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
+    // Vérifier si la robe existe ET appartient à l'organisation
+    const existing = await prisma.dress.findFirst({
+      where: {
+        id,
+        organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+      },
+    });
     pino.info({ existing }, "ℹ️ Existing dress record found");
-    if (!existing) {
+    if (!existing || existing.deleted_at) {
       return res.status(404).json({ success: false, error: "Dress not found" });
     }
 
@@ -416,7 +448,7 @@ export const updateDress = async (req: AuthenticatedRequest, res: Response) => {
     if (Array.isArray(files) && files.length > 0) {
       const newFiles = await Promise.all(
         files.slice(0, 5).map(async (file) => {
-          const key = buildDressKey();
+          const key = buildDressKey(organizationId);
           await s3.send(
             new PutObjectCommand({
               Bucket: hetznerBucket,
@@ -495,8 +527,17 @@ export const publishDress = async (req: AuthenticatedRequest, res: Response) => 
       return res.status(400).json({ success: false, error: "ID is required" });
     }
 
-    const existing = await prisma.dress.findUnique({ where: { id } });
-    if (!existing) {
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
+    const existing = await prisma.dress.findFirst({
+      where: {
+        id,
+        organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+      },
+    });
+    if (!existing || existing.deleted_at) {
       return res.status(404).json({ success: false, error: "Dress not found" });
     }
 
@@ -526,8 +567,17 @@ export const unpublishDress = async (req: AuthenticatedRequest, res: Response) =
       return res.status(400).json({ success: false, error: "ID is required" });
     }
 
-    const existing = await prisma.dress.findUnique({ where: { id } });
-    if (!existing) {
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
+    const existing = await prisma.dress.findFirst({
+      where: {
+        id,
+        organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+      },
+    });
+    if (!existing || existing.deleted_at) {
       return res.status(404).json({ success: false, error: "Dress not found" });
     }
 
@@ -553,6 +603,21 @@ export const unpublishDress = async (req: AuthenticatedRequest, res: Response) =
 export const softDeleteDress = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
+
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
+    const existing = await prisma.dress.findFirst({
+      where: {
+        id: id as string,
+        organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+      },
+    });
+    if (!existing || existing.deleted_at) {
+      return res.status(404).json({ success: false, error: "Dress not found" });
+    }
+
     const deleted = await prisma.dress.update({
       where: { id: id as string },
       data: { deleted_at: new Date(), deleted_by: req.user?.id ?? null },
@@ -569,6 +634,21 @@ export const softDeleteDress = async (req: AuthenticatedRequest, res: Response) 
 export const hardDeleteDress = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
+
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
+    const existing = await prisma.dress.findFirst({
+      where: {
+        id: id as string,
+        organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+      },
+    });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: "Dress not found" });
+    }
+
     await prisma.dress.delete({ where: { id: id as string } });
     pino.warn({ id }, "🔥 Robe hard supprimée");
     res.json({ success: true, message: "Dress permanently deleted" });
@@ -577,9 +657,13 @@ export const hardDeleteDress = async (req: AuthenticatedRequest, res: Response) 
     res.status(500).json({ success: false, error: "Failed to hard delete dress" });
   }
 };
-// GET dresses with details from view
+// GET dresses with details
 export const getDressesWithDetails = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
     const {
       page = "1",
       limit = "10",
@@ -596,72 +680,81 @@ export const getDressesWithDetails = async (req: AuthenticatedRequest, res: Resp
 
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
-    const offset = (pageNum - 1) * limitNum;
+    const skip = (pageNum - 1) * limitNum;
 
-    let whereClauses: string[] = [`deleted_at IS NULL`];
+    const where: Prisma.DressWhereInput = {
+      deleted_at: null,
+      organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+    };
+
+    if (id) {
+      where.id = String(id);
+    }
 
     if (sizes) {
-      const arr = (sizes as string).split(",");
-      whereClauses.push(`size_id = ANY('{${arr.join(",")}}')`);
+      const sizeArray = String(sizes).split(",");
+      where.size_id = { in: sizeArray };
     }
 
     if (types) {
-      const arr = (types as string).split(",");
-      whereClauses.push(`type_id = ANY('{${arr.join(",")}}')`);
+      const typeArray = String(types).split(",");
+      where.type_id = { in: typeArray };
     }
 
     if (colors) {
-      const arr = (colors as string).split(",");
-      whereClauses.push(`color_id = ANY('{${arr.join(",")}}')`);
+      const colorArray = String(colors).split(",");
+      where.color_id = { in: colorArray };
     }
 
     if (priceMax) {
-      whereClauses.push(`price_ttc <= ${parseFloat(priceMax as string)}`);
+      where.price_ttc = { lte: parseFloat(String(priceMax)) };
     }
 
     if (pricePerDayMax) {
-      whereClauses.push(`price_per_day_ttc <= ${parseFloat(pricePerDayMax as string)}`);
+      where.price_per_day_ttc = { lte: parseFloat(String(pricePerDayMax)) };
     }
 
     if (startDate) {
-      whereClauses.push(`created_at >= '${startDate}'`);
+      where.created_at = { ...where.created_at as any, gte: new Date(String(startDate)) };
     }
 
     if (endDate) {
-      whereClauses.push(`created_at <= '${endDate}'`);
-    }
-
-    if (id) {
-      whereClauses.push(`id = '${id}'`);
+      where.created_at = { ...where.created_at as any, lte: new Date(String(endDate)) };
     }
 
     if (search) {
-      const escaped = (search as string).replace(/'/g, "''");
-      whereClauses.push(`(name ILIKE '%${escaped}%' OR reference ILIKE '%${escaped}%')`);
+      const keyword = String(search).trim();
+      where.OR = [
+        { name: { contains: keyword, mode: "insensitive" } },
+        { reference: { contains: keyword, mode: "insensitive" } },
+      ];
     }
 
-    const whereSQL = whereClauses.length ? `WHERE ${whereClauses.join(" AND ")}` : "";
-
-    const countQuery = `SELECT COUNT(*)::int AS total FROM dresses_with_details ${whereSQL}`;
-    const dataQuery = `
-      SELECT * FROM dresses_with_details
-      ${whereSQL}
-      ORDER BY created_at DESC
-      LIMIT ${limitNum} OFFSET ${offset}
-    `;
-
-    const totalResult: any[] = await prisma.$queryRawUnsafe(countQuery);
-    const results: any[] = await prisma.$queryRawUnsafe(dataQuery);
+    const [total, results] = await Promise.all([
+      prisma.dress.count({ where }),
+      prisma.dress.findMany({
+        where,
+        include: {
+          type: true,
+          size: true,
+          color: true,
+          condition: true,
+        },
+        orderBy: { created_at: "desc" },
+        skip,
+        take: limitNum,
+      }),
+    ]);
 
     res.json({
       success: true,
-      total: totalResult[0]?.total ?? 0,
+      total,
       page: pageNum,
       limit: limitNum,
       data: results,
     });
   } catch (err: any) {
-    pino.error({ err }, "❌ Erreur récupération robes (view dresses_with_details)");
+    pino.error({ err }, "❌ Erreur récupération robes avec détails");
     res.status(500).json({ success: false, error: "Failed to fetch dresses with details" });
   }
 };
@@ -673,7 +766,16 @@ export const addDressImages = async (req: AuthenticatedRequest, res: Response) =
     const { id } = req.params;
     if (!id) return res.status(400).json({ success: false, error: "Dress ID is required" });
 
-    const dress = await prisma.dress.findUnique({ where: { id } });
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
+    const dress = await prisma.dress.findFirst({
+      where: {
+        id,
+        organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+      },
+    });
     if (!dress) return res.status(404).json({ success: false, error: "Dress not found" });
 
     if (!req.files || !(req.files instanceof Array)) {
@@ -683,7 +785,7 @@ export const addDressImages = async (req: AuthenticatedRequest, res: Response) =
     // Upload max 5 images
     const uploadedFiles = await Promise.all(
       req.files.slice(0, 5).map(async (file: Express.Multer.File) => {
-        const key = buildDressKey();
+        const key = buildDressKey(organizationId);
         await s3.send(
           new PutObjectCommand({
             Bucket: hetznerBucket,
@@ -754,33 +856,55 @@ export const removeDressImage = async (req: AuthenticatedRequest, res: Response)
       });
     }
 
-    const dress = await prisma.dress.findUnique({ where: { id } });
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
+    // Vérifier que la robe appartient à l'organisation
+    const dress = await prisma.dress.findFirst({
+      where: {
+        id,
+        organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+      },
+    });
+
     if (!dress) {
       return res.status(404).json({ success: false, error: "Dress not found" });
     }
 
     const existingImages = new Set(dress.images ?? []);
-    const keysFound: Array<{ shortKey: string; fullKey: string; urls: string[] }> = [];
+    const keysFound: Array<{ filename: string; s3Key: string; urls: string[] }> = [];
     const keysNotFound: string[] = [];
 
-    keys.forEach((candidate) => {
-      const fullKey = ensureDressKey(candidate);
-      const shortKey = stripDressPrefix(fullKey);
-      const urlsForKey: string[] = [];
-      const newUrl = `${bucketUrlPrefix}${fullKey}`;
-      const legacyUrl = `${legacyDressBucketUrlPrefix}${shortKey}`;
+    // Pour chaque clé fournie, vérifier si elle existe dans les images du dress
+    keys.forEach((filename) => {
+      // Construire le path S3 multi-tenant
+      const s3Key = buildStoragePath(organizationId, 'dresses', filename);
+      const fullUrl = buildPublicUrl(bucketUrlPrefix, s3Key);
 
-      if (existingImages.has(newUrl)) {
-        urlsForKey.push(newUrl);
+      // Vérifier si cette URL existe dans les images du dress
+      const matchingUrls: string[] = [];
+
+      if (existingImages.has(fullUrl)) {
+        matchingUrls.push(fullUrl);
       }
+
+      // Support ancien format (migration) - pour compatibilité temporaire
+      const legacyUrl = `${legacyDressBucketUrlPrefix}${filename}`;
       if (existingImages.has(legacyUrl)) {
-        urlsForKey.push(legacyUrl);
+        matchingUrls.push(legacyUrl);
       }
 
-      if (urlsForKey.length > 0) {
-        keysFound.push({ shortKey, fullKey, urls: urlsForKey });
+      // Support ancien format sans org (migration)
+      const oldFormatUrl = `${bucketUrlPrefix}dresses/${filename}`;
+      if (existingImages.has(oldFormatUrl)) {
+        matchingUrls.push(oldFormatUrl);
+      }
+
+      if (matchingUrls.length > 0) {
+        keysFound.push({ filename, s3Key, urls: matchingUrls });
       } else {
-        keysNotFound.push(candidate);
+        keysNotFound.push(filename);
       }
     });
 
@@ -788,20 +912,33 @@ export const removeDressImage = async (req: AuthenticatedRequest, res: Response)
       return res.status(404).json({
         success: false,
         error: "None of the provided image keys belong to this dress",
+        details: { keysNotFound },
       });
     }
 
+    // Supprimer les images du bucket S3
     await Promise.all(
-      keysFound.map(({ fullKey }) =>
+      keysFound.map(({ s3Key }) =>
         s3.send(
           new DeleteObjectCommand({
             Bucket: hetznerBucket,
-            Key: fullKey,
+            Key: s3Key,
           })
-        )
+        ).catch((err) => {
+          // Si l'image n'existe pas dans le nouveau path, essayer l'ancien
+          pino.warn({ s3Key, err: err.message }, "Failed to delete with new path, trying legacy");
+          const legacyKey = s3Key.replace(`${organizationId}/dresses/`, 'dresses/');
+          return s3.send(
+            new DeleteObjectCommand({
+              Bucket: hetznerBucket,
+              Key: legacyKey,
+            })
+          );
+        })
       )
     );
 
+    // Mettre à jour la base de données
     const urlsToDelete = new Set(keysFound.flatMap(({ urls }) => urls));
     const updatedImages = (dress.images ?? []).filter((img) => !urlsToDelete.has(img));
 
@@ -810,11 +947,21 @@ export const removeDressImage = async (req: AuthenticatedRequest, res: Response)
       data: { images: updatedImages, updated_by: req.user?.id ?? null },
     });
 
+    pino.info(
+      {
+        dressId: id,
+        organizationId,
+        deletedCount: keysFound.length,
+        keysNotFound: keysNotFound.length > 0 ? keysNotFound : undefined,
+      },
+      "✅ Images supprimées"
+    );
+
     res.json({
       success: true,
       data: updated,
-      removedKeys: keysFound.map(({ shortKey }) => shortKey),
-      notFoundKeys: keysNotFound,
+      deleted: keysFound.map(({ filename }) => filename),
+      notFound: keysNotFound.length > 0 ? keysNotFound : undefined,
     });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur suppression image robe");
@@ -824,6 +971,10 @@ export const removeDressImage = async (req: AuthenticatedRequest, res: Response)
 
 export const getDressesAvailability = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
     const { start, end } = req.query;
 
     const startDate = start ? new Date(String(start)) : null;
@@ -842,64 +993,50 @@ export const getDressesAvailability = async (req: AuthenticatedRequest, res: Res
 
     const activeStatuses = ["DRAFT", "PENDING", "PENDING_SIGNATURE", "SIGNED", "SIGNED_ELECTRONICALLY"];
 
-    const conditions: Prisma.Sql[] = [
-      Prisma.sql`cf.deleted_at IS NULL`,
-      Prisma.sql`cf.status IN (${Prisma.join(activeStatuses)})`,
-      Prisma.sql`cf.end_datetime >= ${effectiveStart}`,
-    ];
-
-    if (effectiveEnd) {
-      conditions.push(Prisma.sql`cf.start_datetime <= ${effectiveEnd}`);
-    }
-
-    let occupiedRows: { dress_id: string; first_start: Date; last_end: Date }[] = [];
-
-    console.log("🔍 BEFORE QUERY - effectiveStart:", effectiveStart, "effectiveEnd:", effectiveEnd);
-
-    try {
-      occupiedRows = await prisma.$queryRaw<
-        { dress_id: string; first_start: Date; last_end: Date }[]
-      >(Prisma.sql`
-        SELECT
-          d->>'id' AS dress_id,
-          MIN(cf.start_datetime) AS first_start,
-          MAX(cf.end_datetime) AS last_end
-        FROM contracts_full_view cf,
-             jsonb_array_elements(cf.dresses::jsonb) AS d
-        WHERE ${Prisma.join(conditions, " AND ")}
-        GROUP BY d->>'id'
-      `);
-      console.log("✅ QUERY SUCCESS - occupiedRows.length:", occupiedRows.length);
-    } catch (error) {
-      console.log("❌ QUERY ERROR:", error);
-      pino.error({ error, conditions, effectiveStart, effectiveEnd }, "❌ Error in availability query");
-      // Return empty array on error - all dresses will appear available
-      occupiedRows = [];
-    }
-
-    console.log("📊 AFTER QUERY - occupiedRows:", JSON.stringify(occupiedRows));
-
-    pino.info(
-      {
-        occupiedRowsCount: occupiedRows.length,
-        occupiedRows: occupiedRows.map(r => ({
-          dress_id: r.dress_id,
-          first_start: r.first_start,
-          last_end: r.last_end
-        }))
+    // Find occupied dresses using Prisma with multi-tenant isolation
+    const occupiedContracts = await prisma.contract.findMany({
+      where: {
+        organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+        deleted_at: null,
+        status: { in: activeStatuses },
+        end_datetime: { gte: effectiveStart },
+        ...(effectiveEnd ? { start_datetime: { lte: effectiveEnd } } : {}),
       },
-      "📋 Occupied rows from query"
-    );
+      select: {
+        id: true,
+        start_datetime: true,
+        end_datetime: true,
+        dresses: {
+          select: {
+            dress_id: true,
+          },
+        },
+      },
+    });
 
-    const occupiedById: Record<
-      string,
-      { first_start: Date; last_end: Date }
-    > = {};
-    for (const row of occupiedRows) {
-      occupiedById[row.dress_id] = {
-        first_start: row.first_start,
-        last_end: row.last_end,
-      };
+    console.log("🔍 Found occupied contracts:", occupiedContracts.length);
+
+    // Build occupiedById map
+    const occupiedById: Record<string, { first_start: Date; last_end: Date }> = {};
+
+    for (const contract of occupiedContracts) {
+      for (const dress of contract.dresses) {
+        const dressId = dress.dress_id;
+
+        if (!occupiedById[dressId]) {
+          occupiedById[dressId] = {
+            first_start: contract.start_datetime,
+            last_end: contract.end_datetime,
+          };
+        } else {
+          if (contract.start_datetime < occupiedById[dressId].first_start) {
+            occupiedById[dressId].first_start = contract.start_datetime;
+          }
+          if (contract.end_datetime > occupiedById[dressId].last_end) {
+            occupiedById[dressId].last_end = contract.end_datetime;
+          }
+        }
+      }
     }
 
     pino.info(
@@ -911,7 +1048,10 @@ export const getDressesAvailability = async (req: AuthenticatedRequest, res: Res
     );
 
     const allDresses = await prisma.dress.findMany({
-      where: { deleted_at: null },
+      where: {
+        deleted_at: null,
+        organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+      },
       select: {
         id: true,
         name: true,
