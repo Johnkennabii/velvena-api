@@ -9,11 +9,10 @@ import {
 } from "../../controllers/dressController/dressTypeController.js";
 import pino from "../../lib/logger.js";
 import authMiddleware from "../../middleware/authMiddleware.js";
-import { hybridAuthMiddleware, requireApiKeyScope } from "../../middleware/hybridAuthMiddleware.js";
 
 const router = Router();
 
-router.get("/", hybridAuthMiddleware, requireApiKeyScope("read:dress-types"), (req, res) => {
+router.get("/", authMiddleware, (req, res) => {
   pino.info("📌 GET /dress-types called");
   return getDressTypes(req, res);
 });

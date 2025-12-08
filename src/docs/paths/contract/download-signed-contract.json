@@ -38,7 +38,7 @@
               "schema": {
                 "type": "string",
                 "format": "uri",
-                "example": "https://media-allure-creation.hel1.your-objectstorage.com/contracts/79b4ebae-f107-4ca4-953e-b53b2e66e57a/signed_1730944132000.pdf"
+                "example": "https://velvena-medias.hel1.your-objectstorage.com/contracts/79b4ebae-f107-4ca4-953e-b53b2e66e57a/signed_1730944132000.pdf"
               }
             }
           }

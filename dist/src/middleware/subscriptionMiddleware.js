@@ -7,6 +7,7 @@
  */
 import { checkQuota, checkFeature } from "../utils/subscriptionManager.js";
 import logger from "../lib/logger.js";
+import prisma from "../lib/prisma.js";
 // ============================================
 // QUOTA MIDDLEWARE
 // ============================================

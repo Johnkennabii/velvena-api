@@ -325,6 +325,8 @@ declare const _default: {
             summary: string;
             description: string;
             operationId: string;
+            "x-quota-protected": boolean;
+            "x-quota-resource": string;
             security: {
                 bearerAuth: never[];
             }[];
@@ -493,6 +495,29 @@ declare const _default: {
                         "application/json": {
                             example: {
                                 error: string;
+                            };
+                        };
+                    };
+                };
+                "402": {
+                    description: string;
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: string;
+                            };
+                            example: {
+                                success: boolean;
+                                error: string;
+                                code: string;
+                                details: {
+                                    resource_type: string;
+                                    current_usage: number;
+                                    limit: number;
+                                    percentage_used: number;
+                                };
+                                message: string;
+                                upgrade_url: string;
                             };
                         };
                     };

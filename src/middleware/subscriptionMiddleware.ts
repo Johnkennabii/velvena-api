@@ -10,6 +10,7 @@ import type { Response, NextFunction } from "express";
 import type { AuthenticatedRequest } from "../types/express.js";
 import { checkQuota, checkFeature, type SubscriptionFeatures } from "../utils/subscriptionManager.js";
 import logger from "../lib/logger.js";
+import prisma from "../lib/prisma.js";
 
 // ============================================
 // QUOTA MIDDLEWARE
@@ -22,7 +23,7 @@ import logger from "../lib/logger.js";
  * router.post("/users", authMiddleware, requireQuota("users"), createUser);
  */
 export function requireQuota(
-  resourceType: "users" | "dresses" | "customers" | "contracts" | "api_calls"
+  resourceType: "users" | "dresses" | "customers" | "prospects" | "contracts" | "api_calls"
 ) {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -252,7 +253,7 @@ export function requireActiveSubscription(
  * router.post("/contracts/advanced", authMiddleware, requireQuotaAndFeature("contracts", "advanced_analytics"), createAdvancedContract);
  */
 export function requireQuotaAndFeature(
-  resourceType: "users" | "dresses" | "customers" | "contracts",
+  resourceType: "users" | "dresses" | "customers" | "prospects" | "contracts",
   featureName: keyof SubscriptionFeatures
 ) {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {

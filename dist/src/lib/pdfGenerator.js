@@ -2,6 +2,8 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3, hetznerBucket } from "./hetzner.js";
 import { compressPdfBuffer } from "./pdfCompression.js";
+import { buildStoragePath, buildPublicUrl } from "../utils/storageHelper.js";
+const bucketUrlPrefix = `https://${hetznerBucket}.hel1.your-objectstorage.com/`;
 export async function generateContractPDFWithPdfLib(contract, options = {}) {
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595, 842]); // Format A4 portrait
@@ -330,12 +332,18 @@ export async function generateContractPDFWithPdfLib(contract, options = {}) {
         drawText("Signé électroniquement conformément à l'article 1367 du Code civil.", 10);
     }
     // -----------------------
-    // ☁️ Upload vers Hetzner
+    // ☁️ Upload vers Hetzner (Multi-tenant)
     // -----------------------
     const pdfBytes = await pdfDoc.save();
     const rawBuffer = Buffer.from(pdfBytes);
     const { buffer: payload, encoding } = await compressPdfBuffer(rawBuffer);
-    const pdfKey = `contracts/${contract.id}/signed_${Date.now()}.pdf`;
+    // Construire le path avec organization_id pour multi-tenant
+    const organizationId = contract.organization_id;
+    if (!organizationId) {
+        throw new Error("Contract organization_id is required for PDF storage");
+    }
+    const filename = `${contract.id}_signed_${Date.now()}.pdf`;
+    const pdfKey = buildStoragePath(organizationId, 'contracts', filename);
     await s3.send(new PutObjectCommand({
         Bucket: hetznerBucket,
         Key: pdfKey,
@@ -343,6 +351,6 @@ export async function generateContractPDFWithPdfLib(contract, options = {}) {
         ContentType: "application/pdf",
         ContentEncoding: encoding,
     }));
-    return `https://${hetznerBucket}.hel1.your-objectstorage.com/${pdfKey}`;
+    return buildPublicUrl(bucketUrlPrefix, pdfKey);
 }
 //# sourceMappingURL=pdfGenerator.js.map

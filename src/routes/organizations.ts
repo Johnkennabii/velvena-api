@@ -6,11 +6,26 @@ import {
   getOrganizationStats,
   createOrganization,
   listOrganizations,
+  initializeOrganization,
 } from "../controllers/organizationController.js";
 
 const router = express.Router();
 
-// All routes require authentication
+/**
+ * PUBLIC ROUTES (no authentication required)
+ */
+
+/**
+ * @route POST /organizations/initialize
+ * @desc Initialize a new organization with first MANAGER user (for onboarding/subscription)
+ * @access Public
+ */
+router.post("/initialize", initializeOrganization);
+
+/**
+ * AUTHENTICATED ROUTES
+ */
+// All routes below require authentication
 router.use(authMiddleware);
 
 /**

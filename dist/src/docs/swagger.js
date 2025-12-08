@@ -37,19 +37,27 @@ import { prospectRequestPaths } from "./paths/prospect-request/index.js";
 import { prospectRequestSchemas } from "./components/schemas/prospect-request/index.js";
 import rolesPath from "./paths/roles/index.js";
 import rolessSchemas from "./components/schemas/roles/index.js";
+import organizationPaths from "./paths/organization/index.js";
+import organizationSchemas from "./components/schemas/organization/index.js";
+import serviceTypePaths from "./paths/service-type/index.js";
+import serviceTypeSchemas from "./components/schemas/service-type/index.js";
+import pricingRulePaths from "./paths/pricing-rule/index.js";
+import pricingRuleSchemas from "./components/schemas/pricing-rule/index.js";
+import billingPaths from "./paths/billing/index.js";
+import billingSchemas from "./components/schemas/billing/index.js";
 import mailPath from "./paths/mail/index.js";
 import mailSchemas from "./components/schemas/mail/index.js";
 console.log("✅ AUTH PATHS LOADED:", Object.keys(contractTypesPath));
 export const swaggerDocument = {
     openapi: "3.0.3",
     info: {
-        title: "Allure Création API",
+        title: "Velvena API",
         version: "1.0.0",
-        description: "API Documentation for Allure Création — modularized version",
+        description: "API Documentation for Velvena — Multi-tenant Dress Rental Management System",
     },
     servers: [
-        { url: "https://api.allure-creation.fr", description: "Production Server" },
-        { url: "http://localhost:4000", description: "Local Development Server" },
+        { url: "https://api.velvena.fr", description: "Production Server" },
+        { url: "http://localhost:3000", description: "Local Development Server" },
     ],
     tags: [
         { name: "Auth", description: "Authentication and user session endpoints" },
@@ -72,6 +80,10 @@ export const swaggerDocument = {
         { name: "Prospect Requests", description: "Endpoints related to prospect requests (demandes) with dress selections and estimates" },
         { name: "Roles", description: "Endpoints related to roles management" },
         { name: "Mail", description: "Endpoints related to email management (IMAP/SMTP)" },
+        { name: "Organizations", description: "Endpoints for managing organizations (multi-tenant)" },
+        { name: "Service Types", description: "Endpoints for managing service types (rental types, pricing methods)" },
+        { name: "Pricing Rules", description: "Endpoints for managing pricing rules and calculating rental prices" },
+        { name: "Billing & Subscription", description: "Endpoints for managing subscriptions, quotas, and features" },
     ],
     paths: {
         ...userAuthPath,
@@ -94,6 +106,10 @@ export const swaggerDocument = {
         ...prospectRequestPaths,
         ...rolesPath,
         ...mailPath,
+        ...organizationPaths,
+        ...serviceTypePaths,
+        ...pricingRulePaths,
+        ...billingPaths,
     },
     components: {
         schemas: {
@@ -117,6 +133,10 @@ export const swaggerDocument = {
             ...prospectRequestSchemas,
             ...rolessSchemas,
             ...mailSchemas,
+            ...organizationSchemas,
+            ...serviceTypeSchemas,
+            ...pricingRuleSchemas,
+            ...billingSchemas,
         },
         securitySchemes: {
             bearerAuth: {

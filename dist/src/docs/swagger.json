@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://api.allure-creation.fr",
+      "url": "https://api.velvena.fr",
       "description": "Production Server"
     },
     {
@@ -2131,7 +2131,7 @@
                         "token": "bba5d9f1-46e4-41b4-8157-8db68bff1f03",
                         "expires_at": "2025-10-12T14:35:00.000Z"
                       },
-                      "link": "https://app.allure-creation.fr/sign/bba5d9f1-46e4-41b4-8157-8db68bff1f03",
+                      "link": "https://app.velvena.fr/sign/bba5d9f1-46e4-41b4-8157-8db68bff1f03",
                       "emailSentTo": "client@example.com"
                     }
                   }
@@ -2182,7 +2182,7 @@
                     "link": {
                       "type": "string",
                       "format": "uri",
-                      "example": "https://app.allure-creation.fr/sign/6a3c12f4-2b8e-49a5-a3f4-901b2c1eab67",
+                      "example": "https://app.velvena.fr/sign/6a3c12f4-2b8e-49a5-a3f4-901b2c1eab67",
                       "description": "The full URL of the signing page the customer can access to sign the contract."
                     },
                     "emailSentTo": {
@@ -4933,8 +4933,8 @@
                           "price_ht": 120,
                           "price_ttc": 144,
                           "images": [
-                            "https://cdn.allure-creation.fr/dresses/robe-rouge-1.jpg",
-                            "https://cdn.allure-creation.fr/dresses/robe-rouge-2.jpg"
+                            "https://cdn.velvena.fr/dresses/robe-rouge-1.jpg",
+                            "https://cdn.velvena.fr/dresses/robe-rouge-2.jpg"
                           ],
                           "created_at": "2025-05-10T14:32:00.000Z",
                           "updated_at": "2025-06-01T09:00:00.000Z",
@@ -5008,8 +5008,8 @@
                               "format": "uri"
                             },
                             "example": [
-                              "https://cdn.allure-creation.fr/dresses/mariee1.jpg",
-                              "https://cdn.allure-creation.fr/dresses/mariee2.jpg"
+                              "https://cdn.velvena.fr/dresses/mariee1.jpg",
+                              "https://cdn.velvena.fr/dresses/mariee2.jpg"
                             ]
                           },
                           "created_at": {
@@ -5328,8 +5328,8 @@
                         "price_per_day_ht": 50,
                         "price_per_day_ttc": 60,
                         "images": [
-                          "https://cdn.allure-creation.fr/dresses/robe-rouge-1.jpg",
-                          "https://cdn.allure-creation.fr/dresses/robe-rouge-2.jpg"
+                          "https://cdn.velvena.fr/dresses/robe-rouge-1.jpg",
+                          "https://cdn.velvena.fr/dresses/robe-rouge-2.jpg"
                         ],
                         "created_at": "2025-05-10T14:32:00.000Z",
                         "updated_at": "2025-06-01T09:00:00.000Z",
@@ -5412,8 +5412,8 @@
                             "format": "uri"
                           },
                           "example": [
-                            "https://cdn.allure-creation.fr/dresses/robe-rouge-1.jpg",
-                            "https://cdn.allure-creation.fr/dresses/robe-rouge-2.jpg"
+                            "https://cdn.velvena.fr/dresses/robe-rouge-1.jpg",
+                            "https://cdn.velvena.fr/dresses/robe-rouge-2.jpg"
                           ]
                         },
                         "created_at": {
@@ -8599,7 +8599,7 @@
                   "data": [
                     {
                       "id": "d45bfae1-5f67-4f39-89e5-1b8e8dcb3baf",
-                      "email": "admin@allure-creation.fr",
+                      "email": "admin@velvena.fr",
                       "profile": {
                         "firstname": "Emma",
                         "lastname": "Dupont",
@@ -8610,7 +8610,7 @@
                     },
                     {
                       "id": "0aabde22-f1a3-42f1-a1b4-998f456a31d1",
-                      "email": "user@allure-creation.fr",
+                      "email": "user@velvena.fr",
                       "profile": {
                         "firstname": "Lina",
                         "lastname": "Bernard",
@@ -8678,7 +8678,7 @@
                   "success": true,
                   "data": {
                     "id": "0aabde22-f1a3-42f1-a1b4-998f456a31d1",
-                    "email": "user@allure-creation.fr",
+                    "email": "user@velvena.fr",
                     "profile": {
                       "firstname": "Lina",
                       "lastname": "Bernard",
@@ -8775,7 +8775,7 @@
                       },
                       "avatar_url": {
                         "type": "string",
-                        "example": "https://cdn.allure-creation.fr/avatars/emma.png"
+                        "example": "https://cdn.velvena.fr/avatars/emma.png"
                       },
                       "role_id": {
                         "type": "string",
@@ -8823,7 +8823,7 @@
                         },
                         "email": {
                           "type": "string",
-                          "example": "user@allure-creation.fr"
+                          "example": "user@velvena.fr"
                         },
                         "profile": {
                           "type": "object",
@@ -8875,7 +8875,7 @@
                   "success": true,
                   "data": {
                     "id": "0aabde22-f1a3-42f1-a1b4-998f456a31d1",
-                    "email": "user@allure-creation.fr",
+                    "email": "user@velvena.fr",
                     "profile": {
                       "firstName": "Emma",
                       "lastName": "Dupont",
@@ -9469,14 +9469,14 @@
                           "created_at": "2024-01-15T08:30:00Z",
                           "created_by": "system",
                           "updated_at": "2024-03-02T10:00:00Z",
-                          "updated_by": "super.admin@allure-creation.fr"
+                          "updated_by": "super.admin@velvena.fr"
                         },
                         {
                           "id": "6f9dd9bb-4f1c-46bf-8db8-905a1bbf0c11",
                           "name": "MANAGER",
                           "description": "Gestion des équipes et des événements",
                           "created_at": "2024-02-01T11:20:00Z",
-                          "created_by": "super.admin@allure-creation.fr",
+                          "created_by": "super.admin@velvena.fr",
                           "updated_at": null,
                           "updated_by": null
                         }
@@ -9549,7 +9549,7 @@
                     "name": "MANAGER",
                     "description": "Gestion des équipes et des événements",
                     "created_at": "2024-02-01T11:20:00Z",
-                    "created_by": "super.admin@allure-creation.fr",
+                    "created_by": "super.admin@velvena.fr",
                     "updated_at": null,
                     "updated_by": null
                   }
@@ -13263,8 +13263,8 @@
                             "price_ht": 120,
                             "price_ttc": 144,
                             "images": [
-                              "https://cdn.allure-creation.fr/dresses/robe-rouge-1.jpg",
-                              "https://cdn.allure-creation.fr/dresses/robe-rouge-2.jpg"
+                              "https://cdn.velvena.fr/dresses/robe-rouge-1.jpg",
+                              "https://cdn.velvena.fr/dresses/robe-rouge-2.jpg"
                             ],
                             "created_at": "2025-05-10T14:32:00.000Z",
                             "updated_at": "2025-06-01T09:00:00.000Z",
@@ -13338,8 +13338,8 @@
                                 "format": "uri"
                               },
                               "example": [
-                                "https://cdn.allure-creation.fr/dresses/mariee1.jpg",
-                                "https://cdn.allure-creation.fr/dresses/mariee2.jpg"
+                                "https://cdn.velvena.fr/dresses/mariee1.jpg",
+                                "https://cdn.velvena.fr/dresses/mariee2.jpg"
                               ]
                             },
                             "created_at": {
@@ -15928,7 +15928,7 @@
               "string",
               "null"
             ],
-            "example": "super.admin@allure-creation.fr"
+            "example": "super.admin@velvena.fr"
           }
         },
         "required": [
@@ -16003,7 +16003,7 @@
                 "address": {
                   "type": "string",
                   "format": "email",
-                  "example": "contact@allure-creation.fr"
+                  "example": "contact@velvena.fr"
                 },
                 "name": {
                   "type": "string",

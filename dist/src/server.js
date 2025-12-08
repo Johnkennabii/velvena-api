@@ -9,6 +9,9 @@ import authRoutes from "./routes/userRoutes/auth.js";
 import usersRoutes from "./routes/userRoutes/users.js";
 import profilesRoutes from "./routes/userRoutes/profiles.js";
 import rolesRoutes from "./routes/userRoutes/roles.js";
+import organizationRoutes from "./routes/organizations.js";
+import serviceTypeRoutes from "./routes/serviceTypes.js";
+import pricingRuleRoutes from "./routes/pricingRules.js";
 import avatarRoutes from "./routes/bucketRoutes/avatar.js";
 import dressStorage from "./routes/bucketRoutes/dressStorageRoutes.js";
 import dressTypesRoutes from "./routes/dressRoutes/dressTypes.js";
@@ -30,6 +33,8 @@ import mailRoutes from "./routes/mailRoutes.js";
 import emailRoutes from "./routes/emailRoutes.js";
 import apiKeyRoutes from "./routes/apiKeys.js";
 import maintenanceRoutes from "./routes/maintenanceRoutes.js";
+import healthRoutes from "./routes/health.js";
+import billingRoutes from "./routes/billing.js";
 import { getContractSignLink, signContractViaLink, } from "./controllers/contractController/contractController.js";
 // 🧩 1️⃣ Création de ton app Express
 const app = express();
@@ -43,9 +48,9 @@ export const io = new SocketIOServer(server, {
             "http://127.0.0.1:4173",
             "http://localhost:5174",
             "http://localhost:5173",
-            "https://allure-creation.fr",
-            "https://app.allure-creation.fr",
-            "https://api.allure-creation.fr",
+            "https://velvena.fr",
+            "https://app.velvena.fr",
+            "https://api.velvena.fr",
         ],
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
         credentials: true,
@@ -67,10 +72,10 @@ app.use(cors({
         "http://192.168.1.17:3000",
         "http://192.168.1.17:3001",
         "http://localhost:3000",
-        "https://allure-creation.fr",
-        "https://www.allure-creation.fr",
-        "https://app.allure-creation.fr",
-        "https://api.allure-creation.fr",
+        "https://velvena.fr",
+        "https://www.velvena.fr",
+        "https://app.velvena.fr",
+        "https://api.velvena.fr",
     ],
     credentials: true,
 }));
@@ -85,6 +90,9 @@ app.use("/auth", authRoutes);
 app.use("/users", usersRoutes);
 app.use("/profiles", profilesRoutes);
 app.use("/roles", rolesRoutes);
+app.use("/organizations", organizationRoutes);
+app.use("/service-types", serviceTypeRoutes);
+app.use("/pricing-rules", pricingRuleRoutes);
 app.use("/avatars", avatarRoutes);
 app.use("/dress-storage", dressStorage);
 app.use("/dress-types", dressTypesRoutes);
@@ -109,9 +117,12 @@ app.use("/mails", mailRoutes);
 app.use("/emails", emailRoutes);
 app.use("/api-keys", apiKeyRoutes);
 app.use("/api", maintenanceRoutes);
+app.use("/billing", billingRoutes);
+// Health check routes (no auth required)
+app.use(healthRoutes);
 // ✅ Route racine
 app.get("/", (req, res) => {
-    res.json({ success: true, message: "Allure Creation API is running 🚀" });
+    res.json({ success: true, message: "Velvena API is running 🚀" });
 });
 // ✅ Gestion des erreurs globales
 app.use((err, req, res, _next) => {

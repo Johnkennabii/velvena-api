@@ -42,7 +42,7 @@
                 "required": ["link"]
               },
               "example": {
-                "link": "https://media-allure-creation.hel1.your-objectstorage.com/contracts/f4a6/signed_1730941710000.pdf"
+                "link": "https://velvena-medias.hel1.your-objectstorage.com/contracts/f4a6/signed_1730941710000.pdf"
               }
             }
           }

@@ -132,15 +132,55 @@ async function authenticateWithJWT(
       id: string;
       email?: string;
       role?: string;
+      organizationId?: string;
     };
+
+    // Fetch user with organization to get organizationId (if not in token)
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        email: true,
+        organization_id: true,
+        profile: {
+          select: {
+            role: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      pino.warn({ userId: decoded.id }, "❌ User not found");
+      return res.status(401).json({
+        success: false,
+        error: "User not found",
+      });
+    }
+
+    if (!user.organization_id) {
+      pino.error({ userId: user.id }, "❌ User has no organization");
+      return res.status(403).json({
+        success: false,
+        error: "User is not assigned to an organization",
+      });
+    }
 
     req.user = {
-      id: decoded.id,
-      email: decoded.email ?? null,
-      role: decoded.role ?? null,
+      id: user.id,
+      email: user.email ?? null,
+      role: user.profile?.role?.name ?? null,
+      organizationId: user.organization_id, // Add organizationId
     };
 
-    pino.info({ userId: decoded.id, method: req.method, url: req.url }, "✅ JWT authenticated");
+    pino.info(
+      { userId: user.id, organizationId: user.organization_id, method: req.method, url: req.url },
+      "✅ JWT authenticated with organization context"
+    );
     next();
   } catch (err: any) {
     if (err.name === "TokenExpiredError") {

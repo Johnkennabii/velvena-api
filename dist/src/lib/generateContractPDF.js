@@ -4,6 +4,8 @@ import { s3, hetznerBucket } from "./hetzner.js";
 import logger from "./logger.js";
 import { generateContractPDFWithPdfLib } from "./pdfGenerator.js";
 import { compressPdfBuffer } from "./pdfCompression.js";
+import { buildStoragePath, buildPublicUrl } from "../utils/storageHelper.js";
+const bucketUrlPrefix = `https://${hetznerBucket}.hel1.your-objectstorage.com/`;
 export async function generateContractPDF(token, contractId, existingContract, options = {}) {
     // 🔹 Récupère les données depuis ton API si aucun contrat n'est fourni
     let contractPayload = existingContract;
@@ -676,8 +678,13 @@ export async function generateContractPDF(token, contractId, existingContract, o
         });
         const pdfBuffer = Buffer.isBuffer(pdfData) ? pdfData : Buffer.from(pdfData);
         const { buffer: payload, encoding } = await compressPdfBuffer(pdfBuffer);
-        // ☁️ Upload vers Hetzner
-        const pdfKey = `contracts/${contractId}/signed_${Date.now()}.pdf`;
+        // ☁️ Upload vers Hetzner (Multi-tenant)
+        const organizationId = contract.organization_id;
+        if (!organizationId) {
+            throw new Error("Contract organization_id is required for PDF storage");
+        }
+        const filename = `${contractId}_signed_${Date.now()}.pdf`;
+        const pdfKey = buildStoragePath(organizationId, 'contracts', filename);
         await s3.send(new PutObjectCommand({
             Bucket: hetznerBucket,
             Key: pdfKey,
@@ -685,7 +692,7 @@ export async function generateContractPDF(token, contractId, existingContract, o
             ContentType: "application/pdf",
             ContentEncoding: encoding,
         }));
-        return `https://${hetznerBucket}.hel1.your-objectstorage.com/${pdfKey}`;
+        return buildPublicUrl(bucketUrlPrefix, pdfKey);
     }
     catch (err) {
         logger.error({ err }, "❌ Génération PDF Puppeteer impossible, bascule sur pdf-lib");

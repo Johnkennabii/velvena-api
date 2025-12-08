@@ -14,7 +14,7 @@ import { type SubscriptionFeatures } from "../utils/subscriptionManager.js";
  * @example
  * router.post("/users", authMiddleware, requireQuota("users"), createUser);
  */
-export declare function requireQuota(resourceType: "users" | "dresses" | "customers" | "contracts" | "api_calls"): (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare function requireQuota(resourceType: "users" | "dresses" | "customers" | "prospects" | "contracts" | "api_calls"): (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
 /**
  * Middleware to check if organization has access to a feature
  *
@@ -35,5 +35,5 @@ export declare function requireActiveSubscription(req: AuthenticatedRequest, res
  * @example
  * router.post("/contracts/advanced", authMiddleware, requireQuotaAndFeature("contracts", "advanced_analytics"), createAdvancedContract);
  */
-export declare function requireQuotaAndFeature(resourceType: "users" | "dresses" | "customers" | "contracts", featureName: keyof SubscriptionFeatures): (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>;
+export declare function requireQuotaAndFeature(resourceType: "users" | "dresses" | "customers" | "prospects" | "contracts", featureName: keyof SubscriptionFeatures): (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>;
 //# sourceMappingURL=subscriptionMiddleware.d.ts.map

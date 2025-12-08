@@ -102,7 +102,7 @@
         "items": {
           "type": "string",
           "format": "uri",
-          "example": "https://media-allure-creation.hel1.your-objectstorage.com/dresses/3df7a0e6-bbcd-43c8-8a3b-e0b1ab2fe6ac"
+          "example": "https://velvena-medias.hel1.your-objectstorage.com/dresses/3df7a0e6-bbcd-43c8-8a3b-e0b1ab2fe6ac"
         }
       },
       "isAvailable": {

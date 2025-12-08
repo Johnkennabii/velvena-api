@@ -99,7 +99,12 @@ export const login = async (req: AuthenticatedRequest, res: Response) => {
 
     const roleName = user.profile?.role?.name ?? null;
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: roleName },
+      {
+        id: user.id,
+        email: user.email,
+        role: roleName,
+        organizationId: user.organization_id, // Add organizationId to JWT payload
+      },
       JWT_SECRET,
       { expiresIn: "6h" }
     );
@@ -149,11 +154,16 @@ export const me = async (req: AuthenticatedRequest, res: Response) => {
     }
     const roleName = user.profile?.role?.name ?? null;
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: roleName },
+      {
+        id: user.id,
+        email: user.email,
+        role: roleName,
+        organizationId: user.organization_id, // Add organizationId to JWT payload
+      },
       JWT_SECRET,
       { expiresIn: "6h" }
     );
-    logger.info({ userId: user.id, email: user.email, role: roleName }, "Current user info fetched");
+    logger.info({ userId: user.id, email: user.email, role: roleName, organizationId: user.organization_id }, "Current user info fetched");
 
     res.json({
       token,
@@ -198,7 +208,12 @@ export const refresh = async (req: AuthenticatedRequest, res: Response) => {
 
     // Génération d'un nouveau JWT
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: roleName },
+      {
+        id: user.id,
+        email: user.email,
+        role: roleName,
+        organizationId: user.organization_id, // Add organizationId to JWT payload
+      },
       JWT_SECRET,
       { expiresIn: "6h" }
     );

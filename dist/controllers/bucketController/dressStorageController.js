@@ -15,12 +15,12 @@ logger.info({
     accessKey: process.env.HETZNER_ACCESS_KEY || "MISSING",
     secretKey: process.env.HETZNER_SECRET_KEY ? "***" : "MISSING",
 }, "🔑 Hetzner credentials loaded");
-const hetznerBucket = process.env.HETZNER_BUCKET ?? "media-allure-creation";
+const hetznerBucket = process.env.HETZNER_BUCKET ?? "media-";
 const DRESSES_FOLDER = "dresses";
 const DRESSES_PREFIX = `${DRESSES_FOLDER}/`;
 const bucketUrlPrefix = `https://${hetznerBucket}.hel1.your-objectstorage.com/`;
 if (!process.env.HETZNER_BUCKET) {
-    logger.warn("⚠️ HETZNER_BUCKET not set, defaulting to 'media-allure-creation'");
+    logger.warn("⚠️ HETZNER_BUCKET not set, defaulting to 'velvena-medias'");
 }
 const ensureDressKey = (key) => key.startsWith(DRESSES_PREFIX) ? key : `${DRESSES_PREFIX}${key}`;
 const stripDressPrefix = (key) => key.startsWith(DRESSES_PREFIX) ? key.slice(DRESSES_PREFIX.length) : key;

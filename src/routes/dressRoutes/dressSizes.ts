@@ -1,6 +1,5 @@
 import { Router } from "express";
 import authMiddleware from "../../middleware/authMiddleware.js";
-import { hybridAuthMiddleware, requireApiKeyScope } from "../../middleware/hybridAuthMiddleware.js";
 import {
   getDressSizes,
   createDressSize,
@@ -11,7 +10,7 @@ import {
 
 const router = Router();
 
-router.get("/", hybridAuthMiddleware, requireApiKeyScope("read:dress-sizes"), getDressSizes);
+router.get("/", authMiddleware, getDressSizes);
 router.post("/", authMiddleware, createDressSize);
 router.put("/:id", authMiddleware, updateDressSize);
 router.patch("/:id", authMiddleware, softDeleteDressSize);

@@ -11,6 +11,7 @@ export interface SubscriptionLimits {
     users: number;
     dresses: number;
     customers: number;
+    prospects: number;
     contracts_per_month: number;
     storage_gb: number;
     api_calls_per_day: number;
@@ -45,11 +46,11 @@ export interface FeatureCheck {
 /**
  * Check if organization can create a new resource
  */
-export declare function checkQuota(organizationId: string, resourceType: "users" | "dresses" | "customers" | "contracts" | "api_calls"): Promise<QuotaCheck>;
+export declare function checkQuota(organizationId: string, resourceType: "users" | "dresses" | "customers" | "prospects" | "contracts" | "api_calls"): Promise<QuotaCheck>;
 /**
  * Check multiple quotas at once
  */
-export declare function checkQuotas(organizationId: string, resourceTypes: Array<"users" | "dresses" | "customers" | "contracts" | "api_calls">): Promise<Record<string, QuotaCheck>>;
+export declare function checkQuotas(organizationId: string, resourceTypes: Array<"users" | "dresses" | "customers" | "prospects" | "contracts" | "api_calls">): Promise<Record<string, QuotaCheck>>;
 /**
  * Check if organization has access to a feature
  */
@@ -76,8 +77,8 @@ export declare function getSubscriptionStatus(organizationId: string): Promise<{
         name: string;
         created_at: Date;
         updated_at: Date | null;
-        description: string | null;
         code: string;
+        description: string | null;
         price_monthly: import("@prisma/client/runtime/library").Decimal;
         price_yearly: import("@prisma/client/runtime/library").Decimal;
         currency: string;

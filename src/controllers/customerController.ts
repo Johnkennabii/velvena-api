@@ -3,10 +3,15 @@ import type { Response } from "express";
 import type { AuthenticatedRequest } from "../types/express.js";
 import prisma from "../lib/prisma.js";
 import pino from "../lib/logger.js";
+import { requireOrganizationContext } from "../utils/organizationHelper.js";
 
 // Get all customers (excluding soft-deleted ones)
 export const getCustomers = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
     // Parse query params
     const search = typeof req.query.search === "string" ? req.query.search.trim() : undefined;
     const page = req.query.page ? Math.max(1, parseInt(String(req.query.page), 10)) : 1;
@@ -14,7 +19,10 @@ export const getCustomers = async (req: AuthenticatedRequest, res: Response) => 
     const skip = (page - 1) * limit;
 
     // Build Prisma where condition
-    let where: any = { deleted_at: null };
+    let where: any = {
+      deleted_at: null,
+      organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+    };
     if (search) {
       // Case-insensitive contains on firstname, lastname, email, phone
       where = {
@@ -64,12 +72,19 @@ export const getCustomerById = async (req: AuthenticatedRequest, res: Response) 
       return res.status(400).json({ success: false, error: "Customer ID is required" });
     }
 
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
     // Check if notes should be included (query param)
     const includeNotes = req.query.includeNotes === "true";
 
     const customer = includeNotes
-      ? await prisma.customer.findUnique({
-          where: { id: String(id) },
+      ? await prisma.customer.findFirst({
+          where: {
+            id: String(id),
+            organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+          },
           include: {
             notes: {
               where: { deleted_at: null },
@@ -77,8 +92,11 @@ export const getCustomerById = async (req: AuthenticatedRequest, res: Response) 
             }
           }
         })
-      : await prisma.customer.findUnique({
-          where: { id: String(id) }
+      : await prisma.customer.findFirst({
+          where: {
+            id: String(id),
+            organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+          }
         });
 
     if (!customer || customer.deleted_at) {
@@ -99,17 +117,23 @@ export const getCustomerById = async (req: AuthenticatedRequest, res: Response) 
 export const createCustomer = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { firstname, lastname, email, phone, birthday, country, city, address, postal_code } = req.body;
+
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
     const customer = await prisma.customer.create({
       data: {
         firstname,
         lastname,
         email,
         phone,
-        birthday: birthday ? new Date(birthday) : null, 
+        birthday: birthday ? new Date(birthday) : null,
         country,
         city,
         address,
         postal_code,
+        organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
         created_by: req.user?.id ?? null,
       },
     });
@@ -131,9 +155,19 @@ export const updateCustomer = async (req: AuthenticatedRequest, res: Response) =
     if (!id) {
       return res.status(400).json({ success: false, error: "Customer ID is required" });
     }
+
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
     const { firstname, lastname, email, phone, birthday, country, city, address, postal_code } = req.body;
 
-    const existing = await prisma.customer.findUnique({ where: { id: String(id) } });
+    const existing = await prisma.customer.findFirst({
+      where: {
+        id: String(id),
+        organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+      },
+    });
     if (!existing || existing.deleted_at) {
       return res.status(404).json({ success: false, error: "Customer not found" });
     }
@@ -173,7 +207,17 @@ export const softDeleteCustomer = async (req: AuthenticatedRequest, res: Respons
     if (!id) {
       return res.status(400).json({ success: false, error: "Customer ID is required" });
     }
-    const existing = await prisma.customer.findUnique({ where: { id: String(id) } });
+
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
+    const existing = await prisma.customer.findFirst({
+      where: {
+        id: String(id),
+        organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+      },
+    });
     if (!existing || existing.deleted_at) {
       return res.status(404).json({ success: false, error: "Customer not found" });
     }
@@ -204,7 +248,17 @@ export const hardDeleteCustomer = async (req: AuthenticatedRequest, res: Respons
     if (!id) {
       return res.status(400).json({ success: false, error: "Customer ID is required" });
     }
-    const existing = await prisma.customer.findUnique({ where: { id: String(id) } });
+
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return; // Error response already sent
+
+    const existing = await prisma.customer.findFirst({
+      where: {
+        id: String(id),
+        organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+      },
+    });
     if (!existing) {
       return res.status(404).json({ success: false, error: "Customer not found" });
     }

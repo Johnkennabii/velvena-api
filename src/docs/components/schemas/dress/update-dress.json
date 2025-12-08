@@ -78,7 +78,7 @@
                 "items": {
                   "type": "string"
                 },
-                "example": ["https://media-allure-creation.hel1.your-objectstorage.com/dresses/image1.jpg"]
+                "example": ["https://velvena-medias.hel1.your-objectstorage.com/dresses/image1.jpg"]
               },
               "published_post": {
                 "type": "boolean",

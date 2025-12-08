@@ -49,6 +49,11 @@ export async function checkQuota(organizationId, resourceType) {
                     where: { organization_id: organizationId, deleted_at: null },
                 });
                 break;
+            case "prospects":
+                currentUsage = await prisma.prospect.count({
+                    where: { organization_id: organizationId, deleted_at: null },
+                });
+                break;
             case "contracts":
                 // Count contracts this month
                 const startOfMonth = new Date();
@@ -194,7 +199,7 @@ export async function trackUsage(organizationId, eventType, resourceType, resour
  */
 export async function updateCachedUsage(organizationId) {
     try {
-        const [usersCount, dressesCount, customersCount] = await Promise.all([
+        const [usersCount, dressesCount, customersCount, prospectsCount] = await Promise.all([
             prisma.user.count({
                 where: { organization_id: organizationId, deleted_at: null },
             }),
@@ -202,6 +207,9 @@ export async function updateCachedUsage(organizationId) {
                 where: { organization_id: organizationId, deleted_at: null },
             }),
             prisma.customer.count({
+                where: { organization_id: organizationId, deleted_at: null },
+            }),
+            prisma.prospect.count({
                 where: { organization_id: organizationId, deleted_at: null },
             }),
         ]);
@@ -223,6 +231,7 @@ export async function updateCachedUsage(organizationId) {
                     users: usersCount,
                     dresses: dressesCount,
                     customers: customersCount,
+                    prospects: prospectsCount,
                     contracts_this_month: contractsThisMonth,
                     last_updated: new Date().toISOString(),
                 },
@@ -297,6 +306,7 @@ function getDefaultLimits() {
         users: 1,
         dresses: 10,
         customers: 50,
+        prospects: 10,
         contracts_per_month: 5,
         storage_gb: 1,
         api_calls_per_day: 100,

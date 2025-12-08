@@ -19,6 +19,7 @@ export interface SubscriptionLimits {
   users: number;
   dresses: number;
   customers: number;
+  prospects: number;
   contracts_per_month: number;
   storage_gb: number;
   api_calls_per_day: number;
@@ -63,7 +64,7 @@ export interface FeatureCheck {
  */
 export async function checkQuota(
   organizationId: string,
-  resourceType: "users" | "dresses" | "customers" | "contracts" | "api_calls"
+  resourceType: "users" | "dresses" | "customers" | "prospects" | "contracts" | "api_calls"
 ): Promise<QuotaCheck> {
   try {
     // Get organization with subscription
@@ -101,6 +102,12 @@ export async function checkQuota(
 
       case "customers":
         currentUsage = await prisma.customer.count({
+          where: { organization_id: organizationId, deleted_at: null },
+        });
+        break;
+
+      case "prospects":
+        currentUsage = await prisma.prospect.count({
           where: { organization_id: organizationId, deleted_at: null },
         });
         break;
@@ -167,7 +174,7 @@ export async function checkQuota(
  */
 export async function checkQuotas(
   organizationId: string,
-  resourceTypes: Array<"users" | "dresses" | "customers" | "contracts" | "api_calls">
+  resourceTypes: Array<"users" | "dresses" | "customers" | "prospects" | "contracts" | "api_calls">
 ): Promise<Record<string, QuotaCheck>> {
   const results: Record<string, QuotaCheck> = {};
 
@@ -288,7 +295,7 @@ export async function trackUsage(
  */
 export async function updateCachedUsage(organizationId: string): Promise<void> {
   try {
-    const [usersCount, dressesCount, customersCount] = await Promise.all([
+    const [usersCount, dressesCount, customersCount, prospectsCount] = await Promise.all([
       prisma.user.count({
         where: { organization_id: organizationId, deleted_at: null },
       }),
@@ -296,6 +303,9 @@ export async function updateCachedUsage(organizationId: string): Promise<void> {
         where: { organization_id: organizationId, deleted_at: null },
       }),
       prisma.customer.count({
+        where: { organization_id: organizationId, deleted_at: null },
+      }),
+      prisma.prospect.count({
         where: { organization_id: organizationId, deleted_at: null },
       }),
     ]);
@@ -320,6 +330,7 @@ export async function updateCachedUsage(organizationId: string): Promise<void> {
           users: usersCount,
           dresses: dressesCount,
           customers: customersCount,
+          prospects: prospectsCount,
           contracts_this_month: contractsThisMonth,
           last_updated: new Date().toISOString(),
         },
@@ -412,6 +423,7 @@ function getDefaultLimits(): SubscriptionLimits {
     users: 1,
     dresses: 10,
     customers: 50,
+    prospects: 10,
     contracts_per_month: 5,
     storage_gb: 1,
     api_calls_per_day: 100,

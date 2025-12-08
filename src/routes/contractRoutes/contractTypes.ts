@@ -1,6 +1,5 @@
 import { Router } from "express";
 import authMiddleware from "../../middleware/authMiddleware.js";
-import { hybridAuthMiddleware, requireApiKeyScope } from "../../middleware/hybridAuthMiddleware.js";
 import {
   getContractTypes,
   getContractTypeById,
@@ -12,8 +11,8 @@ import {
 
 const router = Router();
 
-router.get("/", hybridAuthMiddleware, requireApiKeyScope("read:contract-types"), getContractTypes);
-router.get("/:id", hybridAuthMiddleware, requireApiKeyScope("read:contract-types"), getContractTypeById);
+router.get("/", authMiddleware, getContractTypes);
+router.get("/:id", authMiddleware, getContractTypeById);
 router.post("/", authMiddleware, createContractType);
 router.put("/:id", authMiddleware, updateContractType);
 router.patch("/:id/soft", authMiddleware, softDeleteContractType);

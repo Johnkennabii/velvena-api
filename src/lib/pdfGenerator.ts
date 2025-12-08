@@ -2,6 +2,9 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3, hetznerBucket } from "./hetzner.js";
 import { compressPdfBuffer } from "./pdfCompression.js";
+import { buildStoragePath, buildPublicUrl } from "../utils/storageHelper.js";
+
+const bucketUrlPrefix = `https://${hetznerBucket}.hel1.your-objectstorage.com/`;
 
 type PdfLibOptions = {
   includeSignatureBlock?: boolean;
@@ -358,12 +361,20 @@ export async function generateContractPDFWithPdfLib(contract: any, options: PdfL
   }
 
   // -----------------------
-  // ☁️ Upload vers Hetzner
+  // ☁️ Upload vers Hetzner (Multi-tenant)
   // -----------------------
   const pdfBytes = await pdfDoc.save();
   const rawBuffer = Buffer.from(pdfBytes);
   const { buffer: payload, encoding } = await compressPdfBuffer(rawBuffer);
-  const pdfKey = `contracts/${contract.id}/signed_${Date.now()}.pdf`;
+
+  // Construire le path avec organization_id pour multi-tenant
+  const organizationId = contract.organization_id;
+  if (!organizationId) {
+    throw new Error("Contract organization_id is required for PDF storage");
+  }
+
+  const filename = `${contract.id}_signed_${Date.now()}.pdf`;
+  const pdfKey = buildStoragePath(organizationId, 'contracts', filename);
 
   await s3.send(
     new PutObjectCommand({
@@ -375,5 +386,5 @@ export async function generateContractPDFWithPdfLib(contract: any, options: PdfL
     })
   );
 
-  return `https://${hetznerBucket}.hel1.your-objectstorage.com/${pdfKey}`;
+  return buildPublicUrl(bucketUrlPrefix, pdfKey);
 }

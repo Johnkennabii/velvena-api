@@ -1,7 +1,6 @@
 // src/routes/prospects.ts
 import { Router } from "express";
 import authMiddleware from "../middleware/authMiddleware.js";
-import { hybridAuthMiddleware, requireApiKeyScope } from "../middleware/hybridAuthMiddleware.js";
 import {
   getProspects,
   getProspectById,
@@ -28,16 +27,16 @@ import {
 const router = Router();
 
 // Récupérer tous les prospects (JWT ou API Key)
-router.get("/", hybridAuthMiddleware, requireApiKeyScope("read:prospects"), getProspects);
+router.get("/", authMiddleware, getProspects);
 
 // Récupérer un prospect par ID (JWT ou API Key)
-router.get("/:id", hybridAuthMiddleware, requireApiKeyScope("read:prospects"), getProspectById);
+router.get("/:id", authMiddleware, getProspectById);
 
 // Créer un nouveau prospect (JWT ou API Key)
-router.post("/", hybridAuthMiddleware, requireApiKeyScope("write:prospects"), createProspect);
+router.post("/", authMiddleware, createProspect);
 
 // Mettre à jour un prospect (JWT ou API Key)
-router.put("/:id", hybridAuthMiddleware, requireApiKeyScope("write:prospects"), updateProspect);
+router.put("/:id", authMiddleware, updateProspect);
 
 // Soft delete (JWT uniquement pour sécurité)
 router.patch("/:id", authMiddleware, softDeleteProspect);
@@ -53,24 +52,21 @@ router.post("/:id/convert", authMiddleware, convertProspectToCustomer);
 // Ajouter des réservations de robes pour un prospect (JWT ou API Key)
 router.post(
   "/:prospectId/dress-reservations",
-  hybridAuthMiddleware,
-  requireApiKeyScope("write:prospects"),
+  authMiddleware,
   addDressReservations
 );
 
 // Obtenir les réservations d'un prospect (JWT ou API Key)
 router.get(
   "/:prospectId/dress-reservations",
-  hybridAuthMiddleware,
-  requireApiKeyScope("read:prospects"),
+  authMiddleware,
   getProspectReservations
 );
 
 // Mettre à jour une réservation (JWT ou API Key)
 router.put(
   "/:prospectId/dress-reservations/:reservationId",
-  hybridAuthMiddleware,
-  requireApiKeyScope("write:prospects"),
+  authMiddleware,
   updateReservation
 );
 
@@ -86,32 +82,28 @@ router.delete(
 // Créer une nouvelle demande pour un prospect (JWT ou API Key)
 router.post(
   "/:prospectId/requests",
-  hybridAuthMiddleware,
-  requireApiKeyScope("write:prospects"),
+  authMiddleware,
   createProspectRequest
 );
 
 // Obtenir toutes les demandes d'un prospect (JWT ou API Key)
 router.get(
   "/:prospectId/requests",
-  hybridAuthMiddleware,
-  requireApiKeyScope("read:prospects"),
+  authMiddleware,
   getProspectRequests
 );
 
 // Obtenir une demande spécifique (JWT ou API Key)
 router.get(
   "/:prospectId/requests/:requestId",
-  hybridAuthMiddleware,
-  requireApiKeyScope("read:prospects"),
+  authMiddleware,
   getProspectRequestById
 );
 
 // Mettre à jour une demande (JWT ou API Key)
 router.patch(
   "/:prospectId/requests/:requestId",
-  hybridAuthMiddleware,
-  requireApiKeyScope("write:prospects"),
+  authMiddleware,
   updateProspectRequest
 );
 

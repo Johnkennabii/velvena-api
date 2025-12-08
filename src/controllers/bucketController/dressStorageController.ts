@@ -4,6 +4,7 @@ import { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command }
 import multer from "multer";
 import { randomUUID } from "crypto";
 import type { AuthenticatedRequest } from "../../types/express.js";
+import { buildStoragePath, buildPublicUrl, extractPathFromUrl, buildListPrefix } from "../../utils/storageHelper.js";
 
 export const upload = multer({ storage: multer.memoryStorage() });
 
@@ -23,31 +24,32 @@ logger.info(
   "🔑 Hetzner credentials loaded"
 );
 
-const hetznerBucket = process.env.HETZNER_BUCKET ?? "media-allure-creation";
-const DRESSES_FOLDER = "dresses";
-const DRESSES_PREFIX = `${DRESSES_FOLDER}/`;
+const hetznerBucket = process.env.HETZNER_BUCKET ?? "velvena-medias";
 const bucketUrlPrefix = `https://${hetznerBucket}.hel1.your-objectstorage.com/`;
 
 if (!process.env.HETZNER_BUCKET) {
-  logger.warn("⚠️ HETZNER_BUCKET not set, defaulting to 'media-allure-creation'");
+  logger.warn("⚠️ HETZNER_BUCKET not set, defaulting to 'velvena-medias'");
 }
 
-const ensureDressKey = (key: string): string =>
-  key.startsWith(DRESSES_PREFIX) ? key : `${DRESSES_PREFIX}${key}`;
-
-const stripDressPrefix = (key: string): string =>
-  key.startsWith(DRESSES_PREFIX) ? key.slice(DRESSES_PREFIX.length) : key;
-
-export const listDressImages = async (_req: Request, res: Response) => {
+export const listDressImages = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    logger.info({ bucket: hetznerBucket, prefix: DRESSES_PREFIX }, "📂 Listing images from bucket");
-    const command = new ListObjectsV2Command({ Bucket: hetznerBucket, Prefix: DRESSES_PREFIX });
+    if (!req.user?.organizationId) {
+      return res.status(403).json({
+        success: false,
+        error: "Organization context required",
+      });
+    }
+
+    const prefix = buildListPrefix(req.user.organizationId, 'dresses');
+    logger.info({ bucket: hetznerBucket, prefix, organizationId: req.user.organizationId }, "📂 Listing images from bucket");
+
+    const command = new ListObjectsV2Command({ Bucket: hetznerBucket, Prefix: prefix });
     const response = await s3.send(command) as any;
 
     const files = response.Contents?.map((obj: any) => ({
-      id: stripDressPrefix(obj.Key),
-      name: stripDressPrefix(obj.Key),
-      url: `${bucketUrlPrefix}${obj.Key}`,
+      id: obj.Key.split('/').pop() || obj.Key,
+      name: obj.Key.split('/').pop() || obj.Key,
+      url: buildPublicUrl(bucketUrlPrefix, obj.Key),
     }));
 
     res.json({ success: true, files });
@@ -66,11 +68,23 @@ export const uploadDressImages = async (req: AuthenticatedRequest, res: Response
     return res.status(400).json({ success: false, error: "No files uploaded" });
   }
 
+  if (!req.user?.organizationId) {
+    return res.status(403).json({
+      success: false,
+      error: "Organization context required",
+    });
+  }
+
   try {
-    logger.info({ count: req.files.length }, "⬆️ Uploading dress images");
+    logger.info({ count: req.files.length, organizationId: req.user.organizationId }, "⬆️ Uploading dress images");
+
     const uploadedFiles = await Promise.all(
       req.files.slice(0, 5).map(async (file: Express.Multer.File) => {
-        const key = ensureDressKey(randomUUID());
+        // Extract file extension from original filename
+        const ext = file.originalname.split('.').pop() || 'jpg';
+        const filename = `${randomUUID()}.${ext}`;
+        const key = buildStoragePath(req.user!.organizationId, 'dresses', filename);
+
         await s3.send(
           new PutObjectCommand({
             Bucket: hetznerBucket,
@@ -79,7 +93,8 @@ export const uploadDressImages = async (req: AuthenticatedRequest, res: Response
             ContentType: file.mimetype,
           })
         );
-        return `${bucketUrlPrefix}${key}`;
+
+        return buildPublicUrl(bucketUrlPrefix, key);
       })
     );
 
@@ -88,11 +103,23 @@ export const uploadDressImages = async (req: AuthenticatedRequest, res: Response
       name: url.split("/").pop(),
       url,
     }));
-    logger.info({ files }, "✅ Images uploaded successfully");
+    logger.info({ files, organizationId: req.user.organizationId }, "✅ Images uploaded successfully");
     res.json({ success: true, files });
-  } catch (err) {
-    logger.error({ err }, "❌ Failed to upload images for dress");
-    res.status(500).json({ success: false, error: "Failed to upload images" });
+  } catch (err: any) {
+    logger.error({
+      error: err?.message,
+      stack: err?.stack,
+      name: err?.name,
+      code: err?.Code,
+      statusCode: err?.$metadata?.httpStatusCode,
+      requestId: err?.$metadata?.requestId
+    }, "❌ Failed to upload images for dress");
+    res.status(500).json({
+      success: false,
+      error: "Failed to upload images",
+      details: err?.message,
+      code: err?.Code || err?.name
+    });
   }
 };
 
@@ -101,11 +128,20 @@ export const deleteDressImage = async (req: AuthenticatedRequest, res: Response)
   const { key } = req.params;
   if (!key) return res.status(400).json({ success: false, error: "Image key is required" });
 
+  if (!req.user?.organizationId) {
+    return res.status(403).json({
+      success: false,
+      error: "Organization context required",
+    });
+  }
+
   try {
-    const objectKey = ensureDressKey(key);
-    logger.info({ key: objectKey }, "🗑️ Deleting image from bucket");
+    // Construire le path complet avec organization
+    const objectKey = buildStoragePath(req.user.organizationId, 'dresses', key);
+
+    logger.info({ key: objectKey, organizationId: req.user.organizationId }, "🗑️ Deleting image from bucket");
     await s3.send(new DeleteObjectCommand({ Bucket: hetznerBucket, Key: objectKey }));
-    logger.info({ key: objectKey }, "✅ Image deleted from bucket");
+    logger.info({ key: objectKey, organizationId: req.user.organizationId }, "✅ Image deleted from bucket");
     res.json({ success: true, message: "Image deleted" });
   } catch (err) {
     logger.error({ err, key }, "❌ Failed to delete dress image");

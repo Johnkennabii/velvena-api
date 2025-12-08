@@ -10,6 +10,8 @@ import { generateContractPDF } from "../../lib/generateContractPDF.js";
 import { compressPdfBuffer } from "../../lib/pdfCompression.js";
 import { io } from "../../server.js";
 import { emitAndStoreNotification } from "../../utils/notifications.js";
+import { buildStoragePath, buildListPrefix, buildPublicUrl } from "../../utils/storageHelper.js";
+import { requireOrganizationContext } from "../../utils/organizationHelper.js";
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 const s3 = new S3Client({
     region: "eu-central-1",
@@ -19,19 +21,26 @@ const s3 = new S3Client({
         secretAccessKey: process.env.HETZNER_SECRET_KEY,
     },
 });
-const hetznerBucket = process.env.HETZNER_BUCKET ?? "media-allure-creation";
-const CONTRACTS_FOLDER = "contracts";
+const hetznerBucket = process.env.HETZNER_BUCKET ?? "velvena-medias";
 const bucketUrlPrefix = `https://${hetznerBucket}.hel1.your-objectstorage.com/`;
 if (!process.env.HETZNER_BUCKET) {
-    logger.warn("⚠️ HETZNER_BUCKET not set, defaulting to 'media-allure-creation'");
+    logger.warn("⚠️ HETZNER_BUCKET not set, defaulting to 'velvena-medias'");
 }
 const signedPdfUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 export const uploadSignedPdfMiddleware = signedPdfUpload.single("file");
 // 📌 Get all contracts
 export const getAllContracts = async (req, res) => {
     try {
-        logger.info("Fetching all contracts");
+        // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+        const organizationId = requireOrganizationContext(req, res);
+        if (!organizationId)
+            return; // Error response already sent
+        logger.info({ organizationId }, "Fetching all contracts");
         const contracts = await prisma.contract.findMany({
+            where: {
+                organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+                deleted_at: null,
+            },
             include: {
                 customer: true,
                 contract_type: true,
@@ -52,9 +61,16 @@ export const getAllContracts = async (req, res) => {
 export const getContractById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info({ id }, "Fetching contract by ID");
-        const contract = await prisma.contract.findUnique({
-            where: { id: id },
+        // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+        const organizationId = requireOrganizationContext(req, res);
+        if (!organizationId)
+            return; // Error response already sent
+        logger.info({ id, organizationId }, "Fetching contract by ID");
+        const contract = await prisma.contract.findFirst({
+            where: {
+                id: id,
+                organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+            },
             include: {
                 customer: true,
                 contract_type: true,
@@ -64,7 +80,7 @@ export const getContractById = async (req, res) => {
                 sign_link: true,
             },
         });
-        if (!contract) {
+        if (!contract || contract.deleted_at) {
             return res.status(404).json({ success: false, error: "Contract not found" });
         }
         res.json({ success: true, data: contract });
@@ -77,8 +93,12 @@ export const getContractById = async (req, res) => {
 // 📌 Create contract
 export const createContract = async (req, res) => {
     try {
-        logger.info({ body: req.body }, "Creating contract");
-        const { contract_number, customer_id, start_datetime, end_datetime, account_ht, account_ttc, account_paid_ht, account_paid_ttc, caution_ht, caution_ttc, caution_paid_ht, caution_paid_ttc, total_price_ht, total_price_ttc, deposit_payment_method, status, contract_type_id, package_id, addons, // tableau d’addons [{ addon_id: "xxx" }, ...]
+        // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+        const organizationId = requireOrganizationContext(req, res);
+        if (!organizationId)
+            return; // Error response already sent
+        logger.info({ body: req.body, organizationId }, "Creating contract");
+        const { contract_number, customer_id, start_datetime, end_datetime, account_ht, account_ttc, account_paid_ht, account_paid_ttc, caution_ht, caution_ttc, caution_paid_ht, caution_paid_ttc, total_price_ht, total_price_ttc, deposit_payment_method, status, contract_type_id, package_id, addons, // tableau d'addons [{ addon_id: "xxx" }, ...]
         dresses, // ajout des robes
          } = req.body;
         const now = new Date();
@@ -86,6 +106,7 @@ export const createContract = async (req, res) => {
             data: {
                 id: uuidv4(),
                 contract_number,
+                organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
                 start_datetime: new Date(start_datetime),
                 end_datetime: new Date(end_datetime),
                 account_ht,
@@ -146,12 +167,26 @@ export const updateContract = async (req, res) => {
     try {
         const { id } = req.params;
         const { addons, ...contractFields } = req.body;
-        logger.info({ id, body: req.body }, "🛠 Updating contract with addons");
+        // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+        const organizationId = requireOrganizationContext(req, res);
+        if (!organizationId)
+            return; // Error response already sent
+        logger.info({ id, body: req.body, organizationId }, "🛠 Updating contract with addons");
         if (!id) {
             logger.warn("❗ Contract ID is required to update a contract");
             return res.status(400).json({ success: false, error: "Contract ID is required" });
         }
         const contractId = id;
+        // Verify contract belongs to organization
+        const existing = await prisma.contract.findFirst({
+            where: {
+                id: contractId,
+                organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+            },
+        });
+        if (!existing || existing.deleted_at) {
+            return res.status(404).json({ success: false, error: "Contract not found" });
+        }
         // 1️⃣ Mise à jour du contrat
         const updatedContract = await prisma.contract.update({
             where: { id: contractId },
@@ -192,7 +227,21 @@ export const updateContract = async (req, res) => {
 export const softDeleteContract = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info({ id }, "Soft deleting contract");
+        // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+        const organizationId = requireOrganizationContext(req, res);
+        if (!organizationId)
+            return; // Error response already sent
+        logger.info({ id, organizationId }, "Soft deleting contract");
+        // Verify contract belongs to organization
+        const existing = await prisma.contract.findFirst({
+            where: {
+                id: id,
+                organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+            },
+        });
+        if (!existing || existing.deleted_at) {
+            return res.status(404).json({ success: false, error: "Contract not found" });
+        }
         await prisma.contract.update({
             where: { id: id },
             data: { deleted_at: new Date(), deleted_by: req.user?.id || null },
@@ -208,7 +257,21 @@ export const softDeleteContract = async (req, res) => {
 export const restoreContract = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info({ id }, "Restoring contract");
+        // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+        const organizationId = requireOrganizationContext(req, res);
+        if (!organizationId)
+            return; // Error response already sent
+        logger.info({ id, organizationId }, "Restoring contract");
+        // Verify contract belongs to organization
+        const existing = await prisma.contract.findFirst({
+            where: {
+                id: id,
+                organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+            },
+        });
+        if (!existing) {
+            return res.status(404).json({ success: false, error: "Contract not found" });
+        }
         await prisma.contract.update({
             where: { id: id },
             data: { deleted_at: null, deleted_by: null },
@@ -224,7 +287,21 @@ export const restoreContract = async (req, res) => {
 export const hardDeleteContract = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info({ id }, "Hard deleting contract");
+        // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+        const organizationId = requireOrganizationContext(req, res);
+        if (!organizationId)
+            return; // Error response already sent
+        logger.info({ id, organizationId }, "Hard deleting contract");
+        // Verify contract belongs to organization
+        const existing = await prisma.contract.findFirst({
+            where: {
+                id: id,
+                organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+            },
+        });
+        if (!existing) {
+            return res.status(404).json({ success: false, error: "Contract not found" });
+        }
         await prisma.contract.delete({ where: { id: id } });
         res.json({ success: true, message: "Contract permanently deleted" });
     }
@@ -236,30 +313,58 @@ export const hardDeleteContract = async (req, res) => {
 // 📌 Get all contracts (full view)
 export const getContractsFullView = async (req, res) => {
     try {
-        const { customer_id, search } = req.query;
-        const filters = [];
+        const { customer_id, search, include } = req.query;
+        // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+        const organizationId = requireOrganizationContext(req, res);
+        if (!organizationId)
+            return; // Error response already sent
+        // Build where conditions with multi-tenant isolation
+        const where = {
+            organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+            deleted_at: null,
+        };
         if (customer_id) {
-            filters.push(Prisma.sql `customer_id = ${customer_id}`);
+            where.customer_id = String(customer_id);
         }
         if (search) {
-            const keyword = `%${search.trim()}%`;
-            filters.push(Prisma.sql `(
-          contract_number ILIKE ${keyword}
-          OR customer_firstname ILIKE ${keyword}
-          OR customer_lastname ILIKE ${keyword}
-          OR customer_email ILIKE ${keyword}
-        )`);
+            const keyword = String(search).trim();
+            where.OR = [
+                { contract_number: { contains: keyword, mode: "insensitive" } },
+                { customer: { firstname: { contains: keyword, mode: "insensitive" } } },
+                { customer: { lastname: { contains: keyword, mode: "insensitive" } } },
+                { customer: { email: { contains: keyword, mode: "insensitive" } } },
+            ];
         }
-        const contracts = await prisma.$queryRaw(Prisma.sql `
-        SELECT * FROM contracts_full_view
-        ${filters.length ? Prisma.sql `WHERE ${Prisma.join(filters, " AND ")}` : Prisma.empty}
-        ORDER BY created_at DESC
-      `);
+        // Handle include parameter (e.g., "package", "dresses", "addons")
+        const includeOptions = {
+            customer: true,
+            contract_type: true,
+            sign_link: true,
+        };
+        if (include) {
+            const includes = String(include).split(",").map(i => i.trim());
+            if (includes.includes("package")) {
+                includeOptions.package = {
+                    include: { addons: { include: { addon: true } } },
+                };
+            }
+            if (includes.includes("dresses")) {
+                includeOptions.dresses = { include: { dress: true } };
+            }
+            if (includes.includes("addons")) {
+                includeOptions.addon_links = { include: { addon: true } };
+            }
+        }
+        const contracts = await prisma.contract.findMany({
+            where,
+            include: includeOptions,
+            orderBy: { created_at: "desc" },
+        });
         res.json({ success: true, data: contracts });
     }
     catch (error) {
-        logger.error(error, "Failed to fetch contracts_full_view");
-        res.status(500).json({ success: false, error: "Failed to fetch contracts_full_view" });
+        logger.error(error, "Failed to fetch contracts");
+        res.status(500).json({ success: false, error: "Failed to fetch contracts" });
     }
 };
 // 📌 Generate signature link and send email
@@ -662,24 +767,37 @@ export const uploadSignedContractPdf = async (req, res) => {
         if (!id) {
             return res.status(400).json({ success: false, error: "Contract ID is required" });
         }
-        const contract = await prisma.contract.findUnique({ where: { id } });
+        // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+        const organizationId = requireOrganizationContext(req, res);
+        if (!organizationId)
+            return; // Error response already sent
+        const contract = await prisma.contract.findFirst({
+            where: {
+                id,
+                organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+            },
+        });
         if (!contract) {
             return res.status(404).json({ success: false, error: "Contrat introuvable" });
         }
         // 🧹 Suppression de TOUS les PDFs automatiques (signed_*.pdf non-upload) du dossier
         try {
-            const contractFolder = `${CONTRACTS_FOLDER}/${id}/`;
+            // Multi-tenant: list all contract PDFs for this organization
+            const contractsPrefix = buildListPrefix(organizationId, 'contracts');
             const listCommand = new ListObjectsV2Command({
                 Bucket: hetznerBucket,
-                Prefix: contractFolder,
+                Prefix: contractsPrefix,
             });
             const listResponse = await s3.send(listCommand);
+            // Filter for auto-generated PDFs of this specific contract
             const filesToDelete = listResponse.Contents?.filter(obj => {
                 const key = obj.Key || "";
-                return key.includes("/signed_") && !key.includes("/signed_upload_");
+                // Match files like: {org-id}/contracts/{contract-id}_signed_*.pdf
+                // Exclude manually uploaded files: {org-id}/contracts/{contract-id}_signed_upload_*.pdf
+                return key.includes(`/${id}_signed_`) && !key.includes(`/${id}_signed_upload_`);
             }) || [];
             if (filesToDelete.length > 0) {
-                logger.info({ count: filesToDelete.length, files: filesToDelete.map(f => f.Key) }, "🗑️ Suppression des PDFs automatiques");
+                logger.info({ count: filesToDelete.length, files: filesToDelete.map(f => f.Key), organizationId }, "🗑️ Suppression des PDFs automatiques");
                 for (const file of filesToDelete) {
                     try {
                         await s3.send(new DeleteObjectCommand({
@@ -695,7 +813,7 @@ export const uploadSignedContractPdf = async (req, res) => {
             }
         }
         catch (listError) {
-            logger.warn({ listError, contractId: id }, "⚠️ Impossible de lister les fichiers du dossier contrat");
+            logger.warn({ listError, contractId: id, organizationId }, "⚠️ Impossible de lister les fichiers du dossier contrat");
         }
         const file = req.file;
         if (!file) {
@@ -705,7 +823,9 @@ export const uploadSignedContractPdf = async (req, res) => {
             return res.status(400).json({ success: false, error: "Le fichier doit être un PDF" });
         }
         const { buffer: payload, encoding } = await compressPdfBuffer(file.buffer);
-        const key = `${CONTRACTS_FOLDER}/${id}/signed_upload_${Date.now()}.pdf`;
+        // Multi-tenant storage path: {org-id}/contracts/{contract-id}_signed_upload_{timestamp}.pdf
+        const filename = `${id}_signed_upload_${Date.now()}.pdf`;
+        const key = buildStoragePath(organizationId, 'contracts', filename);
         await s3.send(new PutObjectCommand({
             Bucket: hetznerBucket,
             Key: key,
@@ -713,7 +833,7 @@ export const uploadSignedContractPdf = async (req, res) => {
             ContentType: "application/pdf",
             ContentEncoding: encoding,
         }));
-        const pdfUrl = `${bucketUrlPrefix}${key}`;
+        const pdfUrl = buildPublicUrl(bucketUrlPrefix, key);
         const updated = await prisma.contract.update({
             where: { id },
             data: {

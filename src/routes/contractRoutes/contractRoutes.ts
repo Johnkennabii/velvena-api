@@ -1,6 +1,7 @@
 // src/routes/contractRoutes/contractRoutes.ts
 import authMiddleware from "../../middleware/authMiddleware.js"
-import { hybridAuthMiddleware, requireApiKeyScope } from "../../middleware/hybridAuthMiddleware.js";
+import { organizationContextMiddleware } from "../../middleware/organizationContextMiddleware.js";
+import { requireQuota } from "../../middleware/subscriptionMiddleware.js";
 import { Router, type Request, type Response } from "express";
 
 import {
@@ -27,11 +28,12 @@ const router = Router();
 // ⚠️ Routes publiques (AVANT le middleware d'authentification)
 router.get("/download/:contractId/:token", downloadSignedContract);
 
-// 📋 GET all contracts avec authentification hybride (JWT ou API Key)
-router.get("/", hybridAuthMiddleware, requireApiKeyScope("read:contracts"), getAllContracts);
-
-// 🔒 Middleware d'authentification pour les autres routes protégées
+// 🔒 Middleware d'authentification pour toutes les routes protégées
 router.use(authMiddleware);
+router.use(organizationContextMiddleware); // ✅ SUPER_ADMIN can use X-Organization-Slug header
+
+// 📋 GET all contracts
+router.get("/", getAllContracts);
 // Support optional customer_id as query param
 router.get("/full-view", getContractsFullView);
 // New RESTful route for full-view by customerId
@@ -42,7 +44,7 @@ router.get("/sign/:token", (req: Request, res: Response) => {
   return res.redirect(302, `https://allure-creation.fr/sign/${token}`);
 });
 router.get("/:id", getContractById);
-router.post("/", createContract);
+router.post("/", requireQuota("contracts"), createContract); // ✅ Vérifie quota contrats/mois
 router.put("/:id", contractPermissionMiddleware(), updateContract);
 router.patch("/:id/restore", contractPermissionMiddleware(), restoreContract);
 router.patch("/:id", contractPermissionMiddleware(), softDeleteContract);

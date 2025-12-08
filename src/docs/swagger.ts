@@ -67,6 +67,9 @@ import serviceTypeSchemas from "./components/schemas/service-type/index.js";
 import pricingRulePaths from "./paths/pricing-rule/index.js";
 import pricingRuleSchemas from "./components/schemas/pricing-rule/index.js";
 
+import billingPaths from "./paths/billing/index.js";
+import billingSchemas from "./components/schemas/billing/index.js";
+
 import mailPath from "./paths/mail/index.js" ;
 import mailSchemas from "./components/schemas/mail/index.js";
 
@@ -107,6 +110,7 @@ export const swaggerDocument = {
     { name: "Organizations", description: "Endpoints for managing organizations (multi-tenant)" },
     { name: "Service Types", description: "Endpoints for managing service types (rental types, pricing methods)" },
     { name: "Pricing Rules", description: "Endpoints for managing pricing rules and calculating rental prices" },
+    { name: "Billing & Subscription", description: "Endpoints for managing subscriptions, quotas, and features" },
   ],
   paths: {
     ...userAuthPath,
@@ -132,6 +136,7 @@ export const swaggerDocument = {
     ...organizationPaths,
     ...serviceTypePaths,
     ...pricingRulePaths,
+    ...billingPaths,
   },
   components: {
     schemas: {
@@ -158,6 +163,7 @@ export const swaggerDocument = {
       ...organizationSchemas,
       ...serviceTypeSchemas,
       ...pricingRuleSchemas,
+      ...billingSchemas,
     },
     securitySchemes: {
       bearerAuth: {

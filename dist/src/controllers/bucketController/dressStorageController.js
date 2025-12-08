@@ -2,6 +2,7 @@ import logger from "../../lib/logger.js";
 import { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import multer from "multer";
 import { randomUUID } from "crypto";
+import { buildStoragePath, buildPublicUrl, extractPathFromUrl, buildListPrefix } from "../../utils/storageHelper.js";
 export const upload = multer({ storage: multer.memoryStorage() });
 const s3 = new S3Client({
     region: "eu-central-1",
@@ -15,24 +16,27 @@ logger.info({
     accessKey: process.env.HETZNER_ACCESS_KEY || "MISSING",
     secretKey: process.env.HETZNER_SECRET_KEY ? "***" : "MISSING",
 }, "🔑 Hetzner credentials loaded");
-const hetznerBucket = process.env.HETZNER_BUCKET ?? "media-allure-creation";
-const DRESSES_FOLDER = "dresses";
-const DRESSES_PREFIX = `${DRESSES_FOLDER}/`;
+const hetznerBucket = process.env.HETZNER_BUCKET ?? "velvena-medias";
 const bucketUrlPrefix = `https://${hetznerBucket}.hel1.your-objectstorage.com/`;
 if (!process.env.HETZNER_BUCKET) {
-    logger.warn("⚠️ HETZNER_BUCKET not set, defaulting to 'media-allure-creation'");
+    logger.warn("⚠️ HETZNER_BUCKET not set, defaulting to 'velvena-medias'");
 }
-const ensureDressKey = (key) => key.startsWith(DRESSES_PREFIX) ? key : `${DRESSES_PREFIX}${key}`;
-const stripDressPrefix = (key) => key.startsWith(DRESSES_PREFIX) ? key.slice(DRESSES_PREFIX.length) : key;
-export const listDressImages = async (_req, res) => {
+export const listDressImages = async (req, res) => {
     try {
-        logger.info({ bucket: hetznerBucket, prefix: DRESSES_PREFIX }, "📂 Listing images from bucket");
-        const command = new ListObjectsV2Command({ Bucket: hetznerBucket, Prefix: DRESSES_PREFIX });
+        if (!req.user?.organizationId) {
+            return res.status(403).json({
+                success: false,
+                error: "Organization context required",
+            });
+        }
+        const prefix = buildListPrefix(req.user.organizationId, 'dresses');
+        logger.info({ bucket: hetznerBucket, prefix, organizationId: req.user.organizationId }, "📂 Listing images from bucket");
+        const command = new ListObjectsV2Command({ Bucket: hetznerBucket, Prefix: prefix });
         const response = await s3.send(command);
         const files = response.Contents?.map((obj) => ({
-            id: stripDressPrefix(obj.Key),
-            name: stripDressPrefix(obj.Key),
-            url: `${bucketUrlPrefix}${obj.Key}`,
+            id: obj.Key.split('/').pop() || obj.Key,
+            name: obj.Key.split('/').pop() || obj.Key,
+            url: buildPublicUrl(bucketUrlPrefix, obj.Key),
         }));
         res.json({ success: true, files });
     }
@@ -46,29 +50,50 @@ export const uploadDressImages = async (req, res) => {
     if (!req.files || !(req.files instanceof Array)) {
         return res.status(400).json({ success: false, error: "No files uploaded" });
     }
+    if (!req.user?.organizationId) {
+        return res.status(403).json({
+            success: false,
+            error: "Organization context required",
+        });
+    }
     try {
-        logger.info({ count: req.files.length }, "⬆️ Uploading dress images");
+        logger.info({ count: req.files.length, organizationId: req.user.organizationId }, "⬆️ Uploading dress images");
         const uploadedFiles = await Promise.all(req.files.slice(0, 5).map(async (file) => {
-            const key = ensureDressKey(randomUUID());
+            // Extract file extension from original filename
+            const ext = file.originalname.split('.').pop() || 'jpg';
+            const filename = `${randomUUID()}.${ext}`;
+            const key = buildStoragePath(req.user.organizationId, 'dresses', filename);
             await s3.send(new PutObjectCommand({
                 Bucket: hetznerBucket,
                 Key: key,
                 Body: file.buffer,
                 ContentType: file.mimetype,
             }));
-            return `${bucketUrlPrefix}${key}`;
+            return buildPublicUrl(bucketUrlPrefix, key);
         }));
         const files = uploadedFiles.map((url) => ({
             id: randomUUID(),
             name: url.split("/").pop(),
             url,
         }));
-        logger.info({ files }, "✅ Images uploaded successfully");
+        logger.info({ files, organizationId: req.user.organizationId }, "✅ Images uploaded successfully");
         res.json({ success: true, files });
     }
     catch (err) {
-        logger.error({ err }, "❌ Failed to upload images for dress");
-        res.status(500).json({ success: false, error: "Failed to upload images" });
+        logger.error({
+            error: err?.message,
+            stack: err?.stack,
+            name: err?.name,
+            code: err?.Code,
+            statusCode: err?.$metadata?.httpStatusCode,
+            requestId: err?.$metadata?.requestId
+        }, "❌ Failed to upload images for dress");
+        res.status(500).json({
+            success: false,
+            error: "Failed to upload images",
+            details: err?.message,
+            code: err?.Code || err?.name
+        });
     }
 };
 // Supprimer une image précise
@@ -76,11 +101,18 @@ export const deleteDressImage = async (req, res) => {
     const { key } = req.params;
     if (!key)
         return res.status(400).json({ success: false, error: "Image key is required" });
+    if (!req.user?.organizationId) {
+        return res.status(403).json({
+            success: false,
+            error: "Organization context required",
+        });
+    }
     try {
-        const objectKey = ensureDressKey(key);
-        logger.info({ key: objectKey }, "🗑️ Deleting image from bucket");
+        // Construire le path complet avec organization
+        const objectKey = buildStoragePath(req.user.organizationId, 'dresses', key);
+        logger.info({ key: objectKey, organizationId: req.user.organizationId }, "🗑️ Deleting image from bucket");
         await s3.send(new DeleteObjectCommand({ Bucket: hetznerBucket, Key: objectKey }));
-        logger.info({ key: objectKey }, "✅ Image deleted from bucket");
+        logger.info({ key: objectKey, organizationId: req.user.organizationId }, "✅ Image deleted from bucket");
         res.json({ success: true, message: "Image deleted" });
     }
     catch (err) {

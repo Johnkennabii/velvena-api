@@ -5,8 +5,10 @@
     "post": {
       "tags": ["Auth"],
       "summary": "Register a new user (Admin-only)",
-      "description": "Creates a new user account and associated profile. This endpoint can only be called by an **authenticated admin** or user with appropriate permissions. The password is securely hashed with bcrypt before storage. If the email already exists, a 400 error is returned.",
+      "description": "Creates a new user account and associated profile. This endpoint can only be called by an **authenticated admin** or user with appropriate permissions. **Automatically checks the users quota** before creation. The password is securely hashed with bcrypt before storage. If the email already exists, a 400 error is returned.",
       "operationId": "registerUser",
+      "x-quota-protected": true,
+      "x-quota-resource": "users",
       "security": [
         {
           "bearerAuth": []
@@ -177,6 +179,29 @@
             "application/json": {
               "example": {
                 "error": "Unauthorized: only authenticated users can create accounts"
+              }
+            }
+          }
+        },
+        "402": {
+          "description": "💳 Payment Required — Users quota exceeded",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuotaExceededError"
+              },
+              "example": {
+                "success": false,
+                "error": "Quota limit reached",
+                "code": "QUOTA_EXCEEDED",
+                "details": {
+                  "resource_type": "users",
+                  "current_usage": 10,
+                  "limit": 10,
+                  "percentage_used": 100
+                },
+                "message": "You have reached your users limit (10). Please upgrade your plan to continue.",
+                "upgrade_url": "/settings/billing"
               }
             }
           }

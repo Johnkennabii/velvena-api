@@ -3,29 +3,49 @@
   import prisma from "../../lib/prisma.js";
   import bcrypt from "bcrypt";
   import logger from "../../lib/logger.js";
+  import { requireOrganizationContext } from "../../utils/organizationHelper.js";
 
   // 👉 Get all users
-  export const getUsers = async (_req: Request, res: Response) => {
+  export const getUsers = async (req: AuthenticatedRequest, res: Response) => {
     try {
+      // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+      const organizationId = requireOrganizationContext(req, res);
+      if (!organizationId) return; // Error response already sent
+
+      // Multi-tenant isolation: only return users from the effective organization
       const users = await prisma.user.findMany({
+        where: {
+          organization_id: organizationId, // ✅ Isolation (works with SUPER_ADMIN context)
+        },
         include: {
           profile: { include: { role: true } },
         },
       });
+
+      logger.info({ organizationId, count: users.length }, "✅ Fetched users for organization");
       res.json({ success: true, count: users.length, data: users });
     } catch (err) {
+      logger.error({ err }, "❌ Failed to fetch users");
       res.status(500).json({ success: false, error: "Failed to fetch users", count: 0, data: [] });
     }
   };
 
   // 👉 Get one user by ID
-export const getUser = async (req: Request, res: Response) => {
+export const getUser = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     if (!id) return res.status(400).json({ success: false, error: "User ID is required" });
 
-    const user = await prisma.user.findUnique({
-      where: { id },
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return;
+
+    // Multi-tenant isolation: only return user from the effective organization
+    const user = await prisma.user.findFirst({
+      where: {
+        id,
+        organization_id: organizationId, // ✅ Isolation (works with SUPER_ADMIN context)
+      },
       include: {
         profile: { include: { role: true } },
       },
@@ -33,8 +53,10 @@ export const getUser = async (req: Request, res: Response) => {
 
     if (!user) return res.status(404).json({ success: false, error: "User not found" });
 
+    logger.info({ userId: id, organizationId }, "✅ Fetched user");
     res.json({ success: true, data: user });
   } catch (err) {
+    logger.error({ err }, "❌ Failed to fetch user");
     res.status(500).json({ success: false, error: "Failed to fetch user" });
   }
 };
@@ -50,8 +72,24 @@ export const updateUser = async (req: AuthenticatedRequest, res: Response) => {
     if (!id)
       return res.status(400).json({ success: false, error: "User ID is required" });
 
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return;
+
     if (!password && !profile)
       return res.status(400).json({ success: false, error: "At least one field must be provided" });
+
+    // Multi-tenant isolation: verify user belongs to the effective organization
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        id,
+        organization_id: organizationId, // ✅ Isolation (works with SUPER_ADMIN context)
+      },
+    });
+
+    if (!existingUser) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
 
     const data: any = {};
 
@@ -127,6 +165,22 @@ export const softDeleteUser = async (req: AuthenticatedRequest, res: Response) =
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }
 
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return;
+
+    // Multi-tenant isolation: verify user belongs to the effective organization
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        id,
+        organization_id: organizationId, // ✅ Isolation (works with SUPER_ADMIN context)
+      },
+    });
+
+    if (!existingUser) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
     const user = await prisma.user.update({
       where: { id },
       data: {
@@ -145,25 +199,41 @@ export const softDeleteUser = async (req: AuthenticatedRequest, res: Response) =
       },
     });
 
+    logger.info({ userId: id, organizationId }, "✅ User soft deleted");
     res.json({ success: true, data: user });
   } catch (err) {
+    logger.error({ err }, "❌ Failed to soft delete user");
     res.status(500).json({ success: false, error: "Failed to soft delete user" });
   }
 };
 
 // 👉 Hard delete user
-export const hardDeleteUser = async (req: Request, res: Response) => {
+export const hardDeleteUser = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     if (!id) return res.status(400).json({ success: false, error: "User ID is required" });
 
-    const exists = await prisma.user.findUnique({ where: { id } });
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return;
+
+    // Multi-tenant isolation: verify user belongs to the effective organization
+    const exists = await prisma.user.findFirst({
+      where: {
+        id,
+        organization_id: organizationId, // ✅ Isolation (works with SUPER_ADMIN context)
+      },
+    });
+
     if (!exists) return res.status(404).json({ success: false, error: "User not found" });
 
     await prisma.profile.deleteMany({ where: { userId: id } });
     await prisma.user.delete({ where: { id } });
+
+    logger.info({ userId: id, organizationId }, "✅ User hard deleted");
     res.json({ success: true, data: { message: "User permanently deleted" } });
   } catch (err) {
+    logger.error({ err }, "❌ Failed to hard delete user");
     res.status(500).json({ success: false, error: "Failed to hard delete user" });
   }
 };
@@ -192,9 +262,16 @@ export const changeUserPassword = async (req: AuthenticatedRequest, res: Respons
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }
 
+    // ✅ Supports SUPER_ADMIN with X-Organization-Slug header
+    const organizationId = requireOrganizationContext(req, res);
+    if (!organizationId) return;
+
     // Récupérer l'utilisateur courant avec son rôle
-    const currentUser = await prisma.user.findUnique({
-      where: { id: req.user.id },
+    const currentUser = await prisma.user.findFirst({
+      where: {
+        id: req.user.id,
+        organization_id: req.user.organizationId, // User's own org (NOT the target org for SUPER_ADMIN)
+      },
       include: {
         profile: { include: { role: true } }
       }
@@ -209,17 +286,20 @@ export const changeUserPassword = async (req: AuthenticatedRequest, res: Respons
 
     const currentUserRole = currentUser.profile.role.name.toLowerCase();
 
-    // Vérifier que l'utilisateur courant est admin ou manager
-    if (currentUserRole !== "admin" && currentUserRole !== "manager") {
+    // Vérifier que l'utilisateur courant est admin, manager ou super_admin
+    if (currentUserRole !== "admin" && currentUserRole !== "manager" && currentUserRole !== "super_admin") {
       return res.status(403).json({
         success: false,
-        error: "Only admins and managers can change user passwords"
+        error: "Only admins, managers, and super_admins can change user passwords"
       });
     }
 
-    // Récupérer l'utilisateur cible avec son rôle
-    const targetUser = await prisma.user.findUnique({
-      where: { id },
+    // Multi-tenant isolation: récupérer l'utilisateur cible de l'organisation effective (peut être différente pour SUPER_ADMIN)
+    const targetUser = await prisma.user.findFirst({
+      where: {
+        id,
+        organization_id: organizationId, // ✅ Isolation (works with SUPER_ADMIN context)
+      },
       include: {
         profile: { include: { role: true } }
       }

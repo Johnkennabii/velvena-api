@@ -265,6 +265,172 @@ async function main() {
     console.log(`   Password: user123`);
   }
 
+  // 10. Créer les plans de souscription
+  console.log("💳 Creating subscription plans...");
+
+  const freePlan = await prisma.subscriptionPlan.upsert({
+    where: { code: "free" },
+    update: {},
+    create: {
+      name: "Free",
+      code: "free",
+      description: "Plan gratuit pour démarrer avec Velvena",
+      price_monthly: 0,
+      price_yearly: 0,
+      trial_days: 14,
+      limits: {
+        users: 3,
+        dresses: 50,
+        customers: 200,
+        contracts_per_month: 10,
+        storage_gb: 1,
+        api_calls_per_day: 100,
+        email_notifications: 50,
+      },
+      features: {
+        prospect_management: false,
+        contract_generation: true,
+        electronic_signature: false,
+        inventory_management: true,
+        customer_portal: false,
+        advanced_analytics: false,
+        export_data: false,
+        api_access: false,
+        white_label: false,
+        sms_notifications: false,
+      },
+      is_public: true,
+      is_popular: false,
+      sort_order: 1,
+    },
+  });
+  console.log(`  ✅ ${freePlan.name} plan created`);
+
+  const basicPlan = await prisma.subscriptionPlan.upsert({
+    where: { code: "basic" },
+    update: {},
+    create: {
+      name: "Basic",
+      code: "basic",
+      description: "Pour les petites boutiques et créateurs indépendants",
+      price_monthly: 19,
+      price_yearly: 190,
+      trial_days: 14,
+      limits: {
+        users: 10,
+        dresses: 500,
+        customers: 2000,
+        contracts_per_month: 50,
+        storage_gb: 10,
+        api_calls_per_day: 1000,
+        email_notifications: 500,
+      },
+      features: {
+        prospect_management: true,
+        contract_generation: true,
+        electronic_signature: false,
+        inventory_management: true,
+        customer_portal: false,
+        advanced_analytics: false,
+        export_data: true,
+        api_access: false,
+        white_label: false,
+        sms_notifications: false,
+      },
+      is_public: true,
+      is_popular: false,
+      sort_order: 2,
+    },
+  });
+  console.log(`  ✅ ${basicPlan.name} plan created`);
+
+  const proPlan = await prisma.subscriptionPlan.upsert({
+    where: { code: "pro" },
+    update: {},
+    create: {
+      name: "Pro",
+      code: "pro",
+      description: "Pour les boutiques professionnelles en croissance",
+      price_monthly: 49,
+      price_yearly: 490,
+      trial_days: 14,
+      limits: {
+        users: 20,
+        dresses: 9999999,
+        customers: 9999999,
+        contracts_per_month: 200,
+        storage_gb: 50,
+        api_calls_per_day: 10000,
+        email_notifications: 2000,
+      },
+      features: {
+        prospect_management: true,
+        contract_generation: true,
+        electronic_signature: true,
+        inventory_management: true,
+        customer_portal: true,
+        advanced_analytics: true,
+        export_data: true,
+        api_access: true,
+        white_label: false,
+        sms_notifications: true,
+      },
+      is_public: true,
+      is_popular: true,
+      sort_order: 3,
+    },
+  });
+  console.log(`  ✅ ${proPlan.name} plan created (Popular)`);
+
+  const enterprisePlan = await prisma.subscriptionPlan.upsert({
+    where: { code: "enterprise" },
+    update: {},
+    create: {
+      name: "Enterprise",
+      code: "enterprise",
+      description: "Pour les grandes organisations avec besoins avancés",
+      price_monthly: 149,
+      price_yearly: 1490,
+      trial_days: 30,
+      limits: {
+        users: 9999999,
+        dresses: 9999999,
+        customers: 9999999,
+        contracts_per_month: 9999999,
+        storage_gb: 500,
+        api_calls_per_day: 100000,
+        email_notifications: 10000,
+      },
+      features: {
+        prospect_management: true,
+        contract_generation: true,
+        electronic_signature: true,
+        inventory_management: true,
+        customer_portal: true,
+        advanced_analytics: true,
+        export_data: true,
+        api_access: true,
+        white_label: true,
+        sms_notifications: true,
+      },
+      is_public: true,
+      is_popular: false,
+      sort_order: 4,
+    },
+  });
+  console.log(`  ✅ ${enterprisePlan.name} plan created`);
+
+  // Assigner le plan Free à l'organisation par défaut
+  await prisma.organization.update({
+    where: { id: defaultOrg.id },
+    data: {
+      subscription_plan_id: freePlan.id,
+      subscription_status: "trial",
+      trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+    },
+  });
+  console.log(`  ✅ Free plan assigned to default organization`);
+
   console.log("\n🎉 Seed completed successfully!");
   console.log("\n📊 Summary:");
   console.log(`   - Organizations: 1`);
@@ -274,6 +440,7 @@ async function main() {
   console.log(`   - Colors: ${colors.length} (global)`);
   console.log(`   - Conditions: ${conditions.length} (global)`);
   console.log(`   - Contract Types: ${contractTypes.length} (global)`);
+  console.log(`   - Subscription Plans: 4 (Free, Basic, Pro, Enterprise)`);
   console.log(`   - Users: 2 (1 super admin + 1 test user)`);
   console.log("\n🔑 Login credentials:");
   console.log(`   Super Admin: admin@velvena.com / admin123`);

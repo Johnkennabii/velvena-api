@@ -83,7 +83,12 @@ export const login = async (req, res) => {
             return res.status(401).json({ error: "Invalid password" });
         await prisma.user.update({ where: { id: user.id }, data: { last_signin_at: new Date() } });
         const roleName = user.profile?.role?.name ?? null;
-        const token = jwt.sign({ id: user.id, email: user.email, role: roleName }, JWT_SECRET, { expiresIn: "6h" });
+        const token = jwt.sign({
+            id: user.id,
+            email: user.email,
+            role: roleName,
+            organizationId: user.organization_id, // Add organizationId to JWT payload
+        }, JWT_SECRET, { expiresIn: "6h" });
         logger.info({ userId: user.id, email: user.email, role: roleName, organizationId: user.organization_id }, "User logged in");
         res.json({
             token,
@@ -125,8 +130,13 @@ export const me = async (req, res) => {
             return res.status(404).json({ error: "User not found" });
         }
         const roleName = user.profile?.role?.name ?? null;
-        const token = jwt.sign({ id: user.id, email: user.email, role: roleName }, JWT_SECRET, { expiresIn: "6h" });
-        logger.info({ userId: user.id, email: user.email, role: roleName }, "Current user info fetched");
+        const token = jwt.sign({
+            id: user.id,
+            email: user.email,
+            role: roleName,
+            organizationId: user.organization_id, // Add organizationId to JWT payload
+        }, JWT_SECRET, { expiresIn: "6h" });
+        logger.info({ userId: user.id, email: user.email, role: roleName, organizationId: user.organization_id }, "Current user info fetched");
         res.json({
             token,
             id: user.id,
@@ -165,7 +175,12 @@ export const refresh = async (req, res) => {
         }
         const roleName = user.profile?.role?.name ?? null;
         // Génération d'un nouveau JWT
-        const token = jwt.sign({ id: user.id, email: user.email, role: roleName }, JWT_SECRET, { expiresIn: "6h" });
+        const token = jwt.sign({
+            id: user.id,
+            email: user.email,
+            role: roleName,
+            organizationId: user.organization_id, // Add organizationId to JWT payload
+        }, JWT_SECRET, { expiresIn: "6h" });
         res.json({
             token,
             id: user.id,

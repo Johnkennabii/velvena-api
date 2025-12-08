@@ -4,6 +4,9 @@ import { s3, hetznerBucket } from "./hetzner.js";
 import logger from "./logger.js";
 import { generateContractPDFWithPdfLib } from "./pdfGenerator.js";
 import { compressPdfBuffer } from "./pdfCompression.js";
+import { buildStoragePath, buildPublicUrl } from "../utils/storageHelper.js";
+
+const bucketUrlPrefix = `https://${hetznerBucket}.hel1.your-objectstorage.com/`;
 
 /**
  * Génère un PDF contractuel à partir de la réponse JSON du backend /sign-links/:token
@@ -718,8 +721,15 @@ const forfaitJournalierClauses = `
     const pdfBuffer = Buffer.isBuffer(pdfData) ? pdfData : Buffer.from(pdfData);
     const { buffer: payload, encoding } = await compressPdfBuffer(pdfBuffer);
 
-    // ☁️ Upload vers Hetzner
-    const pdfKey = `contracts/${contractId}/signed_${Date.now()}.pdf`;
+    // ☁️ Upload vers Hetzner (Multi-tenant)
+    const organizationId = contract.organization_id;
+    if (!organizationId) {
+      throw new Error("Contract organization_id is required for PDF storage");
+    }
+
+    const filename = `${contractId}_signed_${Date.now()}.pdf`;
+    const pdfKey = buildStoragePath(organizationId, 'contracts', filename);
+
     await s3.send(
       new PutObjectCommand({
         Bucket: hetznerBucket,
@@ -730,7 +740,7 @@ const forfaitJournalierClauses = `
       })
     );
 
-    return `https://${hetznerBucket}.hel1.your-objectstorage.com/${pdfKey}`;
+    return buildPublicUrl(bucketUrlPrefix, pdfKey);
   } catch (err) {
     logger.error({ err }, "❌ Génération PDF Puppeteer impossible, bascule sur pdf-lib");
     if (browser) {

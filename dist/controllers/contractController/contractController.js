@@ -19,11 +19,11 @@ const s3 = new S3Client({
         secretAccessKey: process.env.HETZNER_SECRET_KEY,
     },
 });
-const hetznerBucket = process.env.HETZNER_BUCKET ?? "media-allure-creation";
+const hetznerBucket = process.env.HETZNER_BUCKET ?? "velvena-medias";
 const CONTRACTS_FOLDER = "contracts";
 const bucketUrlPrefix = `https://${hetznerBucket}.hel1.your-objectstorage.com/`;
 if (!process.env.HETZNER_BUCKET) {
-    logger.warn("⚠️ HETZNER_BUCKET not set, defaulting to 'media-allure-creation'");
+    logger.warn("⚠️ HETZNER_BUCKET not set, defaulting to 'velvena-medias'");
 }
 const signedPdfUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 export const uploadSignedPdfMiddleware = signedPdfUpload.single("file");
@@ -306,7 +306,7 @@ export const generateSignatureLink = async (req, res) => {
             data: { status: "PENDING_SIGNATURE" },
         });
         logger.info({ contractId: id, previousStatus: contract.status, newStatus: updatedContract.status }, "📝 Statut du contrat mis à jour en attente de signature");
-        const baseUrl = "https://app.allure-creation.fr";
+        const baseUrl = "https://app.velvena.fr";
         const url = new URL(`/sign-links/${signLink.token}`, baseUrl).toString();
         const expiresAtFormatted = signLink.expires_at.toLocaleString("fr-FR", {
             day: "2-digit",

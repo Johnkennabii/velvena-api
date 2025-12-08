@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { upload } from "../../controllers/bucketController/dressStorageController.js";
 import authMiddleware from "../../middleware/authMiddleware.js";
-import { hybridAuthMiddleware, requireApiKeyScope } from "../../middleware/hybridAuthMiddleware.js";
+import { organizationContextMiddleware } from "../../middleware/organizationContextMiddleware.js";
+import { requireQuota } from "../../middleware/subscriptionMiddleware.js";
 import {
   getDresses,
   createDress,
@@ -19,40 +20,44 @@ import {
 
 const router = Router();
 
+// Apply authentication and organization context to all routes
+router.use(authMiddleware);
+router.use(organizationContextMiddleware); // ✅ SUPER_ADMIN can use X-Organization-Slug header
+
 /* ------------------------------ 🧵 DRESSES ------------------------------ */
 
 // 📄 Récupération et création
 router
   .route("/")
-  .get(hybridAuthMiddleware, requireApiKeyScope("read:dresses"), getDresses) // ✅ /dresses (JWT ou API Key avec scope read:dresses)
-  .post(authMiddleware, upload.array("images", 5), createDress); // ✅ /dresses (JWT uniquement)
+  .get(getDresses)
+  .post(requireQuota("dresses"), upload.array("images", 5), createDress);
 
 // 🔍 Vue détaillée (avec jointures)
-router.get("/details-view", hybridAuthMiddleware, requireApiKeyScope("read:dresses"), getDressesWithDetails); // ✅ /dresses/details-view (JWT ou API Key)
+router.get("/details-view", getDressesWithDetails);
 
-router.get("/availability", hybridAuthMiddleware, requireApiKeyScope("read:dresses"), getDressesAvailability); // ✅ /dresses/availability (JWT ou API Key)
+router.get("/availability", getDressesAvailability);
 
 // 📦 Détail, mise à jour et suppressions
 router
   .route("/:id")
-  .get(hybridAuthMiddleware, requireApiKeyScope("read:dresses"), getDressById) // ✅ /dresses/{id} (JWT ou API Key)
-  .put(authMiddleware, updateDress); // ✅ /dresses/{id} (JWT uniquement)
+  .get(getDressById)
+  .put(updateDress);
 
 // ♻️ Soft delete et Hard delete
-router.patch("/:id/soft", authMiddleware, softDeleteDress); // ✅ /dresses/{id}/soft
-router.delete("/:id/hard", authMiddleware, hardDeleteDress); // ✅ /dresses/{id}/hard
+router.patch("/:id/soft", softDeleteDress); // ✅ /dresses/{id}/soft
+router.delete("/:id/hard", hardDeleteDress); // ✅ /dresses/{id}/hard
 
 // 📢 Publication
-router.post("/:id/publish", authMiddleware, publishDress); // ✅ /dresses/{id}/publish (JWT uniquement)
-router.post("/:id/unpublish", authMiddleware, unpublishDress); // ✅ /dresses/{id}/unpublish (JWT uniquement)
+router.post("/:id/publish", publishDress); // ✅ /dresses/{id}/publish (JWT uniquement)
+router.post("/:id/unpublish", unpublishDress); // ✅ /dresses/{id}/unpublish (JWT uniquement)
 
 /* ------------------------------ 🖼️ IMAGES ------------------------------ */
 
 // ➕ Ajouter une ou plusieurs images à une robe
-router.post("/:id/images", authMiddleware, upload.array("images", 5), addDressImages); // ✅ /dresses/{id}/images
+router.post("/:id/images", upload.array("images", 5), addDressImages); // ✅ /dresses/{id}/images
 
 // ❌ Supprimer une ou plusieurs images
-router.delete("/:id/images", authMiddleware, removeDressImage); // ✅ /dresses/{id}/images (payload keys[])
-router.delete("/:id/images/:key", authMiddleware, removeDressImage); // ✅ /dresses/{id}/images/{key}
+router.delete("/:id/images", removeDressImage); // ✅ /dresses/{id}/images (payload keys[])
+router.delete("/:id/images/:key", removeDressImage); // ✅ /dresses/{id}/images/{key}
 
 export default router;

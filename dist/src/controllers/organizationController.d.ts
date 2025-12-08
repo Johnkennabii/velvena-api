@@ -22,4 +22,9 @@ export declare const createOrganization: (req: AuthenticatedRequest, res: Respon
  * SUPER ADMIN ONLY: List all organizations
  */
 export declare const listOrganizations: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+/**
+ * PUBLIC: Initialize a new organization with first MANAGER user
+ * This is used for the subscription/onboarding flow
+ */
+export declare const initializeOrganization: (req: AuthenticatedRequest, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 //# sourceMappingURL=organizationController.d.ts.map

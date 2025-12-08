@@ -2,6 +2,7 @@ import logger from "../../lib/logger.js";
 import { Router } from "express";
 import { register, login, me, refresh } from "../../controllers/userController/authController.js";
 import authMiddleware from "../../middleware/authMiddleware.js";
+import { requireQuota } from "../../middleware/subscriptionMiddleware.js";
 
 const router = Router();
 
@@ -12,10 +13,14 @@ router.post("/login", (req, res) => {
 });
 
 // Register nécessite un utilisateur connecté (ADMIN ou MANAGER par ex.)
-router.post("/register", authMiddleware, (req, res) => {
-  logger.info("🆕 Register request received");
-  register(req, res);
-});
+router.post("/register",
+  authMiddleware,
+  requireQuota("users"),  // ✅ Vérifie quota users
+  (req, res) => {
+    logger.info("🆕 Register request received");
+    register(req, res);
+  }
+);
 
 // Récupérer les infos de l'utilisateur connecté
 router.get("/me", authMiddleware, (req, res) => {

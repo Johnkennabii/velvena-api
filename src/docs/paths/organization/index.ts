@@ -1,4 +1,137 @@
 export default {
+  "/organizations/initialize": {
+    post: {
+      tags: ["Organizations"],
+      summary: "Initialize a new organization with first MANAGER user",
+      description: "Creates a new organization along with the first MANAGER user. This is used for the onboarding/subscription flow. No authentication required.",
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["organizationName", "slug", "userEmail", "password"],
+              properties: {
+                organizationName: {
+                  type: "string",
+                  example: "Boutique Paris",
+                  description: "Name of the organization",
+                },
+                slug: {
+                  type: "string",
+                  example: "boutique-paris",
+                  description: "URL-friendly unique identifier",
+                },
+                email: {
+                  type: "string",
+                  format: "email",
+                  example: "contact@boutique-paris.fr",
+                  description: "Organization contact email",
+                },
+                phone: {
+                  type: "string",
+                  example: "+33123456789",
+                  description: "Organization phone number",
+                },
+                address: { type: "string", example: "123 Rue de la Paix" },
+                city: { type: "string", example: "Paris" },
+                postal_code: { type: "string", example: "75001" },
+                country: { type: "string", example: "France" },
+                subscription_plan: {
+                  type: "string",
+                  enum: ["free", "basic", "pro", "enterprise"],
+                  default: "free",
+                  description: "Initial subscription plan",
+                },
+                userEmail: {
+                  type: "string",
+                  format: "email",
+                  example: "manager@boutique-paris.fr",
+                  description: "Email for the first MANAGER user",
+                },
+                password: {
+                  type: "string",
+                  format: "password",
+                  minLength: 8,
+                  example: "SecurePassword123!",
+                  description: "Password for the first MANAGER user (min 8 characters)",
+                },
+                firstName: {
+                  type: "string",
+                  example: "Marie",
+                  description: "First name of the first user",
+                },
+                lastName: {
+                  type: "string",
+                  example: "Dupont",
+                  description: "Last name of the first user",
+                },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        201: {
+          description: "Organization initialized successfully",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  message: { type: "string", example: "Organization created successfully" },
+                  token: {
+                    type: "string",
+                    description: "JWT token for immediate login",
+                  },
+                  organization: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string", format: "uuid" },
+                      name: { type: "string", example: "Boutique Paris" },
+                      slug: { type: "string", example: "boutique-paris" },
+                      subscription_plan: { type: "string", example: "free" },
+                      subscription_status: { type: "string", example: "trial" },
+                      trial_ends_at: { type: "string", format: "date-time" },
+                    },
+                  },
+                  user: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string", format: "uuid" },
+                      email: { type: "string", format: "email" },
+                      role: { type: "string", example: "MANAGER" },
+                      profile: {
+                        type: "object",
+                        properties: {
+                          firstName: { type: "string" },
+                          lastName: { type: "string" },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        400: {
+          description: "Bad request - Invalid input, slug already exists, or user email already exists",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  error: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        500: { description: "Internal server error" },
+      },
+    },
+  },
   "/organizations/me": {
     get: {
       tags: ["Organizations"],

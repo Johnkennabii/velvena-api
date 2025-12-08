@@ -34,7 +34,7 @@
         "type": "string",
         "format": "uri",
         "description": "Public URL of the uploaded image",
-        "example": "https://media-allure-creation.hel1.your-objectstorage.com/dresses/dress_001.png"
+        "example": "https://velvena-medias.hel1.your-objectstorage.com/dresses/dress_001.png"
       }
     },
     "required": ["id", "name", "url"]
