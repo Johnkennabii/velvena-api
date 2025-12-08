@@ -68,7 +68,7 @@ export const getPricingRuleById = async (
 
     const pricingRule = await prisma.pricingRule.findFirst({
       where: {
-        id,
+        ...(id && { id }),
         OR: [
           { organization_id: req.user.organizationId },
           { organization_id: null },
@@ -191,7 +191,7 @@ export const updatePricingRule = async (
     // Check ownership
     const existing = await prisma.pricingRule.findFirst({
       where: {
-        id,
+        ...(id && { id }),
         organization_id: req.user.organizationId,
       },
     });
@@ -204,7 +204,7 @@ export const updatePricingRule = async (
     }
 
     const pricingRule = await prisma.pricingRule.update({
-      where: { id },
+      where: { id: existing.id },
       data: withOrgData(
         req.user.organizationId,
         req.user.id,
@@ -255,7 +255,7 @@ export const deletePricingRule = async (
 
     const existing = await prisma.pricingRule.findFirst({
       where: {
-        id,
+        ...(id && { id }),
         organization_id: req.user.organizationId,
       },
     });
@@ -268,7 +268,7 @@ export const deletePricingRule = async (
     }
 
     await prisma.pricingRule.update({
-      where: { id },
+      where: { id: existing.id },
       data: {
         deleted_at: new Date(),
         deleted_by: req.user.id,
@@ -374,7 +374,7 @@ export const calculatePriceEndpoint = async (
       );
 
       pricingRule = findBestPricingRule(allRules as any, {
-        dress_type: dress.type?.name,
+        ...(dress.type?.name && { dress_type: dress.type.name }),
         duration_days: durationDays,
       });
     }
@@ -393,13 +393,13 @@ export const calculatePriceEndpoint = async (
         end_date: new Date(end_date),
         duration_days: 0, // Will be calculated
       },
-      pricing_rule: pricingRule
-        ? {
-            strategy: pricingRule.strategy as any,
-            calculation_config: pricingRule.calculation_config,
-            applies_to: pricingRule.applies_to,
-          }
-        : undefined,
+      ...(pricingRule && {
+        pricing_rule: {
+          strategy: pricingRule.strategy as any,
+          calculation_config: pricingRule.calculation_config,
+          applies_to: pricingRule.applies_to,
+        },
+      }),
       business_rules: organization?.business_rules as any,
       overrides,
     };

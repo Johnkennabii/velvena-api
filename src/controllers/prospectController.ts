@@ -502,7 +502,7 @@ export const updateProspect = async (req: AuthenticatedRequest, res: Response) =
         lastname,
         email,
         phone,
-        birthday: birthday ? new Date(birthday) : undefined,
+        ...(birthday && { birthday: new Date(birthday) }),
         country,
         city,
         address,

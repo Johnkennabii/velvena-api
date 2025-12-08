@@ -214,20 +214,20 @@ export async function checkFeature(
     let upgradeRequired: string | undefined;
     if (!allowed) {
       // Suggest upgrade plan
-      upgradeRequired = suggestUpgradePlan(featureName);
+      upgradeRequired = suggestUpgradePlan(String(featureName));
     }
 
     return {
       allowed,
-      feature_name: featureName,
-      upgrade_required: upgradeRequired,
+      feature_name: String(featureName),
+      ...(upgradeRequired && { upgrade_required: upgradeRequired }),
     };
   } catch (err: any) {
     logger.error({ err, organizationId, featureName }, "Failed to check feature");
     // En cas d'erreur, autoriser par défaut (fail open)
     return {
       allowed: true,
-      feature_name: featureName,
+      feature_name: String(featureName),
     };
   }
 }
@@ -272,7 +272,7 @@ export async function trackUsage(
         organization_id: organizationId,
         event_type: eventType,
         resource_type: resourceType,
-        resource_id: resourceId,
+        resource_id: resourceId ?? null,
         metadata,
         event_date: now,
         event_month: eventMonth,
@@ -404,7 +404,7 @@ export async function changeSubscriptionPlan(
       subscription_plan_id: newPlanId,
       subscription_status: "active",
       subscription_started_at: new Date(),
-      updated_by: userId,
+      updated_by: userId ?? null,
     },
   });
 

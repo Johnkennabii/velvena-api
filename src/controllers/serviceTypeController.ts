@@ -58,7 +58,7 @@ export const getServiceTypeById = async (
 
     const serviceType = await prisma.serviceType.findFirst({
       where: {
-        id,
+        ...(id && { id }),
         OR: [
           { organization_id: req.user.organizationId },
           { organization_id: null },
@@ -171,7 +171,7 @@ export const updateServiceType = async (
     // Check ownership
     const existing = await prisma.serviceType.findFirst({
       where: {
-        id,
+        ...(id && { id }),
         organization_id: req.user.organizationId, // Only org-specific can be updated
       },
     });
@@ -184,7 +184,7 @@ export const updateServiceType = async (
     }
 
     const serviceType = await prisma.serviceType.update({
-      where: { id },
+      where: { id: existing.id },
       data: withOrgData(
         req.user.organizationId,
         req.user.id,
@@ -230,7 +230,7 @@ export const deleteServiceType = async (
 
     const existing = await prisma.serviceType.findFirst({
       where: {
-        id,
+        ...(id && { id }),
         organization_id: req.user.organizationId,
       },
     });
@@ -243,7 +243,7 @@ export const deleteServiceType = async (
     }
 
     await prisma.serviceType.update({
-      where: { id },
+      where: { id: existing.id },
       data: {
         deleted_at: new Date(),
         deleted_by: req.user.id,
