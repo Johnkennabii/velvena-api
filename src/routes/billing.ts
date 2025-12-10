@@ -100,16 +100,15 @@ router.get("/features", authMiddleware, async (req: AuthenticatedRequest, res: R
     }
 
     const features = await checkFeatures(req.user.organizationId, [
-      "prospect_management",
+      "planning",
+      "dashboard",
+      "export_data",
+      "customer_portal",
+      "notification_push",
       "contract_generation",
+      "prospect_management",
       "electronic_signature",
       "inventory_management",
-      "customer_portal",
-      "advanced_analytics",
-      "export_data",
-      "api_access",
-      "white_label",
-      "sms_notifications",
     ]);
 
     res.json(features);
@@ -135,12 +134,15 @@ router.get("/dashboard", authMiddleware, async (req: AuthenticatedRequest, res: 
     const [quotas, features, subscription] = await Promise.all([
       checkQuotas(orgId, ["users", "dresses", "customers", "prospects", "contracts"]),
       checkFeatures(orgId, [
-        "electronic_signature",
-        "advanced_analytics",
-        "api_access",
+        "planning",
+        "dashboard",
         "export_data",
         "customer_portal",
-        "white_label",
+        "notification_push",
+        "contract_generation",
+        "prospect_management",
+        "electronic_signature",
+        "inventory_management",
       ]),
       getSubscriptionStatus(orgId),
     ]);

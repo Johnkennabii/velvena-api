@@ -28,16 +28,15 @@ export interface SubscriptionLimits {
 }
 
 export interface SubscriptionFeatures {
-  prospect_management: boolean;
+  planning: boolean;
+  dashboard: boolean;
+  export_data: boolean;
+  customer_portal: boolean;
+  notification_push: boolean;
   contract_generation: boolean;
+  prospect_management: boolean;
   electronic_signature: boolean;
   inventory_management: boolean;
-  customer_portal: boolean;
-  advanced_analytics: boolean;
-  export_data: boolean;
-  api_access: boolean;
-  white_label: boolean;
-  sms_notifications: boolean;
   [key: string]: boolean;
 }
 
@@ -433,32 +432,30 @@ function getDefaultLimits(): SubscriptionLimits {
 
 function getDefaultFeatures(): SubscriptionFeatures {
   return {
-    prospect_management: false,
+    planning: false,
+    dashboard: false,
+    export_data: false,
+    customer_portal: true,
+    notification_push: false,
     contract_generation: true,
+    prospect_management: false,
     electronic_signature: false,
     inventory_management: true,
-    customer_portal: false,
-    advanced_analytics: false,
-    export_data: false,
-    api_access: false,
-    white_label: false,
-    sms_notifications: false,
   };
 }
 
 function suggestUpgradePlan(featureName: string): string {
   // Map features to minimum required plan
   const featurePlanMap: Record<string, string> = {
-    prospect_management: "basic",
-    contract_generation: "basic",
+    planning: "pro",
+    dashboard: "pro",
+    export_data: "enterprise",
+    customer_portal: "free",
+    notification_push: "pro",
+    contract_generation: "free",
+    prospect_management: "enterprise",
     electronic_signature: "pro",
-    inventory_management: "basic",
-    customer_portal: "pro",
-    advanced_analytics: "pro",
-    export_data: "basic",
-    api_access: "pro",
-    white_label: "enterprise",
-    sms_notifications: "pro",
+    inventory_management: "free",
   };
 
   return featurePlanMap[featureName] || "pro";
