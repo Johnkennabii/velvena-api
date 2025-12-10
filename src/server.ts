@@ -47,6 +47,7 @@ import maintenanceRoutes from "./routes/maintenanceRoutes.js";
 import healthRoutes from "./routes/health.js";
 import billingRoutes from "./routes/billing.js";
 import metricsRoutes from "./routes/metrics.js";
+import stripeWebhooksRoutes from "./routes/stripe-webhooks.js";
 
 import {
   getContractSignLink,
@@ -186,6 +187,15 @@ app.use(
     credentials: true,
   })
 );
+
+// ✅ Stripe Webhooks route MUST come BEFORE express.json()
+// Stripe needs raw body for signature verification
+app.use(
+  "/webhooks/stripe",
+  express.raw({ type: "application/json" }),
+  stripeWebhooksRoutes
+);
+
 app.use(express.json());
 app.use(pinoHttp());
 

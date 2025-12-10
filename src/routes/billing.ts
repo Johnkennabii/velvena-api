@@ -7,10 +7,18 @@ import {
   checkQuotas,
   checkFeatures,
 } from "../utils/subscriptionManager.js";
+import {
+  createCheckoutSession,
+  createPortalSession,
+  cancelSubscription,
+  getInvoices,
+} from "../services/stripeService.js";
+import { stripeConfig } from "../lib/stripe.js";
 import prisma from "../lib/prisma.js";
 import logger from "../lib/logger.js";
 import type { AuthenticatedRequest } from "../types/express.js";
 import type { Response } from "express";
+import type { BillingInterval } from "../types/stripe.js";
 
 const router = Router();
 
@@ -217,6 +225,197 @@ router.post("/upgrade", authMiddleware, async (req: AuthenticatedRequest, res: R
     });
   } catch (err: any) {
     logger.error({ err }, "Failed to upgrade subscription");
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/billing/create-checkout-session
+ * Create a Stripe Checkout session for subscribing to a plan
+ */
+router.post(
+  "/create-checkout-session",
+  authMiddleware,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.user?.organizationId) {
+        return res.status(401).json({ error: "Organization context required" });
+      }
+
+      const { plan_code, billing_interval, success_url, cancel_url } = req.body;
+
+      if (!plan_code) {
+        return res.status(400).json({ error: "plan_code is required" });
+      }
+
+      if (!billing_interval || !["month", "year"].includes(billing_interval)) {
+        return res.status(400).json({
+          error: "billing_interval is required and must be 'month' or 'year'",
+        });
+      }
+
+      // Create checkout session
+      const sessionParams: any = {
+        organizationId: req.user.organizationId,
+        planCode: plan_code,
+        billingInterval: billing_interval as BillingInterval,
+      };
+
+      if (req.user.email) {
+        sessionParams.customerEmail = req.user.email;
+      }
+
+      if (success_url) {
+        sessionParams.successUrl = success_url;
+      }
+
+      if (cancel_url) {
+        sessionParams.cancelUrl = cancel_url;
+      }
+
+      const session = await createCheckoutSession(sessionParams);
+
+      logger.info(
+        {
+          organizationId: req.user.organizationId,
+          planCode: plan_code,
+          billingInterval: billing_interval,
+          sessionId: session.id,
+        },
+        "Created checkout session"
+      );
+
+      res.json({
+        sessionId: session.id,
+        url: session.url,
+        publishableKey: stripeConfig.publishableKey,
+      });
+    } catch (err: any) {
+      logger.error({ err }, "Failed to create checkout session");
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+/**
+ * POST /api/billing/create-portal-session
+ * Create a Stripe Customer Portal session for managing subscription
+ */
+router.post(
+  "/create-portal-session",
+  authMiddleware,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.user?.organizationId) {
+        return res.status(401).json({ error: "Organization context required" });
+      }
+
+      const { return_url } = req.body;
+
+      // Create portal session
+      const session = await createPortalSession({
+        organizationId: req.user.organizationId,
+        returnUrl: return_url,
+      });
+
+      logger.info(
+        {
+          organizationId: req.user.organizationId,
+          sessionId: session.id,
+        },
+        "Created customer portal session"
+      );
+
+      res.json({
+        url: session.url,
+      });
+    } catch (err: any) {
+      logger.error({ err }, "Failed to create portal session");
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+/**
+ * POST /api/billing/cancel-subscription
+ * Cancel the current subscription
+ */
+router.post(
+  "/cancel-subscription",
+  authMiddleware,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.user?.organizationId) {
+        return res.status(401).json({ error: "Organization context required" });
+      }
+
+      const { immediately } = req.body;
+
+      await cancelSubscription(req.user.organizationId, immediately === true);
+
+      logger.info(
+        {
+          organizationId: req.user.organizationId,
+          immediately,
+        },
+        "Cancelled subscription"
+      );
+
+      res.json({
+        success: true,
+        message: immediately
+          ? "Subscription cancelled immediately"
+          : "Subscription will be cancelled at period end",
+      });
+    } catch (err: any) {
+      logger.error({ err }, "Failed to cancel subscription");
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+/**
+ * GET /api/billing/config
+ * Get Stripe publishable key and other public config
+ */
+router.get("/config", async (_req, res: Response) => {
+  res.json({
+    publishableKey: stripeConfig.publishableKey,
+    successUrl: stripeConfig.successUrl,
+    cancelUrl: stripeConfig.cancelUrl,
+  });
+});
+
+/**
+ * GET /api/billing/invoices
+ * Get invoice history for the organization
+ */
+router.get("/invoices", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user?.organizationId) {
+      return res.status(401).json({ error: "Organization context required" });
+    }
+
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+
+    const result = await getInvoices(req.user.organizationId, limit);
+
+    logger.info(
+      {
+        organizationId: req.user.organizationId,
+        count: result.data.length,
+      },
+      "Retrieved invoice history"
+    );
+
+    res.json({
+      success: true,
+      has_more: result.has_more,
+      count: result.data.length,
+      invoices: result.data,
+    });
+  } catch (err: any) {
+    logger.error({ err }, "Failed to retrieve invoices");
     res.status(500).json({ error: err.message });
   }
 });
