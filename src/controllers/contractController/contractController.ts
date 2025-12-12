@@ -434,6 +434,7 @@ export const getContractsFullView = async (req: AuthenticatedRequest, res: Respo
     const includeOptions: Prisma.ContractInclude = {
       customer: true,
       contract_type: true,
+      organization: true,
       sign_link: true,
     };
 
