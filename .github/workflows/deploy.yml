@@ -125,7 +125,7 @@ jobs:
 
       - name: Deploy application
         run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+          ssh -i ~/.ssh/id_rsa ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
             set -e
             cd /opt/velvena
 
@@ -170,7 +170,7 @@ jobs:
       - name: Rollback on failure
         if: failure()
         run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+          ssh -i ~/.ssh/id_rsa ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
             cd /opt/velvena
             docker-compose up -d --no-deps api
             echo "⚠️ Deployment failed, rolled back to previous version"
