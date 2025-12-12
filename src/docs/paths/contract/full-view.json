@@ -26,6 +26,16 @@
             "type": "string",
             "example": "CTR-2025"
           }
+        },
+        {
+          "name": "include",
+          "in": "query",
+          "required": false,
+          "description": "Comma-separated list of relations to include. Available options: 'package' (includes package with addons), 'dresses' (includes dress details), 'addons' (includes contract addon links). Note: customer, contract_type, organization, and sign_link are always included by default.",
+          "schema": {
+            "type": "string",
+            "example": "package,dresses,addons"
+          }
         }
       ],
       "responses": {
