@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Contrat {{contract.number}}</title>
+  <style>
+    body {
+      font-family: 'Helvetica', sans-serif;
+      background: #f9fafb;
+      color: #111827;
+      padding: 40px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 0;
+    }
+    h1 { font-size: 20px; margin-bottom: 6px; }
+    h2 { font-size: 16px; margin-top: 30px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
+    h3 { font-size: 13px; margin-top: 14px; }
+    .section {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px 24px;
+      margin-top: 20px;
+      page-break-inside: avoid;
+    }
+    .contract-clauses {
+      page-break-before: always;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .article {
+      margin-top: 14px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .signature-block {
+      margin-top: 20px;
+      page-break-inside: avoid;
+    }
+    .signature-grid {
+      display: flex;
+      justify-content: space-between;
+      gap: 32px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .signature-metadata {
+      margin-top: 12px;
+      padding: 12px 16px;
+      background-color: #f9fafb;
+      border-left: 4px solid #3b82f6;
+      border-radius: 4px;
+      page-break-inside: avoid;
+    }
+    .signature-metadata p {
+      margin: 6px 0;
+      font-size: 9px;
+      color: #374151;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <h1>Contrat de {{contract.type}}</h1>
+  <p style="text-align:center;font-size:12px;color:#6b7280;">
+    Contrat n° {{contract.number}} — {{contract.createdAt}}
+  </p>
+
+  <!-- Section Client -->
+  <div class="section">
+    <h2>Informations client</h2>
+    <div class="grid">
+      <div>
+        <strong>Nom complet :</strong> {{client.fullName}}
+      </div>
+      <div>
+        <strong>Email :</strong> {{client.email}}
+      </div>
+      <div>
+        <strong>Téléphone :</strong> {{client.phone}}
+      </div>
+      <div>
+        <strong>Adresse :</strong> {{client.address}}, {{client.city}}
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Financière -->
+  <div class="section">
+    <h2>Récapitulatif financier</h2>
+    <div class="grid">
+      <div><strong>Total TTC :</strong> {{contract.totalTTC}}</div>
+      <div><strong>Acompte TTC :</strong> {{contract.accountTTC}}</div>
+      <div><strong>Caution TTC :</strong> {{contract.cautionTTC}}</div>
+      <div><strong>Méthode de paiement :</strong> {{contract.paymentMethod}}</div>
+    </div>
+  </div>
+
+  <!-- Clauses contractuelles -->
+  <div class="section contract-clauses">
+    <h2>Clauses contractuelles – Prestation Négafa</h2>
+
+    <p><strong>Entre les soussignés :</strong></p>
+    <p>
+      La société <strong>{{org.name}}</strong>, Société par actions simplifiée (SAS)
+      immatriculée au registre du commerce et des sociétés sous le numéro
+      <strong>{{org.siret}}</strong>, ayant son siège social au
+      <strong>{{org.fullAddress}}</strong>, représentée par
+      <strong>{{org.managerGender}} {{org.managerFullName}}</strong> en qualité de
+      <strong>{{org.managerTitle}}</strong>, ci-après dénommée « le Prestataire ».
+    </p>
+    <p>
+      Et <strong>{{client.fullName}}</strong>, ci-après dénommé(e) « le/la Client(e) »,
+      identifié(e) dans le présent contrat.
+    </p>
+
+    <div class="article">
+      <h3>Article 1 – Objet du contrat</h3>
+      <p>
+        Le contrat encadre une prestation de préparation, habillage, accompagnement
+        et location de tenues traditionnelles fournie pour un événement personnel
+        (mariage, fiançailles, cérémonie).
+      </p>
+    </div>
+
+    <div class="article">
+      <h3>Article 2 – Description de la prestation</h3>
+      <ol>
+        <li>Essayage et sélection des tenues au showroom {{org.name}}.</li>
+        <li>Location des tenues traditionnelles, accessoires et parures.</li>
+        <li>Habillage et préparation de la mariée sur place le jour J.</li>
+        <li>Accompagnement, changements de tenues et présence continue dans la limite définie ci-après.</li>
+      </ol>
+    </div>
+
+    <div class="article">
+      <h3>Article 3 – Durée de la prestation</h3>
+      <p>
+        La prestation est limitée à sept (7) heures consécutives (ex. 19h00 – 2h00).
+        Toute heure supplémentaire entamée est facturée 150&nbsp;€ TTC.
+      </p>
+    </div>
+
+    <div class="article">
+      <h3>Article 4 – Mise à disposition d'un espace sécurisé</h3>
+      <p>Le/La Client(e) fournit une loge ou un local sécurisé, fermé par clé ou code, dédié au stockage du matériel et aux préparatifs.</p>
+      <ol>
+        <li>Aucun objet personnel ou de valeur du/de la Client(e) ou de ses invités ne doit y être déposé.</li>
+        <li>{{org.name}} décline toute responsabilité en cas de perte, vol ou détérioration de biens tiers.</li>
+        <li>Seule la négafa dispose de la clé ou du dispositif d'ouverture durant la prestation.</li>
+        <li>La loge est strictement réservée à la Mariée et à la Prestataire.</li>
+        <li>Le repas de la négafa est à la charge du/de la Client(e).</li>
+      </ol>
+    </div>
+
+    <div class="article">
+      <h3>Article 5 – Conditions financières</h3>
+      <ul>
+        <li>Les tarifs appliqués correspondent au forfait sélectionné par le/la Client(e).</li>
+        <li>Un acompte de 50&nbsp;% est exigé à la signature du contrat.</li>
+        <li>Le solde est payable à la remise des tenues.</li>
+      </ul>
+      <p>Tout retard de paiement peut entraîner suspension ou annulation de la prestation, sans indemnité.</p>
+    </div>
+
+    <div class="article">
+      <h3>Article 6 – Caution</h3>
+      <p>
+        Une caution est obligatoire pour toute location. Elle est restituée après vérification
+        de l'état du matériel. Toute perte, détérioration, brûlure, tâche irréversible ou dommage
+        est déduite de la caution, sans préjudice d'une facturation complémentaire.
+      </p>
+    </div>
+
+    <div class="article">
+      <h3>Article 7 – Substitution</h3>
+      <p>
+        En cas d'impossibilité de fournir le bien réservé pour une raison indépendante de la
+        volonté du Prestataire, un bien de catégorie équivalente ou supérieure est proposé
+        sans frais additionnels. Cette substitution n'est pas un manquement contractuel.
+      </p>
+    </div>
+
+    <div class="article">
+      <h3>Article 8 – Annulation</h3>
+      <p>
+        En cas d'annulation par le/la Client(e), l'acompte demeure acquis, sauf cas de force
+        majeure dûment justifié. Toute demande doit être formulée par écrit.
+      </p>
+    </div>
+
+    <div class="article">
+      <h3>Article 9 – Engagement et signature</h3>
+      <ul>
+        <li>Le/La Client(e) atteste avoir lu et accepté les conditions générales et particulières.</li>
+        <li>L'acceptation électronique vaut signature manuscrite conformément à l'article 1367 du Code civil.</li>
+      </ul>
+    </div>
+
+    <!-- ================================ -->
+    <!-- BLOC SIGNATURE DYNAMIQUE         -->
+    <!-- ================================ -->
+    {{#if signature}}
+      <!-- Signature électronique -->
+      <div class="signature-block">
+        <p style="font-size: 11px;">
+          <strong>Signé électroniquement conformément à l'article 1367 du Code civil.</strong>
+        </p>
+        <div class="signature-metadata">
+          <p><strong>Signataire :</strong> {{client.fullName}}</p>
+          <p><strong>E-mail :</strong> {{client.email}}</p>
+          <p><strong>Date/Heure :</strong> {{signature.date}}</p>
+          <p><strong>Localisation :</strong> {{signature.location}}</p>
+          <p><strong>IP :</strong> {{signature.ip}}</p>
+          <p><strong>Référence :</strong> {{signature.reference}}</p>
+        </div>
+      </div>
+    {{else}}
+      <!-- Signature manuelle -->
+      <div class="signature-block">
+        <p>Fait à <strong>{{org.city}}</strong> le <strong>{{today}}</strong>.</p>
+        <div class="signature-grid">
+          <div>
+            <p><strong>Signature client</strong></p>
+            <p style="margin-top: 40px;">« Lu &amp; approuvé »</p>
+          </div>
+          <div>
+            <p><strong>Signature prestataire</strong></p>
+            <p style="margin-top: 40px;">« Lu &amp; approuvé »</p>
+            <p><strong>{{org.managerInitials}}</strong></p>
+          </div>
+        </div>
+      </div>
+    {{/if}}
+  </div>
+
+</body>
+</html>

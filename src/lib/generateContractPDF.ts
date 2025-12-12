@@ -5,6 +5,9 @@ import logger from "./logger.js";
 import { generateContractPDFWithPdfLib } from "./pdfGenerator.js";
 import { compressPdfBuffer } from "./pdfCompression.js";
 import { buildStoragePath, buildPublicUrl } from "../utils/storageHelper.js";
+import { prepareContractTemplateData } from "../services/templateDataService.js";
+import { renderContractTemplate } from "../services/templateRenderer.js";
+import prisma from "./prisma.js";
 
 const bucketUrlPrefix = `https://${hetznerBucket}.hel1.your-objectstorage.com/`;
 
@@ -40,6 +43,10 @@ export async function generateContractPDF(
 
   const contract = contractPayload;
   const includeSignatureBlock = options.includeSignatureBlock ?? false;
+
+  // 🎨 Préparer les données du template avec le nouveau service
+  const templateData = prepareContractTemplateData(contract);
+
   const customer = contract.customer || {};
   const customerFullName = [customer.firstname, customer.lastname]
     .map((value: string | undefined) => value?.trim())
@@ -144,7 +151,7 @@ export async function generateContractPDF(
   const signatureBlock = includeSignatureBlock
     ? `
     <div class="signatures">
-      <p>Fait à Asnières-sur-Seine le ${formattedContractCreatedDate}.</p>
+      <p>Fait à <strong>${templateData.org.city}</strong> le ${formattedContractCreatedDate}.</p>
       <div class="signature-grid">
         <div>
           <div class="label">Signature client</div>
@@ -153,7 +160,7 @@ export async function generateContractPDF(
         <div>
           <div class="label">Signature prestataire</div>
           <div class="value">« Lu & approuvé »</div>
-          <p>H. N.</p>
+          <p><strong>${templateData.org.managerInitials}</strong></p>
         </div>
       </div>
     </div>`
@@ -186,7 +193,7 @@ export async function generateContractPDF(
     <div class="section contract-clauses">
       <h2>Clauses contractuelles – Prestation Négafa</h2>
       <p><strong>Entre les soussignés :</strong></p>
-      <p>La société ALLURE CRÉATION, SAS immatriculée sous le n° 985&nbsp;287&nbsp;880&nbsp;0014, sise 4 avenue Laurent Cély, 92600 Asnières-sur-Seine, représentée par Madame Hassna NAFILI en qualité de gérante, ci-après dénommée « le Prestataire »,</p>
+      <p>La société <strong>${templateData.org.name}</strong>, SAS immatriculée sous le n° <strong>${templateData.org.siret}</strong>, sise ${templateData.org.fullAddress}, représentée par ${templateData.org.managerGender} ${templateData.org.managerFullName} en qualité de ${templateData.org.managerTitle}, ci-après dénommée « le Prestataire »,</p>
       <p>Et le Client, ci-après dénommé « la Cliente », identifié(e) dans le présent contrat.</p>
       <div class="article">
         <h3>Article 1 – Objet du contrat</h3>
@@ -195,7 +202,7 @@ export async function generateContractPDF(
       <div class="article">
         <h3>Article 2 – Description de la prestation</h3>
         <ol>
-          <li>Essayage et sélection des tenues au showroom ALLURE CRÉATION.</li>
+          <li>Essayage et sélection des tenues au showroom ${templateData.org.name}.</li>
           <li>Location des tenues traditionnelles, accessoires et parures.</li>
           <li>Habillage et préparation de la mariée sur place le jour J.</li>
           <li>Accompagnement, changements de tenues et présence continue dans la limite définie ci-après.</li>
@@ -210,7 +217,7 @@ export async function generateContractPDF(
         <p>La Cliente fournit une loge ou un local sécurisé, fermé par clé ou code, dédié au stockage du matériel et aux préparatifs.</p>
         <ol>
           <li>Aucun objet personnel ou de valeur de la Cliente/invités ne doit y être déposé.</li>
-          <li>ALLURE CRÉATION décline toute responsabilité en cas de perte, vol ou détérioration de biens tiers.</li>
+          <li>${templateData.org.name} décline toute responsabilité en cas de perte, vol ou détérioration de biens tiers.</li>
           <li>Seule la négafa dispose de la clé ou du dispositif d’ouverture durant la prestation.</li>
           <li>La loge est strictement réservée à la Mariée et à la Prestataire.</li>
           <li>Le repas de la négafa est à la charge de la Cliente.</li>
@@ -254,10 +261,10 @@ const forfaitJournalierClauses = `
 
     <p><strong>Entre les soussignés :</strong></p>
     <p>
-      La société <strong>ALLURE CREATION</strong>, Société par actions simplifiée (SAS) immatriculée
-      au registre du commerce et des sociétés sous le numéro <strong>9852878800014</strong>,
-      ayant son siège social au <strong>4 avenue Laurent Cély, 92600 Asnières-sur-Seine</strong>,
-      représentée par <strong>Hassna NAFILI</strong> en qualité de gérante,
+      La société <strong>${templateData.org.name}</strong>, Société par actions simplifiée (SAS) immatriculée
+      au registre du commerce et des sociétés sous le numéro <strong>${templateData.org.siret}</strong>,
+      ayant son siège social au <strong>${templateData.org.fullAddress}</strong>,
+      représentée par <strong>${templateData.org.managerGender} ${templateData.org.managerFullName}</strong> en qualité de ${templateData.org.managerTitle},
       ci-après dénommée « le Prestataire ».
     </p>
     <p>
@@ -354,7 +361,7 @@ const forfaitJournalierClauses = `
     <div class="article">
       <h3>Article 7 : Substitution</h3>
       <p>
-        En cas d’impossibilité de fournir le bien réservé à la date souhaitée, ALLURE CREATION fournira un bien
+        En cas d'impossibilité de fournir le bien réservé à la date souhaitée, ${templateData.org.name} fournira un bien
         de même catégorie ou de qualité supérieure, sans frais supplémentaires.
       </p>
     </div>
@@ -401,8 +408,53 @@ const forfaitJournalierClauses = `
 
   const clausesSection = isForfaitJournalier ? forfaitJournalierClauses : isForfaitService ? forfaitClauses : defaultClauses;
 
-  // 🔹 Prépare le HTML dynamique à partir du JSON
-  const html = `
+  // 🔍 Chercher si un template est associé au contrat
+  let template;
+  if (contract.template_id) {
+    template = await prisma.contractTemplate.findUnique({
+      where: { id: contract.template_id },
+    });
+    logger.info(
+      { contractId, templateId: contract.template_id },
+      "📄 Template spécifique trouvé pour ce contrat"
+    );
+  }
+
+  // Si pas de template assigné, chercher le template par défaut du type
+  if (!template && contract.contract_type_id) {
+    template = await prisma.contractTemplate.findFirst({
+      where: {
+        contract_type_id: contract.contract_type_id,
+        is_default: true,
+        is_active: true,
+        deleted_at: null,
+        OR: [
+          { organization_id: contract.organization_id },
+          { organization_id: null }, // Templates globaux
+        ],
+      },
+      orderBy: [
+        { organization_id: "desc" }, // Prioriser templates de l'org
+      ],
+    });
+
+    if (template) {
+      logger.info(
+        { contractId, templateId: template.id, contractTypeId: contract.contract_type_id },
+        "📄 Template par défaut trouvé pour ce type de contrat"
+      );
+    }
+  }
+
+  // 🔹 Si un template est trouvé, l'utiliser pour générer le HTML
+  let html: string;
+  if (template) {
+    logger.info({ contractId, templateId: template.id }, "✨ Utilisation du template dynamique pour générer le PDF");
+    html = renderContractTemplate(template.content, contract);
+  } else {
+    // 🔹 Sinon, utiliser l'ancien système (clauses hardcodées)
+    logger.info({ contractId }, "📝 Utilisation du système de clauses hardcodées (fallback)");
+    html = `
   <html lang="fr">
   <head>
     <meta charset="UTF-8" />
@@ -706,6 +758,7 @@ const forfaitJournalierClauses = `
   </body>
   </html>
   `;
+  }
 
   let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null;
   try {

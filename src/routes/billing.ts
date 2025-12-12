@@ -117,6 +117,7 @@ router.get("/features", authMiddleware, async (req: AuthenticatedRequest, res: R
       "prospect_management",
       "electronic_signature",
       "inventory_management",
+      "contract_builder",
     ]);
 
     res.json(features);
@@ -151,6 +152,7 @@ router.get("/dashboard", authMiddleware, async (req: AuthenticatedRequest, res: 
         "prospect_management",
         "electronic_signature",
         "inventory_management",
+        "contract_builder",
       ]),
       getSubscriptionStatus(orgId),
     ]);

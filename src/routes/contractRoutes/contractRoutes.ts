@@ -41,7 +41,7 @@ router.get("/customers/:customerId/full-view", getContractsFullView);
 // Redirect to frontend signing page with token
 router.get("/sign/:token", (req: Request, res: Response) => {
   const { token } = req.params as { token: string };
-  return res.redirect(302, `https://allure-creation.fr/sign/${token}`);
+  return res.redirect(302, `https://velvena.fr/sign/${token}`);
 });
 router.get("/:id", getContractById);
 router.post("/", requireQuota("contracts"), createContract); // ✅ Vérifie quota contrats/mois

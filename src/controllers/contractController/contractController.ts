@@ -124,11 +124,40 @@ export const createContract = async (req: AuthenticatedRequest, res: Response) =
       status,
       contract_type_id,
       package_id,
+      template_id, // ← Optionnel : template spécifique
       addons, // tableau d'addons [{ addon_id: "xxx" }, ...]
       dresses, // ajout des robes
     } = req.body;
 
     const now = new Date();
+
+    // 🔍 Auto-assigner le template par défaut si non fourni
+    let finalTemplateId = template_id;
+    if (!finalTemplateId && contract_type_id) {
+      const defaultTemplate = await prisma.contractTemplate.findFirst({
+        where: {
+          contract_type_id,
+          is_default: true,
+          is_active: true,
+          deleted_at: null,
+          OR: [
+            { organization_id: organizationId },
+            { organization_id: null }, // Templates globaux
+          ],
+        },
+        orderBy: [
+          { organization_id: "desc" }, // Prioriser templates de l'org
+        ],
+      });
+
+      if (defaultTemplate) {
+        finalTemplateId = defaultTemplate.id;
+        logger.info(
+          { contractTypeId: contract_type_id, templateId: finalTemplateId },
+          "📄 Template par défaut auto-assigné au contrat"
+        );
+      }
+    }
 
     const contract = await prisma.contract.create({
       data: {
@@ -156,6 +185,7 @@ export const createContract = async (req: AuthenticatedRequest, res: Response) =
         contract_type_id,
 
         ...(package_id && { package_id }),
+        ...(finalTemplateId && { template_id: finalTemplateId }),
 
         sign_link: {
           create: {
@@ -447,10 +477,13 @@ export const generateSignatureLink = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: "Contract ID is required" });
     }
 
-    // 🔍 Récupération du contrat avec son client
+    // 🔍 Récupération du contrat avec son client et organisation
     const contract = await prisma.contract.findUnique({
       where: { id },
-      include: { customer: true },
+      include: {
+        customer: true,
+        organization: true,
+      },
     });
 
     if (!contract) {
@@ -492,7 +525,7 @@ export const generateSignatureLink = async (req: Request, res: Response) => {
       "📝 Statut du contrat mis à jour en attente de signature"
     );
 
-    const baseUrl =  "https://app.allure-creation.fr";
+    const baseUrl = process.env.FRONTEND_URL || "https://app.velvena.fr";
     const url = new URL(`/sign-links/${signLink.token}`, baseUrl).toString();
 
     const expiresAtFormatted = signLink.expires_at.toLocaleString("fr-FR", {
@@ -513,11 +546,12 @@ export const generateSignatureLink = async (req: Request, res: Response) => {
     // ✉️ Préparation de l'email
     const customerFirstName = contract.customer?.firstname?.trim() || "";
     const customerLastName = contract.customer?.lastname?.trim() || "";
+    const organizationName = contract.organization?.name || "Votre Organisation";
 
 const mailOptions = {
   from: process.env.SMTP_FROM,
   to: email,
-  subject: "Signature électronique de votre contrat – Allure Création",
+  subject: `Signature électronique de votre contrat – ${organizationName}`,
   html: `
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f7f7f7; padding:40px 0; font-family:Arial, sans-serif;">
     <tr>
@@ -528,7 +562,7 @@ const mailOptions = {
           <tr>
             <td style="text-align:center; padding-bottom:20px;">
               <h2 style="margin:0; font-size:22px; color:#111827;">
-                Signature électronique – Allure Création
+                Signature électronique – ${organizationName}
               </h2>
               <p style="margin:6px 0 0; color:#6b7280; font-size:14px;">
                 Contrat à signer en ligne
@@ -540,7 +574,7 @@ const mailOptions = {
           <tr>
             <td style="font-size:15px; color:#374151; line-height:1.6;">
               Bonjour ${customerLastName || ""} ${customerFirstName || ""},<br><br>
-              Votre contrat Allure Création est prêt. Vous pouvez désormais procéder à sa
+              Votre contrat ${organizationName} est prêt. Vous pouvez désormais procéder à sa
               <strong>signature électronique</strong> en suivant les étapes ci-dessous.
             </td>
           </tr>
@@ -602,10 +636,10 @@ const mailOptions = {
           <!-- FOOTER -->
           <tr>
             <td style="padding-top:28px; font-size:14px; color:#374151; line-height:1.6;">
-              Si vous avez la moindre question ou rencontrez une difficulté, 
+              Si vous avez la moindre question ou rencontrez une difficulté,
               vous pouvez répondre directement par voie téléphonique.<br><br>
               Merci de votre confiance,<br>
-              <strong>L'équipe Allure Création</strong>
+              <strong>L'équipe ${organizationName}</strong>
             </td>
           </tr>
 
@@ -654,6 +688,7 @@ export const getContractSignLink = async (req: Request, res: Response) => {
           include: {
             customer: true,
             contract_type: true,
+            organization: true, // ← Ajouté pour le template renderer
             package: {
               include: {
                 addons: { include: { addon: true } },
@@ -674,10 +709,81 @@ export const getContractSignLink = async (req: Request, res: Response) => {
       return res.status(410).json({ success: false, error: "Lien expiré" });
     }
 
+    // 📄 Générer le rendered_template si un template existe
+    let renderedTemplate: string | null = null;
+    const contract = signLink.contract as any; // Type assertion pour accéder à template_id
+
+    try {
+      // Chercher le template associé au contrat
+      let template;
+      if (contract.template_id) {
+        template = await prisma.contractTemplate.findUnique({
+          where: { id: contract.template_id as string },
+        });
+        logger.info(
+          { contractId: contract.id, templateId: contract.template_id },
+          "📄 Template spécifique trouvé pour ce contrat"
+        );
+      }
+
+      // Si pas de template assigné, chercher le template par défaut du type
+      if (!template && contract.contract_type_id) {
+        template = await prisma.contractTemplate.findFirst({
+          where: {
+            contract_type_id: contract.contract_type_id,
+            is_default: true,
+            is_active: true,
+            deleted_at: null,
+            OR: [
+              { organization_id: contract.organization_id },
+              { organization_id: null },
+            ],
+          },
+          orderBy: [
+            { organization_id: "desc" },
+          ],
+        });
+
+        if (template) {
+          logger.info(
+            { contractId: contract.id, templateId: template.id },
+            "📄 Template par défaut trouvé pour la page de signature"
+          );
+        }
+      }
+
+      // Si un template est trouvé, le compiler
+      if (template) {
+        const { renderContractTemplate } = await import("../../services/templateRenderer.js");
+        renderedTemplate = renderContractTemplate(template.content, contract);
+        logger.info(
+          { contractId: contract.id, templateId: template.id },
+          "✨ Template compilé avec succès pour la page de signature"
+        );
+      } else {
+        logger.info(
+          { contractId: contract.id },
+          "📝 Aucun template trouvé, le frontend utilisera le fallback"
+        );
+      }
+    } catch (error) {
+      logger.error(
+        { error, contractId: contract.id },
+        "❌ Erreur lors de la compilation du template, utilisation du fallback"
+      );
+      // On continue sans template, le frontend utilisera le fallback
+    }
+
     // ✅ Ajout d'un flag pour indiquer si le contrat est déjà signé
     const response = {
       success: true,
-      data: signLink,
+      data: {
+        ...signLink,
+        contract: {
+          ...signLink.contract,
+          rendered_template: renderedTemplate,
+        },
+      },
       alreadySigned: !!signLink.contract.signed_at,
     };
 
@@ -701,6 +807,7 @@ export const signContractViaLink = async (req: Request, res: Response) => {
           include: {
             customer: true,
             contract_type: true,
+            organization: true, // ← Ajouté pour le template renderer
             package: {
               include: {
                 addons: { include: { addon: true } },
@@ -773,6 +880,7 @@ export const signContractViaLink = async (req: Request, res: Response) => {
       include: {
         customer: true,
         contract_type: true,
+        organization: true, // ← Ajouté pour le template renderer
         package: {
           include: {
             addons: { include: { addon: true } },
@@ -845,6 +953,7 @@ export const generateContractPdfManually = async (req: Request, res: Response) =
       include: {
         customer: true,
         contract_type: true,
+        organization: true, // ← Ajouté pour le template renderer
         package: {
           include: { addons: { include: { addon: true } } },
         },

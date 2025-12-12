@@ -18,6 +18,14 @@ model Organization {
   postal_code String?
   country     String?
   logo_url    String?
+
+  // Legal & Manager Information
+  siret                String? // SIRET number (French business registration)
+  manager_gender       String? // Mr, Mme, Mx, etc.
+  manager_first_name   String? // Manager first name
+  manager_last_name    String? // Manager last name
+  manager_title        String? // Position title (e.g., "gérante", "gérant", "directeur")
+
   settings    Json? // Organization-specific settings (deprecated, use business_rules)
 
   // Business Rules Configuration
@@ -86,16 +94,17 @@ model Organization {
   contracts Contract[]
 
   // Reference data (organization-specific)
-  dress_types       DressType[]
-  dress_sizes       DressSize[]
-  dress_colors      DressColor[]
-  dress_conditions  DressCondition[]
-  contract_types    ContractType[]
-  contract_packages ContractPackage[]
-  contract_addons   ContractAddon[]
-  roles             Role[]
-  service_types     ServiceType[]
-  pricing_rules     PricingRule[]
+  dress_types        DressType[]
+  dress_sizes        DressSize[]
+  dress_colors       DressColor[]
+  dress_conditions   DressCondition[]
+  contract_types     ContractType[]
+  contract_templates ContractTemplate[]
+  contract_packages  ContractPackage[]
+  contract_addons    ContractAddon[]
+  roles              Role[]
+  service_types      ServiceType[]
+  pricing_rules      PricingRule[]
 
   // Subscription & Usage
   subscription SubscriptionPlan? @relation(fields: [subscription_plan_id], references: [id])
@@ -405,20 +414,54 @@ model ProspectRequestDress {
 }
 
 model ContractType {
-  id              String        @id @default(uuid())
+  id              String             @id @default(uuid())
   name            String
   organization_id String? // null = global (shared across all orgs)
-  created_at      DateTime      @default(now())
+  created_at      DateTime           @default(now())
   created_by      String?
-  updated_at      DateTime?     @updatedAt
+  updated_at      DateTime?          @updatedAt
   updated_by      String?
   deleted_at      DateTime?
   deleted_by      String?
-  organization    Organization? @relation(fields: [organization_id], references: [id])
+  organization    Organization?      @relation(fields: [organization_id], references: [id])
   contracts       Contract[]
+  templates       ContractTemplate[] // Templates liés à ce type
 
   @@unique([name, organization_id]) // Unique per organization
   @@index([organization_id])
+}
+
+model ContractTemplate {
+  id               String        @id @default(uuid())
+  name             String // "Contrat Négafa Standard", "Contrat Location Simple"
+  description      String? // Description du template
+  contract_type_id String // Lien obligatoire avec un type de contrat
+  organization_id  String? // null = template global (disponible pour tous)
+
+  // Contenu du template (HTML avec variables Handlebars)
+  content          String        @db.Text // HTML avec {{variables}}
+
+  // Métadonnées
+  is_active        Boolean       @default(true)
+  is_default       Boolean       @default(false) // Template par défaut pour ce type/org
+  version          Int           @default(1)
+
+  created_at       DateTime      @default(now())
+  created_by       String?
+  updated_at       DateTime?     @updatedAt
+  updated_by       String?
+  deleted_at       DateTime?
+  deleted_by       String?
+
+  // Relations
+  contract_type    ContractType  @relation(fields: [contract_type_id], references: [id], onDelete: Cascade)
+  organization     Organization? @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  contracts        Contract[]    @relation("ContractToTemplate")
+
+  @@unique([contract_type_id, organization_id, is_default]) // 1 seul default par type/org
+  @@index([organization_id])
+  @@index([contract_type_id])
+  @@index([is_active])
 }
 
 model ContractPackage {
@@ -485,6 +528,7 @@ model Contract {
   status                 String
   contract_type_id       String
   package_id             String?
+  template_id            String? // Référence au template utilisé
   created_at             DateTime            @default(now())
   created_by             String?
   updated_at             DateTime?           @updatedAt
@@ -496,13 +540,14 @@ model Contract {
   signature_ip           String?
   signature_location     String?
   signature_reference    String?
-  organization           Organization        @relation(fields: [organization_id], references: [id])
-  contract_type          ContractType        @relation(fields: [contract_type_id], references: [id])
-  customer               Customer            @relation(fields: [customer_id], references: [id])
-  package                ContractPackage?    @relation(fields: [package_id], references: [id])
+  organization           Organization         @relation(fields: [organization_id], references: [id])
+  contract_type          ContractType         @relation(fields: [contract_type_id], references: [id])
+  customer               Customer             @relation(fields: [customer_id], references: [id])
+  package                ContractPackage?     @relation(fields: [package_id], references: [id])
+  template               ContractTemplate?    @relation("ContractToTemplate", fields: [template_id], references: [id])
   addon_links            ContractAddonLink[]
   dresses                ContractDress[]
-  sign_link              ContractSignLink?   @relation("ContractToSignLink")
+  sign_link              ContractSignLink?    @relation("ContractToSignLink")
 
   @@unique([contract_number, organization_id]) // Contract number unique per organization
   @@index([organization_id])

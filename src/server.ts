@@ -36,6 +36,7 @@ import prospectRoutes from "./routes/prospects.js";
 import contractTypesRoutes from "./routes/contractRoutes/contractTypes.js";
 import contractAddonsRoutes from "./routes/contractRoutes/contractAddons.js";
 import contractPackagesRoutes from "./routes/contractRoutes/contractPackages.js";
+import contractTemplateRoutes from "./routes/contractTemplateRoutes.js";
 import contractsRoutes from "./routes/contractRoutes/contractRoutes.js";
 import contractsFullViewRoutes from "./routes/contractRoutes/contractRoutes.js";
 
@@ -256,6 +257,7 @@ app.use("/prospects", prospectRoutes);
 app.use("/contract-types", contractTypesRoutes);
 app.use("/contract-addons", contractAddonsRoutes);
 app.use("/contract-packages", contractPackagesRoutes);
+app.use("/contract-templates", contractTemplateRoutes);
 app.use("/contracts", contractsRoutes);
 app.use("/contracts/full-view", contractsFullViewRoutes);
 

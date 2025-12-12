@@ -10,6 +10,7 @@
 
 import prisma from "../lib/prisma.js";
 import logger from "../lib/logger.js";
+import contract from "../docs/paths/contract/index.js";
 
 // ============================================
 // TYPES
@@ -37,6 +38,7 @@ export interface SubscriptionFeatures {
   prospect_management: boolean;
   electronic_signature: boolean;
   inventory_management: boolean;
+  contract_builder: boolean;
   [key: string]: boolean;
 }
 
@@ -441,6 +443,7 @@ function getDefaultFeatures(): SubscriptionFeatures {
     prospect_management: false,
     electronic_signature: false,
     inventory_management: true,
+    contract_builder: false,
   };
 }
 
@@ -456,6 +459,7 @@ function suggestUpgradePlan(featureName: string): string {
     prospect_management: "enterprise",
     electronic_signature: "pro",
     inventory_management: "free",
+    contract_builder: "enterprise",
   };
 
   return featurePlanMap[featureName] || "pro";
