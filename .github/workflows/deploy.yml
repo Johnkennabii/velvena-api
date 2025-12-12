@@ -117,7 +117,7 @@ jobs:
 
       - name: Copy deployment files
         run: |
-          scp -r docker-compose.yml \
+          scp -o StrictHostKeyChecking=no -r docker-compose.yml \
                   nginx/ \
                   monitoring/ \
                   scripts/ \
@@ -125,7 +125,7 @@ jobs:
 
       - name: Deploy application
         run: |
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
             set -e
             cd /opt/velvena
 
@@ -158,7 +158,7 @@ jobs:
       - name: Verify deployment
         run: |
           sleep 10
-          curl -f https://api.allure-creation.fr/health || exit 1
+          curl -f https://api.velvena.fr/health || exit 1
 
       - name: Notify deployment success
         if: success()
@@ -170,7 +170,7 @@ jobs:
       - name: Rollback on failure
         if: failure()
         run: |
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
             cd /opt/velvena
             docker-compose up -d --no-deps api
             echo "⚠️ Deployment failed, rolled back to previous version"
