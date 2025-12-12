@@ -58,7 +58,7 @@ jobs:
       contents: read
       packages: write
     outputs:
-      image-tag: ${{ steps.meta.outputs.tags }}
+      image-tag: ${{ steps.image-name.outputs.image }}
       image-digest: ${{ steps.build.outputs.digest }}
     steps:
       - name: Checkout code
@@ -95,6 +95,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
+
+      - name: Set image name for security scan
+        id: image-name
+        run: echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_OUTPUT
 
   # Deploy to server
   deploy:
@@ -186,7 +190,11 @@ jobs:
     permissions:
       security-events: write
     steps:
+      - name: Debug Image Tag
+        run: echo "Image tag is '${{ needs.build.outputs.image-tag }}'"
+
       - name: Run Trivy vulnerability scanner
+        if: ${{ needs.build.outputs.image-tag != '' }}
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ needs.build.outputs.image-tag }}
@@ -196,6 +204,6 @@ jobs:
 
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && needs.build.outputs.image-tag != ''
         with:
           sarif_file: 'trivy-results.sarif'
