@@ -131,7 +131,9 @@ jobs:
 
             # Load environment variables
             if [ -f .env.production ]; then
-              export $(cat .env.production | grep -v '^#' | xargs)
+              set -a
+              source .env.production
+              set +a
             fi
 
             # Login to GitHub Container Registry
