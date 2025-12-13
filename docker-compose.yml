@@ -116,6 +116,11 @@ services:
       HETZNER_REGION: ${HETZNER_REGION:-fsn1}
       API_URL: ${API_URL:-https://api.velvena.fr}
       FRONTEND_URL: ${FRONTEND_URL:-https://velvena.fr}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL:-https://velvena.fr/subscription/success}
+      STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL:-https://velvena.fr/pricing}
     volumes:
       - uploads_data:/app/uploads
       - ./logs:/app/logs
