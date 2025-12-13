@@ -158,88 +158,86 @@ export function requireFeature(featureName: keyof SubscriptionFeatures) {
  * @example
  * router.use("/api", authMiddleware, requireActiveSubscription);
  */
-export function requireActiveSubscription(
+export async function requireActiveSubscription(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
-  return async () => {
-    try {
-      if (!req.user?.organizationId) {
-        return res.status(403).json({
-          success: false,
-          error: "Organization context required",
-        });
-      }
-
-      const org = await prisma.organization.findUnique({
-        where: { id: req.user.organizationId },
-        select: {
-          subscription_status: true,
-          trial_ends_at: true,
-          subscription_ends_at: true,
-          is_active: true,
-        },
+  try {
+    if (!req.user?.organizationId) {
+      return res.status(403).json({
+        success: false,
+        error: "Organization context required",
       });
+    }
 
-      if (!org) {
-        return res.status(404).json({
-          success: false,
-          error: "Organization not found",
-        });
-      }
+    const org = await prisma.organization.findUnique({
+      where: { id: req.user.organizationId },
+      select: {
+        subscription_status: true,
+        trial_ends_at: true,
+        subscription_ends_at: true,
+        is_active: true,
+      },
+    });
 
-      // Check if trial expired
-      if (org.subscription_status === "trial" && org.trial_ends_at) {
-        if (org.trial_ends_at < new Date()) {
-          return res.status(402).json({
-            success: false,
-            error: "Trial period expired",
-            code: "TRIAL_EXPIRED",
-            message: "Your trial period has expired. Please subscribe to continue using the service.",
-            upgrade_url: "/settings/billing",
-          });
-        }
-      }
+    if (!org) {
+      return res.status(404).json({
+        success: false,
+        error: "Organization not found",
+      });
+    }
 
-      // Check if subscription expired
-      if (org.subscription_ends_at && org.subscription_ends_at < new Date()) {
+    // Check if trial expired
+    if (org.subscription_status === "trial" && org.trial_ends_at) {
+      if (org.trial_ends_at < new Date()) {
         return res.status(402).json({
           success: false,
-          error: "Subscription expired",
-          code: "SUBSCRIPTION_EXPIRED",
-          message: "Your subscription has expired. Please renew to continue using the service.",
+          error: "Trial period expired",
+          code: "TRIAL_EXPIRED",
+          message: "Your trial period has expired. Please subscribe to continue using the service.",
           upgrade_url: "/settings/billing",
         });
       }
-
-      // Check if organization suspended
-      if (org.subscription_status === "suspended") {
-        return res.status(403).json({
-          success: false,
-          error: "Account suspended",
-          code: "ACCOUNT_SUSPENDED",
-          message: "Your account has been suspended. Please contact support.",
-        });
-      }
-
-      // Check if organization is active
-      if (!org.is_active) {
-        return res.status(403).json({
-          success: false,
-          error: "Account inactive",
-          code: "ACCOUNT_INACTIVE",
-          message: "Your account is inactive. Please contact support.",
-        });
-      }
-
-      next();
-    } catch (err: any) {
-      logger.error({ err }, "Failed to check subscription status");
-      // Fail open - allow request to continue on error
-      next();
     }
-  };
+
+    // Check if subscription expired
+    if (org.subscription_ends_at && org.subscription_ends_at < new Date()) {
+      return res.status(402).json({
+        success: false,
+        error: "Subscription expired",
+        code: "SUBSCRIPTION_EXPIRED",
+        message: "Your subscription has expired. Please renew to continue using the service.",
+        upgrade_url: "/settings/billing",
+      });
+    }
+
+    // Check if organization suspended
+    if (org.subscription_status === "suspended") {
+      return res.status(403).json({
+        success: false,
+        error: "Account suspended",
+        code: "ACCOUNT_SUSPENDED",
+        message: "Your account has been suspended. Please contact support.",
+      });
+    }
+
+    // Check if organization is active
+    if (!org.is_active) {
+      return res.status(403).json({
+        success: false,
+        error: "Account inactive",
+        code: "ACCOUNT_INACTIVE",
+        message: "Your account is inactive. Please contact support.",
+      });
+    }
+
+    next();
+  } catch (err: any) {
+    logger.error({ err }, "Failed to check subscription status");
+    // Fail open - allow request to continue on error
+    next();
+  }
 }
 
 // ============================================

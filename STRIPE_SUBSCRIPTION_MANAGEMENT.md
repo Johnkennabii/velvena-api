@@ -30,7 +30,10 @@
 - ✅ `subscription_plan: "free"`
 - ✅ `subscription_status: "trial"`
 - ✅ `trial_ends_at`: 14 jours après création
+- ✅ **Période d'essai de 14 jours UNIQUEMENT sur le plan FREE**
 - ❌ **Aucune interaction avec Stripe**
+
+**⚠️ Important** : La période d'essai est UNIQUEMENT pour le plan FREE. Les plans payants (STARTER, PRO, ENTERPRISE) n'ont PAS de période d'essai et sont facturés immédiatement.
 
 **Création** :
 ```typescript
@@ -61,6 +64,16 @@ POST /api/organizations/initialize
 **⚠️ Pas de redirection Stripe** - L'utilisateur est directement connecté.
 
 ### Plans PAYANTS (avec Stripe)
+
+**Caractéristiques** :
+- ✅ Créé via Stripe Checkout
+- ✅ `stripe_customer_id` créé automatiquement
+- ✅ `stripe_subscription_id` créé après paiement
+- ✅ **Facturation IMMÉDIATE - Pas de période d'essai**
+- ✅ `subscription_status: "active"` dès le premier paiement
+- ✅ Webhooks Stripe pour gérer les renouvellements
+
+**⚠️ Pas de période d'essai** : Les utilisateurs paient immédiatement lors de la souscription à un plan payant.
 
 **Flux d'inscription** :
 
@@ -577,14 +590,34 @@ const handleCreateDress = async () => {
 
 ## Questions fréquentes
 
+### Périodes d'essai
+
+**Q : Y a-t-il une période d'essai gratuite ?**
+**R** : **UNIQUEMENT sur le plan FREE** (14 jours). Les plans payants (STARTER, PRO, ENTERPRISE) n'ont PAS de période d'essai et sont facturés immédiatement.
+
+**Q : Si je m'inscris en FREE puis upgrade vers STARTER, ai-je un nouvel essai ?**
+**R** : **NON**. Vous payez immédiatement lors de l'upgrade. La période d'essai de 14 jours ne s'applique QU'AU plan FREE.
+
+**Q : Peut-on offrir un essai gratuit pour les plans payants (marketing) ?**
+**R** : Oui, en passant le paramètre `trialDays` explicitement :
+```typescript
+createCheckoutSession({
+  planCode: 'starter',
+  trialDays: 7  // ← 7 jours d'essai STARTER gratuit
+})
+```
+Mais par défaut, `trialDays` n'est PAS défini = facturation immédiate.
+
+### Abonnements
+
 **Q : L'ancien abonnement est-il annulé automatiquement lors d'un upgrade ?**
-R : Non, l'abonnement n'est pas "annulé". Stripe modifie la subscription existante en changeant le price_id. C'est plus élégant et préserve l'historique.
+**R** : Non, l'abonnement n'est pas "annulé". Stripe modifie la subscription existante en changeant le price_id. C'est plus élégant et préserve l'historique.
 
 **Q : Que se passe-t-il si l'utilisateur annule pendant un downgrade programmé ?**
-R : Le downgrade est annulé, l'utilisateur garde son plan actuel.
+**R** : Le downgrade est annulé, l'utilisateur garde son plan actuel.
 
 **Q : Peut-on passer de PAYANT à FREE ?**
-R : Oui, en utilisant `/api/billing/cancel-subscription`. L'abonnement Stripe est annulé et le plan repasse à FREE.
+**R** : Oui, en utilisant `/api/billing/cancel-subscription`. L'abonnement Stripe est annulé et le plan repasse à FREE.
 
 **Q : Comment gérer les coupons/réductions ?**
-R : Utiliser les coupons Stripe dans `createCheckoutSession` avec le paramètre `allow_promotion_codes: true`.
+**R** : Utiliser les coupons Stripe dans `createCheckoutSession` avec le paramètre `allow_promotion_codes: true`.

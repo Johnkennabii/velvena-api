@@ -111,6 +111,21 @@ export async function createCheckoutSession(
       );
     }
 
+    // Prepare subscription data
+    const subscriptionData: any = {
+      metadata: {
+        organizationId: organization.id,
+        planCode: plan.code,
+        billingInterval,
+      } as StripeSubscriptionMetadata,
+    };
+
+    // Only add trial if explicitly requested via trialDays parameter
+    // Plans payants n'ont PAS de période d'essai par défaut
+    if (trialDays && trialDays > 0) {
+      subscriptionData.trial_period_days = trialDays;
+    }
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -122,14 +137,7 @@ export async function createCheckoutSession(
           quantity: 1,
         },
       ],
-      subscription_data: {
-        trial_period_days: trialDays || plan.trial_days,
-        metadata: {
-          organizationId: organization.id,
-          planCode: plan.code,
-          billingInterval,
-        } as StripeSubscriptionMetadata,
-      },
+      subscription_data: subscriptionData,
       success_url: successUrl || stripeConfig.successUrl,
       cancel_url: cancelUrl || stripeConfig.cancelUrl,
       metadata: {

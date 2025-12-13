@@ -55,6 +55,8 @@ import {
   signContractViaLink,
 } from "./controllers/contractController/contractController.js";
 
+import { requireActiveSubscription } from "./middleware/subscriptionMiddleware.js";
+
 // 🧩 1️⃣ Création de ton app Express
 const app = express();
 
@@ -197,11 +199,44 @@ app.use(
   stripeWebhooksRoutes
 );
 
+import { httpRequestCounter, httpRequestDuration } from "./utils/metrics.js";
+
 app.use(express.json());
 app.use(pinoHttp());
 
+// ✅ Middleware pour vérifier l'expiration du trial sur routes protégées
+// Routes publiques exemptées : auth, billing, organizations/initialize, sign-links, health, metrics, webhooks
+const publicRoutes = [
+  '/auth',
+  '/billing',
+  '/organizations/initialize',
+  '/sign-links',
+  '/health',
+  '/metrics',
+  '/webhooks',
+  '/api-docs',
+  '/'
+];
+
+app.use(async (req, res, next) => {
+  // Vérifier si la route est publique
+  const isPublicRoute = publicRoutes.some(route => req.path.startsWith(route));
+
+  if (isPublicRoute) {
+    return next();
+  }
+
+  // Si l'utilisateur est authentifié (authMiddleware déjà appliqué dans les routes),
+  // vérifier l'expiration du trial
+  if ((req as any).user) {
+    return requireActiveSubscription(req as any, res, next);
+  }
+
+  // Pas authentifié, laisser authMiddleware des routes individuelles gérer
+  next();
+});
+
 // ✅ Middleware Prometheus - Collecter les métriques HTTP
-import { httpRequestCounter, httpRequestDuration } from "./utils/metrics.js";
 app.use((req, res, next) => {
   const start = Date.now();
 
