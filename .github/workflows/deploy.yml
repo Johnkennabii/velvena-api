@@ -98,7 +98,9 @@ jobs:
 
       - name: Set image name for security scan
         id: image-name
-        run: echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_OUTPUT
+        run: |
+          IMAGE_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "image=${{ env.REGISTRY }}/${IMAGE_LOWER}:latest" >> $GITHUB_OUTPUT
 
   # Deploy to server
   deploy:
@@ -191,7 +193,9 @@ jobs:
       security-events: write
     steps:
       - name: Debug Image Tag
-        run: echo "Image tag is '${{ needs.build.outputs.image-tag }}'"
+        run: |
+          echo "Full image tag: '${{ needs.build.outputs.image-tag }}'"
+          echo "Length: $(echo -n '${{ needs.build.outputs.image-tag }}' | wc -c)"
 
       - name: Run Trivy vulnerability scanner
         if: ${{ needs.build.outputs.image-tag != '' }}
