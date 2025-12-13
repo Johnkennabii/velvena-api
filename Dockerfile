@@ -31,11 +31,21 @@ RUN npm run build 2>/dev/null || echo "No build script, using source directly"
 # Production image
 FROM node:23.11.0-alpine
 
-# Install runtime dependencies
+# Install runtime dependencies including Chromium for Puppeteer
 RUN apk add --no-cache \
     postgresql-client \
     curl \
-    dumb-init
+    dumb-init \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
+# Tell Puppeteer to use the installed Chromium
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # Create app user
 RUN addgroup -g 1001 -S nodejs && \
