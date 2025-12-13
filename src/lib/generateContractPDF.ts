@@ -763,7 +763,16 @@ const forfaitJournalierClauses = `
   let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null;
   try {
     // 🖨️ Génération PDF via Puppeteer
-    browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
+    browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",  // Helps with Alpine Linux
+        "--disable-gpu"  // Not needed in headless
+      ],
+      protocolTimeout: 120000  // 2 minutes instead of default 30s
+    });
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "load" });
     const pdfData = await page.pdf({
