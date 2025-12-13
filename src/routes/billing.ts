@@ -11,6 +11,7 @@ import {
   createCheckoutSession,
   createPortalSession,
   cancelSubscription,
+  updateSubscription,
   getInvoices,
 } from "../services/stripeService.js";
 import { stripeConfig } from "../lib/stripe.js";
@@ -294,6 +295,89 @@ router.post(
       });
     } catch (err: any) {
       logger.error({ err }, "Failed to create checkout session");
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+/**
+ * POST /api/billing/change-plan
+ * Change subscription plan (Upgrade or Downgrade)
+ * This modifies the existing Stripe subscription
+ */
+router.post(
+  "/change-plan",
+  authMiddleware,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.user?.organizationId) {
+        return res.status(401).json({ error: "Organization context required" });
+      }
+
+      const { plan_code, billing_interval, proration_behavior } = req.body;
+
+      if (!plan_code) {
+        return res.status(400).json({ error: "plan_code is required" });
+      }
+
+      if (!billing_interval || !["month", "year"].includes(billing_interval)) {
+        return res.status(400).json({
+          error: "billing_interval is required and must be 'month' or 'year'",
+        });
+      }
+
+      // Vérifier si l'organisation a un abonnement Stripe actif
+      const organization = await prisma.organization.findUnique({
+        where: { id: req.user.organizationId },
+        select: { stripe_subscription_id: true, subscription_plan_id: true },
+      });
+
+      if (!organization) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+
+      // Si pas d'abonnement Stripe, rediriger vers le checkout
+      if (!organization.stripe_subscription_id) {
+        return res.status(400).json({
+          error: "No active Stripe subscription found. Please use /create-checkout-session to subscribe first.",
+        });
+      }
+
+      // Déterminer le comportement de proration
+      const prorationMode = proration_behavior || "create_prorations";
+
+      // Update subscription
+      const updatedSubscription = await updateSubscription(
+        req.user.organizationId,
+        plan_code,
+        billing_interval as "month" | "year",
+        prorationMode
+      );
+
+      logger.info(
+        {
+          organizationId: req.user.organizationId,
+          planCode: plan_code,
+          billingInterval: billing_interval,
+          prorationBehavior: prorationMode,
+          subscriptionId: updatedSubscription.id,
+        },
+        "Changed subscription plan"
+      );
+
+      const periodEnd = (updatedSubscription as any).current_period_end;
+
+      res.json({
+        success: true,
+        message: "Subscription plan changed successfully",
+        subscription: {
+          id: updatedSubscription.id,
+          status: updatedSubscription.status,
+          currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+        },
+      });
+    } catch (err: any) {
+      logger.error({ err }, "Failed to change subscription plan");
       res.status(500).json({ error: err.message });
     }
   }

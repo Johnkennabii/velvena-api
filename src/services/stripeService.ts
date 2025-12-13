@@ -307,6 +307,108 @@ export async function syncSubscription(
 }
 
 /**
+ * Update/Change subscription plan (Upgrade or Downgrade)
+ */
+export async function updateSubscription(
+  organizationId: string,
+  newPlanCode: string,
+  billingInterval: "month" | "year" = "month",
+  prorationBehavior: "create_prorations" | "none" | "always_invoice" = "create_prorations"
+): Promise<Stripe.Subscription> {
+  try {
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      throw new Error("Organization not found");
+    }
+
+    if (!organization.stripe_subscription_id) {
+      throw new Error("Organization does not have an active Stripe subscription");
+    }
+
+    // Get new plan
+    const newPlan = await prisma.subscriptionPlan.findUnique({
+      where: { code: newPlanCode },
+    });
+
+    if (!newPlan) {
+      throw new Error(`Subscription plan '${newPlanCode}' not found`);
+    }
+
+    // Get the appropriate Stripe price ID
+    const newStripePriceId =
+      billingInterval === "year"
+        ? newPlan.stripe_price_id_yearly
+        : newPlan.stripe_price_id_monthly;
+
+    if (!newStripePriceId) {
+      throw new Error(
+        `Stripe price ID not found for plan '${newPlanCode}' with interval '${billingInterval}'`
+      );
+    }
+
+    // Retrieve current subscription from Stripe
+    const currentSubscription = await stripe.subscriptions.retrieve(
+      organization.stripe_subscription_id
+    );
+
+    // Get current subscription item (first item)
+    if (!currentSubscription.items.data[0]) {
+      throw new Error("No subscription items found");
+    }
+    const subscriptionItemId = currentSubscription.items.data[0].id;
+
+    // Update subscription with new price
+    const updatedSubscription = await stripe.subscriptions.update(
+      organization.stripe_subscription_id,
+      {
+        items: [
+          {
+            id: subscriptionItemId,
+            price: newStripePriceId,
+          },
+        ],
+        proration_behavior: prorationBehavior,
+        metadata: {
+          organizationId: organization.id,
+          planCode: newPlan.code,
+          billingInterval,
+        } as StripeSubscriptionMetadata,
+      }
+    );
+
+    // Update organization in database
+    await prisma.organization.update({
+      where: { id: organizationId },
+      data: {
+        subscription_plan_id: newPlan.id,
+      },
+    });
+
+    logger.info(
+      {
+        organizationId,
+        oldPlanId: organization.subscription_plan_id,
+        newPlanCode,
+        billingInterval,
+        prorationBehavior,
+      },
+      "Updated subscription plan in Stripe"
+    );
+
+    return updatedSubscription;
+  } catch (err: any) {
+    logger.error(
+      { err, organizationId, newPlanCode },
+      "Failed to update subscription"
+    );
+    throw err;
+  }
+}
+
+/**
  * Cancel a subscription in Stripe
  */
 export async function cancelSubscription(
