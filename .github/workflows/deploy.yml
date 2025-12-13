@@ -157,6 +157,11 @@ jobs:
             # Wait for health check
             timeout 60 bash -c 'until curl -f http://localhost:3000/health; do sleep 2; done'
 
+            # Reload Nginx configuration (for any nginx config changes)
+            echo "🔄 Reloading Nginx configuration..."
+            docker-compose exec -T nginx nginx -s reload || echo "⚠️ Nginx reload failed, restarting..."
+            docker-compose restart nginx
+
             # Cleanup old images
             docker image prune -af --filter "until=72h"
 
