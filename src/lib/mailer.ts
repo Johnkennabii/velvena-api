@@ -4,25 +4,33 @@ import pino from "pino";
 
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 
-const smtpHost = process.env.SMTP_HOST || "mail.gandi.net";
-const smtpPort = Number.parseInt(process.env.SMTP_PORT ?? "465", 10);
-const secureFromEnv = process.env.SMTP_SECURE;
-const isSecure = secureFromEnv ? secureFromEnv !== "false" : smtpPort === 465;
+// Lazy initialization of the transporter to ensure env vars are loaded
+let transporter: Transporter | null = null;
 
-const transporter: Transporter = nodemailer.createTransport({
-  host: smtpHost,
-  port: smtpPort,
-  secure: isSecure,
-  auth: {
-    user: process.env.SMTP_USER ?? "",
-    pass: process.env.SMTP_PASSWORD ?? process.env.SMTP_PASS ?? "",
-  },
-  tls: {
-    rejectUnauthorized: true,
-  },
-  logger: true, // ✅ active les logs internes Nodemailer
-  debug: true,  // ✅ debug SMTP complet
-});
+function getTransporter(): Transporter {
+  if (!transporter) {
+    const smtpHost = process.env.SMTP_HOST || "mail.gandi.net";
+    const smtpPort = Number.parseInt(process.env.SMTP_PORT ?? "465", 10);
+    const secureFromEnv = process.env.SMTP_SECURE;
+    const isSecure = secureFromEnv ? secureFromEnv !== "false" : smtpPort === 465;
+
+    transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: isSecure,
+      auth: {
+        user: process.env.SMTP_USER ?? "",
+        pass: process.env.SMTP_PASSWORD ?? process.env.SMTP_PASS ?? "",
+      },
+      tls: {
+        rejectUnauthorized: true,
+      },
+      logger: true, // ✅ active les logs internes Nodemailer
+      debug: true,  // ✅ debug SMTP complet
+    });
+  }
+  return transporter;
+}
 
 interface MailOptions {
   to: string | string[];
@@ -38,16 +46,6 @@ interface MailOptions {
   }[];
 }
 
-// --- Ajout des logs SMTP visibles dans pm2 logs ---
-(transporter as any).on("log", (info: any) => {
-  console.log("📡 [SMTP LOG]", info);
-});
-
-(transporter as any).on("error", (err: Error) => {
-  console.error("🚨 [SMTP ERROR]", err);
-});
-// ---------------------------------------------------
-
 export async function sendMail({ to, cc, bcc, subject, html, text, attachments }: MailOptions): Promise<void> {
   const toList = Array.isArray(to) ? to.join(", ") : to;
   const ccList = cc ? (Array.isArray(cc) ? cc.join(", ") : cc) : undefined;
@@ -56,7 +54,7 @@ export async function sendMail({ to, cc, bcc, subject, html, text, attachments }
 
   try {
     logger.info({ to: toList, cc: ccList, bcc: bccList, subject, attachments: attachmentCount }, "📤 Envoi d'email en cours...");
-    const info = await transporter.sendMail({
+    const info = await getTransporter().sendMail({
       from: process.env.SMTP_FROM,
       to: toList,
       cc: ccList,
