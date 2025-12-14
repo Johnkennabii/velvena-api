@@ -16,7 +16,6 @@ import profilesRoutes from "./routes/userRoutes/profiles.js";
 import rolesRoutes from "./routes/userRoutes/roles.js";
 
 import organizationRoutes from "./routes/organizations.js";
-import serviceTypeRoutes from "./routes/serviceTypes.js";
 import pricingRuleRoutes from "./routes/pricingRules.js";
 
 import avatarRoutes from "./routes/bucketRoutes/avatar.js";
@@ -272,7 +271,6 @@ app.use("/profiles", profilesRoutes);
 app.use("/roles", rolesRoutes);
 
 app.use("/organizations", organizationRoutes);
-app.use("/service-types", serviceTypeRoutes);
 app.use("/pricing-rules", pricingRuleRoutes);
 
 app.use("/avatars", avatarRoutes);

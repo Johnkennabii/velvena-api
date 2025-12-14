@@ -18,15 +18,15 @@ export const getPricingRules = async (
       return res.status(403).json({ error: "Organization context required" });
     }
 
-    const { service_type_id, strategy } = req.query;
+    const { contract_type_id, strategy } = req.query;
 
     const where: any = withOrgOrGlobal(req.user.organizationId, {
       deleted_at: null,
       is_active: true,
     });
 
-    if (service_type_id) {
-      where.AND.push({ service_type_id: service_type_id as string });
+    if (contract_type_id) {
+      where.AND.push({ contract_type_id: contract_type_id as string });
     }
 
     if (strategy) {
@@ -36,7 +36,7 @@ export const getPricingRules = async (
     const pricingRules = await prisma.pricingRule.findMany({
       where,
       include: {
-        service_type: true,
+        contract_type: true,
       },
       orderBy: [{ priority: "desc" }, { name: "asc" }],
     });
@@ -76,7 +76,7 @@ export const getPricingRuleById = async (
         deleted_at: null,
       },
       include: {
-        service_type: true,
+        contract_type: true,
       },
     });
 
@@ -112,7 +112,7 @@ export const createPricingRule = async (
 
     const {
       name,
-      service_type_id,
+      contract_type_id,
       strategy,
       calculation_config,
       applies_to,
@@ -138,7 +138,7 @@ export const createPricingRule = async (
     const pricingRule = await prisma.pricingRule.create({
       data: withOrgData(req.user.organizationId, req.user.id, {
         name,
-        service_type_id: service_type_id || null,
+        contract_type_id: contract_type_id || null,
         strategy,
         calculation_config,
         applies_to,
@@ -146,7 +146,7 @@ export const createPricingRule = async (
         is_active: true,
       }),
       include: {
-        service_type: true,
+        contract_type: true,
       },
     });
 
@@ -181,7 +181,7 @@ export const updatePricingRule = async (
     const { id } = req.params;
     const {
       name,
-      service_type_id,
+      contract_type_id,
       calculation_config,
       applies_to,
       priority,
@@ -210,7 +210,7 @@ export const updatePricingRule = async (
         req.user.id,
         {
           name,
-          service_type_id: service_type_id !== undefined ? service_type_id : undefined,
+          contract_type_id: contract_type_id !== undefined ? contract_type_id : undefined,
           calculation_config,
           applies_to,
           priority,

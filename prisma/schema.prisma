@@ -103,7 +103,6 @@ model Organization {
   contract_packages  ContractPackage[]
   contract_addons    ContractAddon[]
   roles              Role[]
-  service_types      ServiceType[]
   pricing_rules      PricingRule[]
 
   // Subscription & Usage
@@ -417,6 +416,20 @@ model ContractType {
   id              String             @id @default(uuid())
   name            String
   organization_id String? // null = global (shared across all orgs)
+
+  // Configuration métier (anciennement dans ServiceType)
+  config Json? // Configuration pour ce type de contrat
+  /**
+   * Example config:
+   * {
+   *   "min_duration_days": 1,
+   *   "max_duration_days": 7,
+   *   "requires_deposit": true,
+   *   "default_deposit_percentage": 30,
+   *   "description": "Location courte durée avec caution"
+   * }
+   */
+
   created_at      DateTime           @default(now())
   created_by      String?
   updated_at      DateTime?          @updatedAt
@@ -426,6 +439,7 @@ model ContractType {
   organization    Organization?      @relation(fields: [organization_id], references: [id])
   contracts       Contract[]
   templates       ContractTemplate[] // Templates liés à ce type
+  pricing_rules   PricingRule[]      // Règles de tarification pour ce type
 
   @@unique([name, organization_id]) // Unique per organization
   @@index([organization_id])
@@ -642,46 +656,11 @@ model ApiKey {
 // BUSINESS RULES MODELS
 // ============================================
 
-model ServiceType {
-  id              String  @id @default(uuid())
-  name            String // Ex: "Location courte durée", "Location longue durée", "Vente"
-  code            String // Ex: "rental_short", "rental_long", "sale"
-  organization_id String? // null = global service type
-  description     String?
-  is_active       Boolean @default(true)
-
-  // Configuration spécifique
-  config Json? // Service-specific configuration
-  /**
-   * Example config:
-   * {
-   * "min_duration_days": 1,
-   * "max_duration_days": 7,
-   * "requires_deposit": true,
-   * "default_deposit_percentage": 30
-   * }
-   */
-
-  created_at DateTime  @default(now())
-  created_by String?
-  updated_at DateTime? @updatedAt
-  updated_by String?
-  deleted_at DateTime?
-  deleted_by String?
-
-  organization  Organization? @relation(fields: [organization_id], references: [id])
-  pricing_rules PricingRule[]
-
-  @@unique([code, organization_id])
-  @@index([organization_id])
-  @@index([is_active])
-}
-
 model PricingRule {
-  id              String  @id @default(uuid())
-  name            String // Ex: "Location journalière standard"
-  organization_id String? // null = global pricing rule
-  service_type_id String? // Lié à un type de service (optionnel)
+  id               String  @id @default(uuid())
+  name             String // Ex: "Location journalière standard"
+  organization_id  String? // null = global pricing rule
+  contract_type_id String? // Lié à un type de contrat (optionnel)
 
   // Pricing Strategy
   strategy String // "per_day", "flat_rate", "fixed_price", "tiered"
@@ -744,12 +723,12 @@ model PricingRule {
   deleted_at DateTime?
   deleted_by String?
 
-  organization Organization? @relation(fields: [organization_id], references: [id])
-  service_type ServiceType?  @relation(fields: [service_type_id], references: [id])
+  organization  Organization? @relation(fields: [organization_id], references: [id])
+  contract_type ContractType? @relation(fields: [contract_type_id], references: [id])
 
   @@unique([name, organization_id])
   @@index([organization_id])
-  @@index([service_type_id])
+  @@index([contract_type_id])
   @@index([strategy])
   @@index([is_active])
   @@index([priority])
