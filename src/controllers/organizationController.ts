@@ -242,7 +242,7 @@ export const createOrganization = async (
       city,
       postal_code,
       country,
-      subscription_plan,
+      subscription_plan_code,
     } = req.body;
 
     if (!name) {
@@ -251,6 +251,19 @@ export const createOrganization = async (
 
     // Generate unique slug from organization name
     const slug = await generateUniqueSlug(name);
+
+    // Get subscription plan (default to FREE)
+    const planCode = subscription_plan_code || "free";
+    const subscriptionPlan = await prisma.subscriptionPlan.findUnique({
+      where: { code: planCode },
+    });
+
+    if (!subscriptionPlan) {
+      return res.status(400).json({
+        error: `Subscription plan '${planCode}' not found`,
+        message: `Le plan d'abonnement '${planCode}' n'existe pas`
+      });
+    }
 
     const organization = await prisma.organization.create({
       data: {
@@ -262,7 +275,10 @@ export const createOrganization = async (
         city,
         postal_code,
         country,
-        subscription_plan: subscription_plan || "free",
+        subscription_plan_id: subscriptionPlan.id,
+        subscription_plan: planCode, // Deprecated field, kept for backward compatibility
+        subscription_status: "trial",
+        trial_ends_at: new Date(Date.now() + subscriptionPlan.trial_days * 24 * 60 * 60 * 1000),
         is_active: true,
         created_at: new Date(),
         created_by: req.user?.id || null,
@@ -384,16 +400,44 @@ export const initializeOrganization = async (
     // Generate unique slug from organization name
     const slug = await generateUniqueSlug(organizationName);
 
+    // Check if organization email already exists
+    if (orgEmail) {
+      const existingOrg = await prisma.organization.findFirst({
+        where: { email: orgEmail, deleted_at: null },
+      });
+      if (existingOrg) {
+        return res.status(400).json({
+          error: "Organization email already exists",
+          message: "Une organisation avec cet email existe déjà"
+        });
+      }
+    }
+
     // Check if user email already exists
     const existingUser = await prisma.user.findUnique({
       where: { email: userEmail },
     });
     if (existingUser) {
-      return res.status(400).json({ error: "User email already exists" });
+      return res.status(400).json({
+        error: "User email already exists",
+        message: "Un utilisateur avec cet email existe déjà"
+      });
     }
 
     const now = new Date();
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Get the FREE subscription plan
+    const freePlan = await prisma.subscriptionPlan.findUnique({
+      where: { code: "free" },
+    });
+
+    if (!freePlan) {
+      return res.status(500).json({
+        error: "FREE subscription plan not found in database",
+        message: "Le plan d'abonnement FREE n'existe pas. Veuillez contacter le support."
+      });
+    }
 
     // Create organization, role, and user in a transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -413,7 +457,8 @@ export const initializeOrganization = async (
           manager_first_name,
           manager_last_name,
           manager_title,
-          subscription_plan: subscription_plan || "free",
+          subscription_plan_id: freePlan.id,
+          subscription_plan: "free", // Deprecated field, kept for backward compatibility
           subscription_status: "trial",
           trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days trial
           is_active: true,

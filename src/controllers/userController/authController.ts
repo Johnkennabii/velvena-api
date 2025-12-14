@@ -66,12 +66,27 @@ export const register = async (req: AuthenticatedRequest, res: Response) => {
 
 export const login = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { email, password }: { email: string; password: string } = req.body;
+    // Extract email - handle both string and object formats
+    let emailValue: string;
+    const { email, password } = req.body;
 
-    logger.info({ email }, "Attempting to login user");
+    if (typeof email === 'string') {
+      emailValue = email;
+    } else if (typeof email === 'object' && email !== null && 'email' in email) {
+      // Frontend sent user object instead of just email string
+      emailValue = email.email as string;
+    } else {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    if (!password || typeof password !== 'string') {
+      return res.status(400).json({ error: "Password is required" });
+    }
+
+    logger.info({ email: emailValue }, "Attempting to login user");
 
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: emailValue },
       include: {
         profile: { include: { role: true } },
         organization: {
