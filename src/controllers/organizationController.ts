@@ -8,6 +8,32 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
 /**
+ * Generate a unique slug from organization name
+ * Automatically adds suffix if slug already exists
+ */
+async function generateUniqueSlug(name: string): Promise<string> {
+  // Generate base slug from name
+  const baseSlug = name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Remove accents
+    .replace(/[^a-z0-9]+/g, "-")      // Replace spaces/special chars with -
+    .replace(/^-+|-+$/g, "")          // Remove leading/trailing -
+    .substring(0, 50);                // Limit length
+
+  let slug = baseSlug;
+  let counter = 1;
+
+  // Check uniqueness and add suffix if needed
+  while (await prisma.organization.findUnique({ where: { slug } })) {
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+
+  return slug;
+}
+
+/**
  * Get current user's organization
  */
 export const getMyOrganization = async (
@@ -209,7 +235,6 @@ export const createOrganization = async (
   try {
     const {
       name,
-      slug,
       email,
       phone,
       address,
@@ -219,18 +244,12 @@ export const createOrganization = async (
       subscription_plan,
     } = req.body;
 
-    if (!name || !slug) {
-      return res.status(400).json({ error: "Name and slug are required" });
+    if (!name) {
+      return res.status(400).json({ error: "Name is required" });
     }
 
-    // Check if slug already exists
-    const existing = await prisma.organization.findUnique({
-      where: { slug },
-    });
-
-    if (existing) {
-      return res.status(400).json({ error: "Organization slug already exists" });
-    }
+    // Generate unique slug from organization name
+    const slug = await generateUniqueSlug(name);
 
     const organization = await prisma.organization.create({
       data: {
@@ -326,7 +345,6 @@ export const initializeOrganization = async (
     const {
       // Organization data
       organizationName,
-      slug,
       email: orgEmail,
       phone,
       address,
@@ -350,9 +368,9 @@ export const initializeOrganization = async (
     } = req.body;
 
     // Validation
-    if (!organizationName || !slug || !userEmail || !password) {
+    if (!organizationName || !userEmail || !password) {
       return res.status(400).json({
-        error: "organizationName, slug, userEmail, and password are required",
+        error: "organizationName, userEmail, and password are required",
       });
     }
 
@@ -362,13 +380,8 @@ export const initializeOrganization = async (
       });
     }
 
-    // Check if slug already exists
-    const existingOrg = await prisma.organization.findUnique({
-      where: { slug },
-    });
-    if (existingOrg) {
-      return res.status(400).json({ error: "Organization slug already exists" });
-    }
+    // Generate unique slug from organization name
+    const slug = await generateUniqueSlug(organizationName);
 
     // Check if user email already exists
     const existingUser = await prisma.user.findUnique({
