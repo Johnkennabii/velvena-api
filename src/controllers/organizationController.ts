@@ -4,6 +4,7 @@ import prisma from "../lib/prisma.js";
 import logger from "../lib/logger.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { sendWelcomeEmail } from "../services/welcomeEmailService.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
@@ -487,6 +488,18 @@ export const initializeOrganization = async (
       },
       "Organization initialized successfully with first MANAGER user"
     );
+
+    // Send welcome email asynchronously (don't await to avoid blocking response)
+    sendWelcomeEmail({
+      organizationName: result.organization.name,
+      firstName: result.user.profile?.firstName ?? undefined,
+      lastName: result.user.profile?.lastName ?? undefined,
+      userEmail: result.user.email,
+      slug: result.organization.slug,
+      trialEndsAt: result.organization.trial_ends_at!,
+    }).catch((err) => {
+      logger.error({ err }, "Failed to send welcome email (non-blocking)");
+    });
 
     res.status(201).json({
       message: "Organization created successfully",
