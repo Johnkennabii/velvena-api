@@ -98,11 +98,9 @@ model Organization {
   dress_sizes        DressSize[]
   dress_colors       DressColor[]
   dress_conditions   DressCondition[]
-  contract_types     ContractType[]
   contract_templates ContractTemplate[]
   contract_packages  ContractPackage[]
   contract_addons    ContractAddon[]
-  roles              Role[]
   pricing_rules      PricingRule[]
 
   // Subscription & Usage
@@ -160,21 +158,18 @@ model Profile {
 }
 
 model Role {
-  id              String        @id @default(uuid())
-  name            String
-  organization_id String? // null = global role (system roles)
-  description     String?
-  created_at      DateTime      @default(now())
-  created_by      String?
-  updated_at      DateTime?     @updatedAt
-  updated_by      String?
-  deleted_at      DateTime?
-  deleted_by      String?
-  organization    Organization? @relation(fields: [organization_id], references: [id])
-  profiles        Profile[]
+  id          String    @id @default(uuid())
+  name        String    @unique // Nom unique global
+  description String?
+  created_at  DateTime  @default(now())
+  created_by  String?
+  updated_at  DateTime? @updatedAt
+  updated_by  String?
+  deleted_at  DateTime?
+  deleted_by  String?
 
-  @@unique([name, organization_id]) // Unique per organization
-  @@index([organization_id])
+  // Relations
+  profiles Profile[]
 }
 
 model DressType {
@@ -413,9 +408,8 @@ model ProspectRequestDress {
 }
 
 model ContractType {
-  id              String             @id @default(uuid())
-  name            String
-  organization_id String? // null = global (shared across all orgs)
+  id   String @id @default(uuid())
+  name String @unique // Nom unique global
 
   // Configuration métier (anciennement dans ServiceType)
   config Json? // Configuration pour ce type de contrat
@@ -430,19 +424,17 @@ model ContractType {
    * }
    */
 
-  created_at      DateTime           @default(now())
-  created_by      String?
-  updated_at      DateTime?          @updatedAt
-  updated_by      String?
-  deleted_at      DateTime?
-  deleted_by      String?
-  organization    Organization?      @relation(fields: [organization_id], references: [id])
-  contracts       Contract[]
-  templates       ContractTemplate[] // Templates liés à ce type
-  pricing_rules   PricingRule[]      // Règles de tarification pour ce type
+  created_at DateTime  @default(now())
+  created_by String?
+  updated_at DateTime? @updatedAt
+  updated_by String?
+  deleted_at DateTime?
+  deleted_by String?
 
-  @@unique([name, organization_id]) // Unique per organization
-  @@index([organization_id])
+  // Relations
+  contracts     Contract[]
+  templates     ContractTemplate[] // Templates liés à ce type
+  pricing_rules PricingRule[]      // Règles de tarification pour ce type
 }
 
 model ContractTemplate {

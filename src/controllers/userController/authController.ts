@@ -22,14 +22,10 @@ export const register = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(400).json({ error: "User with this email already exists" });
     }
 
-    // Find role within the same organization (or global roles)
-    const role = await prisma.role.findFirst({
+    // Find global role
+    const role = await prisma.role.findUnique({
       where: {
         name: roleName,
-        OR: [
-          { organization_id: req.user.organizationId },
-          { organization_id: null }, // Allow global roles
-        ],
       },
     });
     if (!role) return res.status(400).json({ error: "Role not found" });

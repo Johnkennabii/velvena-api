@@ -1,11 +1,11 @@
 -- Migration: Remove ServiceType and link PricingRule to ContractType
 -- This simplifies the architecture by removing the redundant ServiceType model
 
--- Step 1: Add config column to ContractType
-ALTER TABLE "ContractType" ADD COLUMN "config" JSONB;
+-- Step 1: Add config column to ContractType (if not exists)
+ALTER TABLE "ContractType" ADD COLUMN IF NOT EXISTS "config" JSONB;
 
--- Step 2: Add contract_type_id to PricingRule
-ALTER TABLE "PricingRule" ADD COLUMN "contract_type_id" TEXT;
+-- Step 2: Add contract_type_id to PricingRule (if not exists)
+ALTER TABLE "PricingRule" ADD COLUMN IF NOT EXISTS "contract_type_id" TEXT;
 
 -- Step 3: Migrate existing data - if you have data in service_type_id, you may need custom logic
 -- For now, we'll just set it to NULL since we're removing the concept

@@ -466,23 +466,15 @@ export const initializeOrganization = async (
         },
       });
 
-      // 2. Create or find MANAGER role for this organization
-      let managerRole = await tx.role.findFirst({
+      // 2. Find MANAGER role (global role)
+      const managerRole = await tx.role.findUnique({
         where: {
           name: "MANAGER",
-          organization_id: organization.id,
         },
       });
 
       if (!managerRole) {
-        managerRole = await tx.role.create({
-          data: {
-            name: "MANAGER",
-            description: "Organization manager with full access",
-            organization_id: organization.id,
-            created_at: now,
-          },
-        });
+        throw new Error("MANAGER role not found. Please run seed to create system roles.");
       }
 
       // 3. Create first user with MANAGER role
