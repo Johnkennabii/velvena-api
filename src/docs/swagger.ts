@@ -61,9 +61,6 @@ import rolessSchemas from "./components/schemas/roles/index.js";
 import organizationPaths from "./paths/organization/index.js";
 import organizationSchemas from "./components/schemas/organization/index.js";
 
-import serviceTypePaths from "./paths/service-type/index.js";
-import serviceTypeSchemas from "./components/schemas/service-type/index.js";
-
 import pricingRulePaths from "./paths/pricing-rule/index.js";
 import pricingRuleSchemas from "./components/schemas/pricing-rule/index.js";
 
@@ -134,7 +131,6 @@ export const swaggerDocument = {
     ...rolesPath,
     ...mailPath,
     ...organizationPaths,
-    ...serviceTypePaths,
     ...pricingRulePaths,
     ...billingPaths,
   },
@@ -161,7 +157,6 @@ export const swaggerDocument = {
       ...rolessSchemas,
       ...mailSchemas,
       ...organizationSchemas,
-      ...serviceTypeSchemas,
       ...pricingRuleSchemas,
       ...billingSchemas,
     },

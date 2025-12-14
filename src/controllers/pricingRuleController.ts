@@ -219,7 +219,7 @@ export const updatePricingRule = async (
         true
       ),
       include: {
-        service_type: true,
+        contract_type: true,
       },
     });
 
