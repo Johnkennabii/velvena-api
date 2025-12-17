@@ -327,7 +327,11 @@ app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
 });
 
 // 🟢 5️⃣ Lancer le serveur
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`🚀 API + Socket.IO running on http://localhost:${PORT}`);
+const PORT = Number(process.env.PORT) || 3000;
+const HOST = process.env.HOST || '0.0.0.0'; // Écouter sur toutes les interfaces (requis pour Docker)
+
+server.listen(PORT, HOST, () => {
+  console.log(`🚀 API + Socket.IO running on http://${HOST}:${PORT}`);
+  console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`   Health check: http://${HOST}:${PORT}/health`);
 });
