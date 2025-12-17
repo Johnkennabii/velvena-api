@@ -38,6 +38,7 @@ import contractPackagesRoutes from "./routes/contractRoutes/contractPackages.js"
 import contractTemplateRoutes from "./routes/contractTemplateRoutes.js";
 import contractsRoutes from "./routes/contractRoutes/contractRoutes.js";
 import contractsFullViewRoutes from "./routes/contractRoutes/contractRoutes.js";
+import pocTemplateRoutes from "./routes/pocTemplateRoutes.js";
 
 import notificationRoute from "./routes/notifications.js";
 import mailRoutes from "./routes/mailRoutes.js";
@@ -293,6 +294,9 @@ app.use("/contract-packages", contractPackagesRoutes);
 app.use("/contract-templates", contractTemplateRoutes);
 app.use("/contracts", contractsRoutes);
 app.use("/contracts/full-view", contractsFullViewRoutes);
+
+// ✅ POC Routes - Unified Template System
+app.use("/poc/template", pocTemplateRoutes);
 
 // ✅ Routes publiques (signature électronique)
 app.get("/sign-links/:token", getContractSignLink);

@@ -1,0 +1,154 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "name": "Contrat de Location Simple",
+    "description": "Template simplifié pour location de robes",
+    "category": "location"
+  },
+  "sections": [
+    {
+      "id": "header",
+      "type": "header",
+      "title": "Contrat de Location",
+      "subtitle": "Contrat n° {{contract_number}} — {{created_at}}",
+      "style": {
+        "textAlign": "center",
+        "marginBottom": "2rem"
+      }
+    },
+    {
+      "id": "client_info",
+      "type": "info_block",
+      "title": "Informations Client",
+      "fields": [
+        {
+          "label": "Nom complet",
+          "variable": "customer_firstname + customer_lastname"
+        },
+        {
+          "label": "Email",
+          "variable": "customer_email"
+        },
+        {
+          "label": "Téléphone",
+          "variable": "customer_phone"
+        },
+        {
+          "label": "Adresse",
+          "variable": "customer_address"
+        },
+        {
+          "label": "Ville",
+          "variable": "customer_postal_code + customer_city"
+        }
+      ]
+    },
+    {
+      "id": "contract_details",
+      "type": "info_block",
+      "title": "Détails du contrat",
+      "fields": [
+        {
+          "label": "Type de contrat",
+          "variable": "contract_type_name"
+        },
+        {
+          "label": "Période de location",
+          "variable": "start_datetime"
+        },
+        {
+          "label": "Retour prévu",
+          "variable": "end_datetime"
+        },
+        {
+          "label": "Méthode de paiement caution",
+          "variable": "deposit_payment_method",
+          "showIf": "deposit_payment_method"
+        }
+      ]
+    },
+    {
+      "id": "divider_1",
+      "type": "divider"
+    },
+    {
+      "id": "dresses_table",
+      "type": "table",
+      "title": "Robes incluses",
+      "dataSource": "dresses",
+      "showIf": "dresses.length > 0",
+      "columns": [
+        {
+          "header": "Nom",
+          "field": "name",
+          "align": "left"
+        },
+        {
+          "header": "Référence",
+          "field": "reference",
+          "align": "left"
+        },
+        {
+          "header": "Type",
+          "field": "type_name",
+          "align": "left"
+        },
+        {
+          "header": "Taille",
+          "field": "size_name",
+          "align": "center"
+        },
+        {
+          "header": "Couleur",
+          "field": "color_name",
+          "align": "left"
+        },
+        {
+          "header": "Prix TTC",
+          "field": "price_ttc",
+          "format": "currency",
+          "align": "right"
+        }
+      ]
+    },
+    {
+      "id": "addons_table",
+      "type": "table",
+      "title": "Options supplémentaires",
+      "dataSource": "addons",
+      "showIf": "addons.length > 0",
+      "columns": [
+        {
+          "header": "Nom",
+          "field": "name",
+          "align": "left"
+        },
+        {
+          "header": "Prix TTC",
+          "field": "price_ttc",
+          "format": "currency",
+          "align": "right"
+        }
+      ]
+    },
+    {
+      "id": "divider_2",
+      "type": "divider"
+    },
+    {
+      "id": "price_summary",
+      "type": "price_summary",
+      "title": "Récapitulatif financier"
+    },
+    {
+      "id": "divider_3",
+      "type": "divider"
+    },
+    {
+      "id": "terms",
+      "type": "rich_text",
+      "title": "Conditions Générales",
+      "content": "<p><strong>Entre les soussignés :</strong></p><p>La société <strong>{{org.name}}</strong>, immatriculée sous le numéro <strong>{{org.siret}}</strong>, sise {{org.address}}, {{org.city}}, représentée par <strong>{{org.managerFullName}}</strong> en qualité de gérant(e), ci-après dénommée « le Prestataire ».</p><p>Et le Client, <strong>{{customer_firstname}} {{customer_lastname}}</strong>, domicilié(e) au {{customer_address}}, {{customer_postal_code}} {{customer_city}}, joignable au {{customer_phone}} et à l'adresse email {{customer_email}}, ci-après dénommé(e) « le Client ».</p><h3 class=\"font-semibold mt-4\">Article 1 – Objet du contrat</h3><p>Le présent contrat encadre la location de tenues pour un événement personnel (mariage, cérémonie).</p><h3 class=\"font-semibold mt-4\">Article 2 – Durée de la location</h3><p>La location débute le {{start_datetime}} et se termine le {{end_datetime}}.</p><h3 class=\"font-semibold mt-4\">Article 3 – Conditions financières</h3><p>Le montant total de la location s'élève à <strong>{{total_price_ttc}} €</strong> TTC.</p><p>Un acompte de <strong>{{account_ttc}} €</strong> est exigé à la signature du contrat.</p><p>Une caution de <strong>{{caution_ttc}} €</strong> est obligatoire.</p><h3 class=\"font-semibold mt-4\">Article 4 – Restitution</h3><p>Les tenues doivent être restituées en parfait état à la date convenue. Toute détérioration entraînera une retenue sur la caution.</p><h3 class=\"font-semibold mt-4\">Article 5 – Annulation</h3><p>En cas d'annulation par le Client, l'acompte demeure acquis au Prestataire.</p>"
+    }
+  ]
+}

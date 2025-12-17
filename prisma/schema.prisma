@@ -444,8 +444,10 @@ model ContractTemplate {
   contract_type_id String // Lien obligatoire avec un type de contrat
   organization_id  String? // null = template global (disponible pour tous)
 
-  // Contenu du template (HTML avec variables Handlebars)
-  content          String        @db.Text // HTML avec {{variables}}
+  // Contenu du template
+  content          String?       @db.Text // HTML avec {{variables}} (legacy, optionnel)
+  structure        Json? // Structure JSON du template (nouveau système)
+  html_cache       String?       @db.Text // HTML généré (cache pour performance)
 
   // Métadonnées
   is_active        Boolean       @default(true)
@@ -464,10 +466,12 @@ model ContractTemplate {
   organization     Organization? @relation(fields: [organization_id], references: [id], onDelete: Cascade)
   contracts        Contract[]    @relation("ContractToTemplate")
 
-  @@unique([contract_type_id, organization_id, is_default]) // 1 seul default par type/org
+  // Note: La contrainte d'unicité pour is_default sera gérée par une migration SQL manuelle
+  // car Prisma ne supporte pas les index partiels (WHERE is_default = true)
   @@index([organization_id])
   @@index([contract_type_id])
   @@index([is_active])
+  @@index([contract_type_id, organization_id, is_default])
 }
 
 model ContractPackage {
@@ -712,8 +716,6 @@ model PricingRule {
   created_by String?
   updated_at DateTime? @updatedAt
   updated_by String?
-  deleted_at DateTime?
-  deleted_by String?
 
   organization  Organization? @relation(fields: [organization_id], references: [id])
   contract_type ContractType? @relation(fields: [contract_type_id], references: [id])

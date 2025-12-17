@@ -67,7 +67,17 @@ function generateInitials(firstName?: string | null, lastName?: string | null): 
 }
 
 /**
+ * Format un prix en string avec 2 décimales (sans symbole €)
+ */
+function formatPrice(value: unknown): string {
+  const numeric = Number(value ?? 0);
+  if (Number.isNaN(numeric)) return "0.00";
+  return numeric.toFixed(2);
+}
+
+/**
  * Prépare les données d'un contrat pour l'injection dans un template
+ * Format: snake_case à plat (selon BACKEND_PDF_INSTRUCTIONS.md)
  */
 export function prepareContractTemplateData(contract: any): Record<string, any> {
   const customer = contract.customer || {};
@@ -75,48 +85,32 @@ export function prepareContractTemplateData(contract: any): Record<string, any> 
   const contractType = contract.contract_type || {};
 
   // ============================
-  // CLIENT
-  // ============================
-  const customerFirstName = customer.firstname?.trim() || "";
-  const customerLastName = customer.lastname?.trim() || "";
-  const customerFullName =
-    customerFirstName || customerLastName
-      ? [customerFirstName, customerLastName].filter(Boolean).join(" ")
-      : "-";
-
-  // ============================
   // ORGANISATION
   // ============================
-  const orgCity = organization.city?.trim() || "Asnières-sur-Seine"; // Fallback
-  const orgAddress = organization.address?.trim() || "";
-  const orgPostalCode = organization.postal_code?.trim() || "";
-  const orgFullAddress = [orgAddress, orgPostalCode, orgCity]
-    .filter(Boolean)
-    .join(", ");
+  const orgCity = organization.city?.trim() || "Asnières-sur-Seine";
+  const orgAddress = organization.address?.trim() || "4 avenue Laurent Cély";
+  const orgPostalCode = organization.postal_code?.trim() || "92600";
 
-  const managerGender = organization.manager_gender?.trim() || "";
-  const managerFirstName = organization.manager_first_name?.trim() || "";
-  const managerLastName = organization.manager_last_name?.trim() || "";
-  const managerFullName =
-    managerFirstName || managerLastName
-      ? [managerFirstName, managerLastName].filter(Boolean).join(" ")
-      : "-";
-  const managerInitials = generateInitials(managerFirstName, managerLastName);
-
-  // ============================
-  // SIGNATURE
-  // ============================
-  const hasElectronicSignature = !!contract.signed_at && !!contract.signature_ip;
+  const managerFirstName = organization.manager_first_name?.trim() || "Hassna";
+  const managerLastName = organization.manager_last_name?.trim() || "NAFILI";
+  const managerFullName = [managerFirstName, managerLastName].filter(Boolean).join(" ");
 
   // ============================
   // ROBES
   // ============================
-  const dresses = (contract.dresses || []).map((d: any) => ({
-    name: d.dress?.name || "Robe",
-    reference: d.dress?.reference || "-",
-    pricePerDay: formatCurrency(d.dress?.price_per_day_ttc || 0) + " €",
-    pricePerDayRaw: Number(d.dress?.price_per_day_ttc || 0),
-  }));
+  const dresses = (contract.dresses || []).map((d: any) => {
+    const dress = d.dress || {};
+    return {
+      name: dress.name || "Robe",
+      reference: dress.reference || "-",
+      type_name: dress.type?.name || null,
+      size_name: dress.size?.name || null,
+      color_name: dress.color?.name || null,
+      condition_name: dress.condition?.name || null,
+      price_ht: formatPrice(dress.price_per_day_ht || 0),
+      price_ttc: formatPrice(dress.price_per_day_ttc || 0),
+    };
+  });
 
   // ============================
   // ADDONS
@@ -129,100 +123,63 @@ export function prepareContractTemplateData(contract: any): Record<string, any> 
 
   const addons = (contract.addon_links || [])
     .filter((link: any) => link?.addon)
-    .map(({ addon }: any) => {
-      const includedViaPackage = packageAddonIds.has(addon.id);
-      const description =
-        typeof addon.description === "string" && addon.description.trim().length > 0
-          ? addon.description.trim()
-          : null;
-
-      return {
-        id: addon.id,
-        name: addon.name,
-        description: description || "",
-        price: formatCurrency(addon.price_ttc) + " €",
-        priceRaw: Number(addon.price_ttc || 0),
-        includedInPackage: includedViaPackage,
-      };
-    });
+    .map(({ addon }: any) => ({
+      name: addon.name || "-",
+      price_ttc: formatPrice(addon.price_ttc || 0),
+      included: packageAddonIds.has(addon.id),
+    }));
 
   // ============================
-  // DONNÉES FINALES
+  // DONNÉES FINALES (snake_case à plat)
   // ============================
   return {
-    // CLIENT
-    client: {
-      fullName: customerFullName,
-      firstName: customerFirstName || "-",
-      lastName: customerLastName || "-",
-      email: customer.email || "-",
-      phone: customer.phone || "-",
-      address: customer.address || "-",
-      city: customer.city || "-",
-      postalCode: customer.postal_code || "-",
-      country: customer.country || "-",
-    },
+    // Informations du contrat
+    contract_number: contract.contract_number || "-",
+    created_at: formatDate(contract.created_at),
+    start_datetime: formatDateTime(contract.start_datetime),
+    end_datetime: formatDateTime(contract.end_datetime),
+    contract_type_name: contractType.name || "-",
+    status: contract.status || "-",
+    deposit_payment_method: formatPaymentMethod(contract.deposit_payment_method),
 
-    // CONTRAT
-    contract: {
-      number: contract.contract_number || "-",
-      type: contractType.name || "-",
-      startDate: formatDate(contract.start_datetime),
-      startDateTime: formatDateTime(contract.start_datetime),
-      endDate: formatDate(contract.end_datetime),
-      endDateTime: formatDateTime(contract.end_datetime),
-      createdAt: formatDate(contract.created_at),
-      signedAt: contract.signed_at ? formatDateTime(contract.signed_at) : null,
-      status: contract.status || "-",
+    // Prix (strings avec 2 décimales, sans symbole €)
+    total_price_ht: formatPrice(contract.total_price_ht),
+    total_price_ttc: formatPrice(contract.total_price_ttc),
+    account_ht: formatPrice(contract.account_ht),
+    account_ttc: formatPrice(contract.account_ttc),
+    account_paid_ht: formatPrice(contract.account_paid_ht),
+    account_paid_ttc: formatPrice(contract.account_paid_ttc),
+    caution_ht: formatPrice(contract.caution_ht),
+    caution_ttc: formatPrice(contract.caution_ttc),
+    caution_paid_ht: formatPrice(contract.caution_paid_ht),
+    caution_paid_ttc: formatPrice(contract.caution_paid_ttc),
 
-      // Financier
-      totalTTC: formatCurrency(contract.total_price_ttc) + " €",
-      totalHT: formatCurrency(contract.total_price_ht) + " €",
-      accountTTC: formatCurrency(contract.account_ttc) + " €",
-      accountHT: formatCurrency(contract.account_ht) + " €",
-      accountPaidTTC: formatCurrency(contract.account_paid_ttc) + " €",
-      cautionTTC: formatCurrency(contract.caution_ttc) + " €",
-      cautionHT: formatCurrency(contract.caution_ht) + " €",
-      cautionPaidTTC: formatCurrency(contract.caution_paid_ttc) + " €",
-      paymentMethod: formatPaymentMethod(contract.deposit_payment_method),
-    },
+    // Informations client (préfixe customer_)
+    customer_firstname: customer.firstname?.trim() || "-",
+    customer_lastname: customer.lastname?.trim() || "-",
+    customer_email: customer.email || "-",
+    customer_phone: customer.phone || "-",
+    customer_address: customer.address || "-",
+    customer_postal_code: customer.postal_code || "-",
+    customer_city: customer.city || "-",
+    customer_country: customer.country || "-",
+    customer_birthday: customer.birthday ? formatDate(customer.birthday) : null,
 
-    // ORGANISATION
+    // Organisation (objet imbriqué)
     org: {
       name: organization.name || "VELVENA",
-      siret: organization.siret || "985 287 880 0014", // Fallback historique
-      address: orgAddress || "4 avenue Laurent Cély",
-      city: orgCity,
-      postalCode: orgPostalCode || "92600",
-      country: organization.country || "France",
-      fullAddress: orgFullAddress || "4 avenue Laurent Cély, 92600 Asnières-sur-Seine",
-      email: organization.email || "-",
+      address: orgAddress,
+      city: `${orgCity} ${orgPostalCode}`,
       phone: organization.phone || "-",
-
-      // Manager
-      managerGender: managerGender || "Madame",
-      managerFirstName: managerFirstName || "Hassna",
-      managerLastName: managerLastName || "NAFILI",
+      email: organization.email || "-",
+      siret: organization.siret || "985 287 880 0014",
       managerFullName: managerFullName,
-      managerTitle: organization.manager_title?.trim() || "gérante",
-      managerInitials: managerInitials || "H. N.",
     },
 
-    // SIGNATURE (si électronique)
-    signature: hasElectronicSignature
-      ? {
-          date: formatDateTime(contract.signed_at),
-          ip: contract.signature_ip || "-",
-          location: contract.signature_location || "-",
-          reference: contract.signature_reference || "-",
-        }
-      : null,
-
-    // LISTES
+    // Robes (array avec snake_case)
     dresses,
-    addons,
 
-    // DATES UTILES
-    today: formatDate(new Date()),
+    // Addons (array)
+    addons,
   };
 }

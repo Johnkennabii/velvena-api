@@ -6,12 +6,51 @@ import type { AuthenticatedRequest } from "../types/express.js";
 const SIGNED_STATUSES = new Set(["SIGNED", "SIGNED_ELECTRONICALLY"]);
 const DRAFT_STATUS = "DRAFT";
 
-export function isContractActionAllowed(role: string | null | undefined, status: string | null | undefined): boolean {
+// Champs liés aux paiements que les MANAGERs peuvent modifier même sur les contrats signés
+const PAYMENT_FIELDS = new Set([
+  "account_paid_ttc",
+  "account_paid_ht",
+  "account_payment_method",
+  "account_payment_date",
+  "caution_paid_ttc",
+  "caution_paid_ht",
+  "caution_payment_method",
+  "caution_payment_date",
+  "balance_paid_ttc",
+  "balance_paid_ht",
+  "balance_payment_method",
+  "balance_payment_date",
+]);
+
+/**
+ * Vérifie si la requête ne contient que des champs de paiement
+ */
+function isPaymentOnlyUpdate(requestBody: any): boolean {
+  if (!requestBody || typeof requestBody !== "object") return false;
+
+  const bodyKeys = Object.keys(requestBody);
+  if (bodyKeys.length === 0) return false;
+
+  // Tous les champs doivent être des champs de paiement
+  return bodyKeys.every(key => PAYMENT_FIELDS.has(key));
+}
+
+export function isContractActionAllowed(
+  role: string | null | undefined,
+  status: string | null | undefined,
+  isPaymentAction: boolean = false
+): boolean {
   const normalizedRole = role?.toUpperCase() ?? "";
   const normalizedStatus = status?.toUpperCase() ?? "";
 
   if (normalizedRole === "ADMIN") return true;
-  if (normalizedRole === "MANAGER") return !SIGNED_STATUSES.has(normalizedStatus);
+
+  // Les MANAGERs peuvent toujours faire des actions de paiement, même sur les contrats signés
+  if (normalizedRole === "MANAGER") {
+    if (isPaymentAction) return true;
+    return !SIGNED_STATUSES.has(normalizedStatus);
+  }
+
   if (normalizedRole === "COLLABORATOR") return normalizedStatus === DRAFT_STATUS;
 
   return false;
@@ -20,6 +59,7 @@ export function isContractActionAllowed(role: string | null | undefined, status:
 /**
  * Middleware de contrôle d'accès par rôle/statut de contrat.
  * Bloque les opérations critiques si le rôle n'est pas autorisé pour le statut courant.
+ * Exception : Les MANAGERs peuvent toujours modifier les champs de paiement, même sur les contrats signés.
  */
 export function contractPermissionMiddleware(paramKey = "id") {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -44,7 +84,10 @@ export function contractPermissionMiddleware(paramKey = "id") {
       return res.status(404).json({ success: false, error: "Contrat introuvable" });
     }
 
-    const allowed = isContractActionAllowed(user.role, contract.status);
+    // Vérifier si c'est une action de paiement uniquement
+    const isPaymentAction = req.method === "PUT" && isPaymentOnlyUpdate(req.body);
+
+    const allowed = isContractActionAllowed(user.role, contract.status, isPaymentAction);
 
     if (!allowed) {
       logger.warn(
@@ -54,6 +97,8 @@ export function contractPermissionMiddleware(paramKey = "id") {
           status: contract.status,
           userId: user.id,
           role: user.role,
+          isPaymentAction,
+          requestBody: req.body,
         },
         "Tentative non autorisée sur un contrat"
       );

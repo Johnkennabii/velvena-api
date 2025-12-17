@@ -954,11 +954,22 @@ export const generateContractPdfManually = async (req: Request, res: Response) =
       include: {
         customer: true,
         contract_type: true,
-        organization: true, // ← Ajouté pour le template renderer
+        organization: true,
         package: {
           include: { addons: { include: { addon: true } } },
         },
-        dresses: { include: { dress: true } },
+        dresses: {
+          include: {
+            dress: {
+              include: {
+                type: true,
+                size: true,
+                color: true,
+                condition: true,
+              },
+            },
+          },
+        },
         addon_links: { include: { addon: true } },
       },
     });

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @page {
+      size: A4;
+      margin: 2cm;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #111;
+      text-align: center;
+      margin: 0 0 8px 0;
+    }
+
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111;
+      margin: 24px 0 12px 0;
+    }
+
+    h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111;
+      margin: 16px 0 8px 0;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .text-small {
+      font-size: 11px;
+      color: #666;
+    }
+
+    .text-xs {
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: #888;
+    }
+
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .grid {
+      display: table;
+      width: 100%;
+      margin: 12px 0;
+    }
+
+    .grid-item {
+      display: table-cell;
+      width: 50%;
+      padding: 8px;
+      vertical-align: top;
+    }
+
+    .box {
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 8px;
+      background-color: #fafafa;
+    }
+
+    .box-blue {
+      background-color: #eff6ff;
+      border-color: #dbeafe;
+    }
+
+    .box-green {
+      background-color: #f0fdf4;
+      border-color: #dcfce7;
+    }
+
+    .price-large {
+      font-size: 18px;
+      font-weight: 600;
+      color: #111;
+      margin-top: 4px;
+    }
+
+    .price-blue {
+      color: #1d4ed8;
+    }
+
+    .price-green {
+      color: #15803d;
+    }
+
+    .dress-item {
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background-color: #fafafa;
+    }
+
+    .addon-item {
+      display: flex;
+      justify-content: space-between;
+      border: 1px solid #f3f4f6;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      background-color: #fafafa;
+    }
+
+    .addon-name {
+      font-weight: 500;
+    }
+
+    .addon-price {
+      font-size: 10px;
+      color: #666;
+    }
+
+    ul {
+      margin: 8px 0;
+      padding-left: 24px;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+
+    .warning {
+      font-weight: 600;
+      color: #dc2626;
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .value {
+      display: block;
+      color: #111;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <!-- En-tête du contrat -->
+  <div class="section text-center">
+    <h1>Contrat de location</h1>
+    <p class="text-small">Contrat n° {{contract_number}} — {{created_at}}</p>
+  </div>
+
+  <!-- Informations client -->
+  <div class="section">
+    <h2>Informations client</h2>
+    <div class="grid">
+      <div class="grid-item">
+        <p class="text-xs label">Nom complet</p>
+        <p class="value">{{customer_firstname}} {{customer_lastname}}</p>
+      </div>
+      <div class="grid-item">
+        <p class="text-xs label">Email</p>
+        <p class="value">{{customer_email}}</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="grid-item">
+        <p class="text-xs label">Téléphone</p>
+        <p class="value">{{customer_phone}}</p>
+      </div>
+      <div class="grid-item">
+        <p class="text-xs label">Adresse</p>
+        <p class="value">{{customer_address}}, {{customer_postal_code}} {{customer_city}}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Détails du contrat -->
+  <div class="section">
+    <h2>Détails du contrat</h2>
+    <div class="grid">
+      <div class="grid-item">
+        <p class="text-xs label">Type de contrat</p>
+        <p class="value">{{contract_type_name}}</p>
+      </div>
+      <div class="grid-item">
+        <p class="text-xs label">Période de location</p>
+        <p class="value">{{start_datetime}} — {{end_datetime}}</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="grid-item">
+        <p class="text-xs label">Méthode de paiement caution</p>
+        <p class="value">{{deposit_payment_method}}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Récapitulatif financier -->
+  <div class="section">
+    <h2>Récapitulatif financier</h2>
+
+    <h3>Montant total</h3>
+    <div class="grid">
+      <div class="grid-item">
+        <div class="box">
+          <p class="text-xs">Total HT</p>
+          <p class="price-large">{{total_price_ht}} €</p>
+        </div>
+      </div>
+      <div class="grid-item">
+        <div class="box box-blue">
+          <p class="text-xs">Total TTC</p>
+          <p class="price-large price-blue">{{total_price_ttc}} €</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Acompte</h3>
+    <div class="grid">
+      <div class="grid-item">
+        <div class="box">
+          <p class="text-xs">Acompte TTC</p>
+          <p class="price-large">{{account_ttc}} €</p>
+        </div>
+      </div>
+      <div class="grid-item">
+        <div class="box box-green">
+          <p class="text-xs">Payé TTC</p>
+          <p class="price-large price-green">{{account_paid_ttc}} €</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Caution</h3>
+    <div class="grid">
+      <div class="grid-item">
+        <div class="box">
+          <p class="text-xs">Caution TTC</p>
+          <p class="price-large">{{caution_ttc}} €</p>
+        </div>
+      </div>
+      <div class="grid-item">
+        <div class="box box-green">
+          <p class="text-xs">Payée TTC</p>
+          <p class="price-large price-green">{{caution_paid_ttc}} €</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Robes incluses -->
+  {{#if dresses}}
+  <div class="section">
+    <h2>Robes incluses ({{dresses.length}})</h2>
+    {{#each dresses}}
+    <div class="dress-item">
+      <p style="font-weight: 600; margin: 0 0 4px 0;">{{this.name}} — Réf. {{this.reference}}</p>
+      {{#if this.type_name}}<p class="text-small" style="margin: 2px 0;">Type: {{this.type_name}}</p>{{/if}}
+      {{#if this.size_name}}<p class="text-small" style="margin: 2px 0;">Taille: {{this.size_name}}</p>{{/if}}
+      {{#if this.color_name}}<p class="text-small" style="margin: 2px 0;">Couleur: {{this.color_name}}</p>{{/if}}
+      <p class="text-small" style="margin: 2px 0;">Prix: {{this.price_ttc}} € TTC</p>
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  <!-- Options -->
+  {{#if addons}}
+  <div class="section">
+    <h2>Options</h2>
+    {{#each addons}}
+    <div class="addon-item">
+      <span class="addon-name">{{this.name}}</span>
+      <span class="addon-price">{{this.price_ttc}} € TTC{{#if this.included}} (Inclus){{/if}}</span>
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  <!-- Clauses contractuelles -->
+  <div class="section" style="margin-top: 32px;">
+    <h2 style="font-size: 18px;">Conditions générales</h2>
+
+    <p><strong>Entre les soussignés :</strong></p>
+
+    <p>
+      La société <strong>{{org.name}}</strong>, Société par actions simplifiée (SAS) immatriculée
+      au registre du commerce et des sociétés sous le numéro <strong>{{org.siret}}</strong>,
+      ayant son siège social au <strong>{{org.address}}, {{org.city}}</strong>,
+      représentée par <strong>{{org.managerFullName}}</strong> en qualité de gérant(e),
+      ci-après dénommée « le Prestataire ».
+    </p>
+
+    <p>
+      Et le Client, <strong>{{customer_firstname}} {{customer_lastname}}</strong>, domicilié(e) au {{customer_address}}, {{customer_postal_code}} {{customer_city}},
+      ci-après dénommé(e) « le Client ».
+    </p>
+
+    <p><strong>Il a alors été convenu ce qui suit :</strong></p>
+
+    <h3>Article 1 – Description</h3>
+    <p>
+      Le présent contrat a pour objet de définir les modalités selon lesquelles le Prestataire
+      fournira au Client un ensemble de services liés à la tenue de manifestations festives
+      (mariage, fiançailles, cérémonies).
+    </p>
+    <ul>
+      <li>Location des robes mariée, bijoux et accessoires (voiles, jupons).</li>
+      <li>Location des robes invitées.</li>
+    </ul>
+
+    <h3>Article 2 – Conditions financières et caution</h3>
+    <p>
+      Un acompte de <strong>50 %</strong> du montant total de la location est exigé à la signature du contrat.
+      Le solde est payable le jour de la récupération des robes, accompagné d'une caution.
+    </p>
+    <p>
+      L'intégralité du paiement doit être effectuée selon ces modalités ; à défaut,
+      la location ne pourra avoir lieu.
+    </p>
+    <p class="warning">
+      ATTENTION : seules les cautions en empreinte CB ou en espèces sont acceptées.
+      Aucun chèque ne sera accepté.
+    </p>
+
+    <h3>Article 3 – Résiliation / Annulation</h3>
+    <p>
+      Les contrats sont fermes et définitifs dès leur signature.
+      Ils ne sont pas soumis au droit de rétractation prévu par l'article L212-20 du Code de la Consommation.
+    </p>
+    <p>
+      L'acompte de 50 % versé reste acquis au Prestataire en cas d'annulation.
+    </p>
+    <p>
+      La responsabilité du Prestataire ne pourra être engagée en cas de retard ou d'impossibilité
+      d'exécution liée à un cas de force majeure, au sens de la jurisprudence de la Cour de cassation.
+    </p>
+
+    <h3>Article 4 – Responsabilité des parties</h3>
+    <p>
+      En cas de perte, dégât ou vol d'un article loué :
+    </p>
+    <ul>
+      <li>la caution sera conservée si le bien est abîmé (trou, tâche, brûlure, déchirure) ;</li>
+      <li>si le bien est réparable, le montant des retouches sera déduit de la caution ;</li>
+      <li>si le bien est perdu, volé ou irréparable, le Prestataire pourra réclamer le prix d'achat du bien.</li>
+    </ul>
+    <p>
+      Aucune des parties n'est responsable en cas de force majeure conformément à la jurisprudence française.
+    </p>
+
+    <h3>Article 5 – Restitution</h3>
+    <p>
+      Les biens loués doivent être restitués <strong>le dimanche</strong> (pour les locations week-end)
+      aux heures d'ouverture du showroom.
+    </p>
+
+    <h3>Article 6 – Retard de restitution</h3>
+    <p>En cas de retard, les pénalités suivantes s'appliquent :</p>
+    <ul>
+      <li>50 € par jour de retard et par robe invitée ;</li>
+      <li>100 € par jour de retard et par robe mariée.</li>
+    </ul>
+    <p>
+      Les biens doivent être retournés en <strong>parfait état</strong>. À défaut, une indemnité supplémentaire pourra être facturée.
+    </p>
+
+    <h3>Article 7 – Substitution</h3>
+    <p>
+      En cas d'impossibilité de fournir le bien réservé à la date souhaitée,
+      {{org.name}} fournira un article de même catégorie ou de qualité supérieure,
+      sans frais supplémentaires.
+    </p>
+
+    <h3>Article 8 – Non-restitution des accessoires</h3>
+    <p>
+      La non-restitution de la housse ou du cintre entraînera une indemnité forfaitaire
+      de <strong>50 €</strong>.
+    </p>
+
+    <h3>Engagement et signature</h3>
+    <p>
+      En validant électroniquement ce contrat, le Client reconnaît avoir lu et accepté
+      l'ensemble des conditions générales et particulières du présent document,
+      qu'il accepte sans réserve.
+    </p>
+  </div>
+</body>
+</html>

@@ -18,12 +18,9 @@ export const getPricingRules = async (
       return res.status(403).json({ error: "Organization context required" });
     }
 
-    const { contract_type_id, strategy } = req.query;
+    const { contract_type_id, strategy, is_active } = req.query;
 
-    const where: any = withOrgOrGlobal(req.user.organizationId, {
-      deleted_at: null,
-      is_active: true,
-    });
+    const where: any = withOrgOrGlobal(req.user.organizationId, {});
 
     if (contract_type_id) {
       where.AND.push({ contract_type_id: contract_type_id as string });
@@ -31,6 +28,10 @@ export const getPricingRules = async (
 
     if (strategy) {
       where.AND.push({ strategy: strategy as string });
+    }
+
+    if (is_active !== undefined) {
+      where.AND.push({ is_active: is_active === 'true' });
     }
 
     const pricingRules = await prisma.pricingRule.findMany({
@@ -73,7 +74,6 @@ export const getPricingRuleById = async (
           { organization_id: req.user.organizationId },
           { organization_id: null },
         ],
-        deleted_at: null,
       },
       include: {
         contract_type: true,
@@ -182,6 +182,7 @@ export const updatePricingRule = async (
     const {
       name,
       contract_type_id,
+      strategy,
       calculation_config,
       applies_to,
       priority,
@@ -203,6 +204,17 @@ export const updatePricingRule = async (
       });
     }
 
+    // Validate strategy if provided
+    if (strategy) {
+      const validStrategies = ["per_day", "flat_rate", "fixed_price", "tiered"];
+      if (!validStrategies.includes(strategy)) {
+        return res.status(400).json({
+          success: false,
+          error: `Invalid strategy. Must be one of: ${validStrategies.join(", ")}`,
+        });
+      }
+    }
+
     const pricingRule = await prisma.pricingRule.update({
       where: { id: existing.id },
       data: withOrgData(
@@ -211,6 +223,7 @@ export const updatePricingRule = async (
         {
           name,
           contract_type_id: contract_type_id !== undefined ? contract_type_id : undefined,
+          strategy,
           calculation_config,
           applies_to,
           priority,
@@ -240,7 +253,7 @@ export const updatePricingRule = async (
 
 /**
  * DELETE /pricing-rules/:id
- * Supprimer une règle de pricing (soft delete)
+ * Supprimer une règle de pricing (hard delete)
  */
 export const deletePricingRule = async (
   req: AuthenticatedRequest,
@@ -267,17 +280,14 @@ export const deletePricingRule = async (
       });
     }
 
-    await prisma.pricingRule.update({
+    // Hard delete - suppression définitive
+    await prisma.pricingRule.delete({
       where: { id: existing.id },
-      data: {
-        deleted_at: new Date(),
-        deleted_by: req.user.id,
-      },
     });
 
     logger.info(
       { pricingRuleId: id, organizationId: req.user.organizationId },
-      "Pricing rule deleted"
+      "Pricing rule deleted permanently"
     );
 
     res.json({
@@ -354,7 +364,6 @@ export const calculatePriceEndpoint = async (
             { organization_id: null },
           ],
           is_active: true,
-          deleted_at: null,
         },
       });
     } else {
@@ -362,7 +371,6 @@ export const calculatePriceEndpoint = async (
       const allRules = await prisma.pricingRule.findMany({
         where: withOrgOrGlobal(req.user.organizationId, {
           is_active: true,
-          deleted_at: null,
         }),
         orderBy: { priority: "desc" },
       });

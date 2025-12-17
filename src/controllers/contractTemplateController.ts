@@ -9,6 +9,8 @@ import logger from "../lib/logger.js";
 import { requireOrganizationContext } from "../utils/organizationHelper.js";
 import type { AuthenticatedRequest } from "../types/express.js";
 import { renderContractTemplate, validateTemplate } from "../services/templateRenderer.js";
+import { templateRenderer } from "../services/unifiedTemplateRenderer.js";
+import { prepareContractTemplateData } from "../services/templateDataService.js";
 
 // 📌 Get all templates
 export const getAllTemplates = async (req: AuthenticatedRequest, res: Response) => {
@@ -108,63 +110,90 @@ export const createTemplate = async (req: AuthenticatedRequest, res: Response) =
     const organizationId = requireOrganizationContext(req, res);
     if (!organizationId) return;
 
-    const { name, description, contract_type_id, content, is_default } = req.body;
+    const { name, description, contract_type_id, content, structure, is_default } = req.body;
 
-    if (!name || !contract_type_id || !content) {
+    // Valider qu'au moins content OU structure est fourni
+    if (!name || !contract_type_id || (!content && !structure)) {
       return res.status(400).json({
         success: false,
-        error: "Missing required fields: name, contract_type_id, content",
+        error: "Missing required fields: name, contract_type_id, and either content or structure",
       });
     }
 
-    // Valider le template
-    const validation = validateTemplate(content);
-    if (!validation.valid) {
-      return res.status(400).json({
-        success: false,
-        error: `Invalid template syntax: ${validation.error}`,
-      });
+    // Valider le template selon le type
+    if (content && !structure) {
+      // Legacy: HTML avec Handlebars
+      const validation = validateTemplate(content);
+      if (!validation.valid) {
+        return res.status(400).json({
+          success: false,
+          error: `Invalid template syntax: ${validation.error}`,
+        });
+      }
+    } else if (structure) {
+      // Nouveau: Structure JSON
+      if (!structure.version || !structure.metadata || !structure.sections) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid template structure: missing version, metadata, or sections",
+        });
+      }
     }
 
-    // Si is_default est true, retirer le défaut des autres templates du même type
-    if (is_default) {
-      await prisma.contractTemplate.updateMany({
-        where: {
+    // Utiliser une transaction pour éviter les violations de contraintes
+    const template = await prisma.$transaction(async (tx) => {
+      // Si is_default est true, retirer le défaut des autres templates du même type
+      if (is_default) {
+        await tx.contractTemplate.updateMany({
+          where: {
+            contract_type_id,
+            organization_id: organizationId,
+            is_default: true,
+            deleted_at: null,
+          },
+          data: { is_default: false },
+        });
+      }
+
+      // Créer le nouveau template
+      return await tx.contractTemplate.create({
+        data: {
+          name,
+          description,
           contract_type_id,
+          content: content || null,
+          structure: structure || null,
+          is_default: is_default || false,
           organization_id: organizationId,
-          is_default: true,
-          deleted_at: null,
+          created_by: req.user?.id || null,
         },
-        data: { is_default: false },
-      });
-    }
-
-    const template = await prisma.contractTemplate.create({
-      data: {
-        name,
-        description,
-        contract_type_id,
-        content,
-        is_default: is_default || false,
-        organization_id: organizationId,
-        created_by: req.user?.id || null,
-      },
-      include: {
-        contract_type: true,
-        organization: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
+        include: {
+          contract_type: true,
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
           },
         },
-      },
+      });
     });
 
     res.status(201).json({ success: true, data: template });
   } catch (error) {
     logger.error(error, "Failed to create template");
-    res.status(500).json({ success: false, error: "Failed to create template" });
+    // Log the full error details for debugging
+    console.error("❌ Template creation error:", error);
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
+    res.status(500).json({
+      success: false,
+      error: "Failed to create template",
+      details: error instanceof Error ? error.message : String(error)
+    });
   }
 };
 
@@ -179,7 +208,7 @@ export const updateTemplate = async (req: AuthenticatedRequest, res: Response) =
     const organizationId = requireOrganizationContext(req, res);
     if (!organizationId) return;
 
-    const { name, description, content, is_active, is_default } = req.body;
+    const { name, description, content, structure, is_active, is_default } = req.body;
 
     // Vérifier que le template existe et appartient à l'organisation
     const existing = await prisma.contractTemplate.findFirst({
@@ -195,7 +224,8 @@ export const updateTemplate = async (req: AuthenticatedRequest, res: Response) =
     }
 
     // Valider le nouveau contenu si fourni
-    if (content) {
+    if (content && !structure) {
+      // Legacy: HTML avec Handlebars
       const validation = validateTemplate(content);
       if (!validation.valid) {
         return res.status(400).json({
@@ -203,43 +233,58 @@ export const updateTemplate = async (req: AuthenticatedRequest, res: Response) =
           error: `Invalid template syntax: ${validation.error}`,
         });
       }
+    } else if (structure) {
+      // Nouveau: Structure JSON
+      if (!structure.version || !structure.metadata || !structure.sections) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid template structure: missing version, metadata, or sections",
+        });
+      }
     }
 
-    // Si on le définit comme défaut, retirer le défaut des autres
-    if (is_default === true && !existing.is_default) {
-      await prisma.contractTemplate.updateMany({
-        where: {
-          contract_type_id: existing.contract_type_id,
-          organization_id: organizationId,
-          is_default: true,
-          deleted_at: null,
-          id: { not: id },
+    // Utiliser une transaction pour éviter les violations de contraintes
+    const template = await prisma.$transaction(async (tx) => {
+      // Si on le définit comme défaut, retirer le défaut des autres
+      if (is_default === true && !existing.is_default) {
+        await tx.contractTemplate.updateMany({
+          where: {
+            contract_type_id: existing.contract_type_id,
+            organization_id: organizationId,
+            is_default: true,
+            deleted_at: null,
+            id: { not: id },
+          },
+          data: { is_default: false },
+        });
+      }
+
+      // Mettre à jour le template
+      return await tx.contractTemplate.update({
+        where: { id },
+        data: {
+          ...(name && { name }),
+          ...(description !== undefined && { description }),
+          ...(content && { content }),
+          ...(structure && { structure }),
+          ...(is_active !== undefined && { is_active }),
+          ...(is_default !== undefined && { is_default }),
+          // Invalider le cache HTML si content ou structure change
+          ...((content || structure) && { html_cache: null }),
+          updated_by: req.user?.id || null,
+          version: { increment: 1 },
         },
-        data: { is_default: false },
-      });
-    }
-
-    const template = await prisma.contractTemplate.update({
-      where: { id },
-      data: {
-        ...(name && { name }),
-        ...(description !== undefined && { description }),
-        ...(content && { content }),
-        ...(is_active !== undefined && { is_active }),
-        ...(is_default !== undefined && { is_default }),
-        updated_by: req.user?.id || null,
-        version: { increment: 1 },
-      },
-      include: {
-        contract_type: true,
-        organization: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
+        include: {
+          contract_type: true,
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
           },
         },
-      },
+      });
     });
 
     res.json({ success: true, data: template });
@@ -249,7 +294,7 @@ export const updateTemplate = async (req: AuthenticatedRequest, res: Response) =
   }
 };
 
-// 📌 Soft delete template
+// 📌 Hard delete template (suppression définitive)
 export const softDeleteTemplate = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
@@ -264,7 +309,6 @@ export const softDeleteTemplate = async (req: AuthenticatedRequest, res: Respons
       where: {
         id,
         organization_id: organizationId,
-        deleted_at: null,
       },
     });
 
@@ -272,15 +316,29 @@ export const softDeleteTemplate = async (req: AuthenticatedRequest, res: Respons
       return res.status(404).json({ success: false, error: "Template not found" });
     }
 
-    await prisma.contractTemplate.update({
-      where: { id },
-      data: {
-        deleted_at: new Date(),
-        deleted_by: req.user?.id || null,
+    // Vérifier si le template est utilisé par des contrats
+    const contractsUsingTemplate = await prisma.contract.count({
+      where: {
+        template_id: id,
+        deleted_at: null,
       },
     });
 
-    res.json({ success: true, message: "Template deleted" });
+    if (contractsUsingTemplate > 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Cannot delete template: ${contractsUsingTemplate} contract(s) are using it`,
+      });
+    }
+
+    // Hard delete - suppression physique définitive
+    await prisma.contractTemplate.delete({
+      where: { id },
+    });
+
+    logger.info({ templateId: id, templateName: existing.name }, "Template permanently deleted");
+
+    res.json({ success: true, message: "Template permanently deleted" });
   } catch (error) {
     logger.error(error, "Failed to delete template");
     res.status(500).json({ success: false, error: "Failed to delete template" });
@@ -435,8 +493,20 @@ export const previewTemplate = async (req: AuthenticatedRequest, res: Response) 
       };
     }
 
-    // Rendre le template avec les données
-    const html = renderContractTemplate(template.content, contract);
+    // Préparer les données du contrat pour le template
+    const templateData = prepareContractTemplateData(contract);
+
+    // Rendre le template selon son type
+    let html: string;
+    if (template.structure) {
+      // Nouveau système: Structure JSON
+      html = templateRenderer.render(template.structure as any, templateData);
+    } else if (template.content) {
+      // Legacy: HTML avec Handlebars
+      html = renderContractTemplate(template.content, contract);
+    } else {
+      return res.status(400).json({ success: false, error: "Template has no content or structure" });
+    }
 
     res.json({ success: true, data: { html } });
   } catch (error) {

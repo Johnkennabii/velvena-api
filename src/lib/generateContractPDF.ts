@@ -450,7 +450,75 @@ const forfaitJournalierClauses = `
   let html: string;
   if (template) {
     logger.info({ contractId, templateId: template.id }, "✨ Utilisation du template dynamique pour générer le PDF");
-    html = renderContractTemplate(template.content, contract);
+
+    let renderedContent: string;
+
+    // ✨ NOUVEAU : Utiliser le système unifié si template.structure existe
+    if (template.structure) {
+      logger.info({ contractId, templateId: template.id }, "🚀 Utilisation du système de template JSON unifié");
+
+      // Importer le renderer unifié
+      const { templateRenderer } = await import("../services/unifiedTemplateRenderer.js");
+      const { prepareContractTemplateData } = await import("../services/templateDataService.js");
+
+      // Préparer les données du contrat
+      const contractData = prepareContractTemplateData(contract);
+
+      // 🚀 Optimisation : Utiliser le cache HTML si disponible et si les données n'ont pas changé
+      // Pour l'instant, on régénère toujours car les données du contrat changent
+      // Le cache sera utile pour les templates statiques (conditions générales, etc.)
+
+      // Rendre avec le système unifié (retourne HTML complet)
+      html = templateRenderer.render(template.structure as any, contractData);
+
+      // 💾 Mettre à jour le cache HTML (en arrière-plan, sans bloquer)
+      // Cela permet d'avoir une version pré-générée pour la prochaine fois
+      prisma.contractTemplate.update({
+        where: { id: template.id },
+        data: { html_cache: html }
+      }).catch(err => {
+        logger.warn({ err, templateId: template.id }, "Failed to update template HTML cache");
+      });
+    } else {
+      // Legacy : Utiliser l'ancien système Handlebars
+      logger.info({ contractId, templateId: template.id }, "📝 Utilisation du système Handlebars (legacy)");
+      renderedContent = renderContractTemplate(template.content || '', contract);
+
+      // Wrapper dans une structure HTML complète avec Tailwind CSS CDN
+      html = `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contrat ${contract.contract_number}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @page {
+      margin: 25mm 20mm;
+    }
+    body {
+      font-family: 'Helvetica', 'Arial', sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #111827;
+    }
+    .page-break {
+      page-break-before: always;
+    }
+    @media print {
+      .no-print {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body class="bg-white p-8">
+  ${renderedContent}
+</body>
+</html>
+      `;
+    }
   } else {
     // 🔹 Sinon, utiliser l'ancien système (clauses hardcodées)
     logger.info({ contractId }, "📝 Utilisation du système de clauses hardcodées (fallback)");
@@ -774,7 +842,11 @@ const forfaitJournalierClauses = `
       protocolTimeout: 120000  // 2 minutes instead of default 30s
     });
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "load" });
+    await page.setContent(html, { waitUntil: "networkidle0" });
+
+    // Attendre que Tailwind CSS soit chargé et appliqué
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     const pdfData = await page.pdf({
       format: "A4",
       printBackground: true,
