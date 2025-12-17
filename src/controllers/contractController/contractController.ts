@@ -754,7 +754,7 @@ export const getContractSignLink = async (req: Request, res: Response) => {
       }
 
       // Si un template est trouvé, le compiler
-      if (template) {
+      if (template && template.content) {
         const { renderContractTemplate } = await import("../../services/templateRenderer.js");
         renderedTemplate = renderContractTemplate(template.content, contract);
         logger.info(

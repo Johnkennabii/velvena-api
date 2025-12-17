@@ -495,11 +495,13 @@ export class TemplateRenderer {
     try {
       // Condition sur longueur d'array
       const lengthMatch = condition.match(/([\w.]+)\.length\s*([><=]+)\s*(\d+)/);
-      if (lengthMatch) {
-        const [, path, operator, target] = lengthMatch;
+      if (lengthMatch && lengthMatch[1] && lengthMatch[2] && lengthMatch[3]) {
+        const path = lengthMatch[1];
+        const operator = lengthMatch[2];
+        const target = lengthMatch[3];
         const value = this.resolveVariable(path, data);
         const length = Array.isArray(value) ? value.length : 0;
-        const targetNum = parseInt(target);
+        const targetNum = parseInt(target, 10);
 
         switch (operator) {
           case '>': return length > targetNum;
@@ -513,7 +515,7 @@ export class TemplateRenderer {
 
       // Condition d'existence
       const existsMatch = condition.match(/^([\w.]+)$/);
-      if (existsMatch) {
+      if (existsMatch && existsMatch[1]) {
         const value = this.resolveVariable(existsMatch[1], data);
         return !!value;
       }
