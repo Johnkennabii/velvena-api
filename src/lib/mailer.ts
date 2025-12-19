@@ -65,7 +65,7 @@ export async function sendMail({ to, cc, bcc, subject, html, text, attachments }
       attachments,
       replyTo: process.env.SMTP_FROM,
       headers: {
-        'X-Mailer': 'Allure Création Mailer',
+        'X-Mailer': 'Velvena Mailer',
         'X-Priority': '3',
         'Importance': 'Normal',
         'X-MSMail-Priority': 'Normal',

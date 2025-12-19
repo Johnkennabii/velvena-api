@@ -26,11 +26,11 @@
             "address": {
               "type": "string",
               "format": "email",
-              "example": "contact@allure-creation.fr"
+              "example": "contact@velvena.fr"
             },
             "name": {
               "type": "string",
-              "example": "Allure Création"
+              "example": "Velvena"
             }
           }
         }

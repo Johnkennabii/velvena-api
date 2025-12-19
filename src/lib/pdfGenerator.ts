@@ -95,11 +95,26 @@ export async function generateContractPDFWithPdfLib(contract: any, options: PdfL
   };
 
   // -----------------------
+  // 📊 Extraction des données d'organisation
+  // -----------------------
+  const org = contract.organization || {};
+  const orgName = org.name || "[Nom de l'organisation]";
+  const orgSiret = org.siret || "[SIRET]";
+  const orgAddress = org.address || "[Adresse]";
+  const orgPostalCode = org.postal_code || "[Code postal]";
+  const orgCity = org.city || "[Ville]";
+  const managerGender = org.manager_gender || "Madame/Monsieur";
+  const managerFirstName = org.manager_first_name || "[Prénom]";
+  const managerLastName = org.manager_last_name || "[Nom]";
+  const managerTitle = org.manager_title || "gérant(e)";
+  const managerFullName = `${managerGender} ${managerFirstName} ${managerLastName}`;
+
+  // -----------------------
   // 🏷️ En-tête société
   // -----------------------
-  drawText("ALLURE CRÉATION", 16, true, 22);
-  drawText("4 avenue Laurent Cély, 92600 Asnières-sur-Seine", 10);
-  drawText("SAS - RCS 9852878800014", 10);
+  drawText(orgName, 16, true, 22);
+  drawText(`${orgAddress}, ${orgPostalCode} ${orgCity}`, 10);
+  drawText(`SAS - RCS ${orgSiret}`, 10);
   y -= 20;
   drawLine();
 
@@ -218,14 +233,14 @@ export async function generateContractPDFWithPdfLib(contract: any, options: PdfL
     drawSubtitle("Clauses contractuelles – Prestation Négafa");
     y -= 8;
     drawText("Entre les soussignés :", 11, true);
-    drawText("La société ALLURE CRÉATION, SAS immatriculée sous le n° 985 287 880 0014, sise 4 avenue Laurent Cély, 92600 Asnières-sur-Seine, représentée par Madame Hassna NAFILI en qualité de gérante, ci-après dénommée « le Prestataire »,");
+    drawText(`La société ${orgName}, SAS immatriculée sous le n° ${orgSiret}, sise ${orgAddress}, ${orgPostalCode} ${orgCity}, représentée par ${managerFullName} en qualité de ${managerTitle}, ci-après dénommée « le Prestataire »,`);
     drawText("Et le Client, ci-après dénommé « la Cliente », identifié(e) dans le présent contrat.");
     y -= 8;
     drawText("Article 1 – Objet du contrat", 11, true);
     drawText("Le contrat encadre une prestation de préparation, habillage, accompagnement et location de tenues traditionnelles fournie pour un événement personnel (mariage, fiançailles, cérémonie).");
     y -= 8;
     drawText("Article 2 – Description de la prestation", 11, true);
-    drawText("1. Essayage et sélection des tenues au showroom ALLURE CRÉATION.");
+    drawText(`1. Essayage et sélection des tenues au showroom ${orgName}.`);
     drawText("2. Location des tenues traditionnelles, accessoires et parures.");
     drawText("3. Habillage et préparation de la mariée sur place le jour J.");
     drawText("4. Accompagnement, changements de tenues et présence continue dans la limite définie ci-après.");
@@ -236,7 +251,7 @@ export async function generateContractPDFWithPdfLib(contract: any, options: PdfL
     drawText("Article 4 – Mise à disposition d'un espace sécurisé", 11, true);
     drawText("La Cliente fournit une loge ou un local sécurisé, fermé par clé ou code, dédié au stockage du matériel et aux préparatifs.");
     drawText("1. Aucun objet personnel ou de valeur de la Cliente/invités ne doit y être déposé.");
-    drawText("2. ALLURE CRÉATION décline toute responsabilité en cas de perte, vol ou détérioration de biens tiers.");
+    drawText(`2. ${orgName} décline toute responsabilité en cas de perte, vol ou détérioration de biens tiers.`);
     drawText("3. Seule la négafa dispose de la clé ou du dispositif d'ouverture durant la prestation.");
     drawText("4. La loge est strictement réservée à la Mariée et à la Prestataire.");
     drawText("5. Le repas de la négafa est à la charge de la Cliente.");
@@ -264,7 +279,7 @@ export async function generateContractPDFWithPdfLib(contract: any, options: PdfL
     y -= 8;
 
     drawText("Entre les soussignés :", 11, true);
-    drawText("La société ALLURE CRÉATION, Société par actions simplifiée (SAS) immatriculée au registre du commerce et des sociétés sous le numéro 9852878800014, ayant son siège social au 4 avenue Laurent Cély 92600 Asnières-sur-Seine, représentée par Madame Hassna NAFILI en qualité de gérante, ci-après dénommée « le Prestataire » ALLURE CREATION.");
+    drawText(`La société ${orgName}, Société par actions simplifiée (SAS) immatriculée au registre du commerce et des sociétés sous le numéro ${orgSiret}, ayant son siège social au ${orgAddress} ${orgPostalCode} ${orgCity}, représentée par ${managerFullName} en qualité de ${managerTitle}, ci-après dénommée « le Prestataire ».`);
     drawText("Et le Client, ci-après dénommé « la Cliente », identifié(e) dans le présent contrat.");
     drawText("Il a alors été convenu ce qui suit :");
 
@@ -310,7 +325,7 @@ export async function generateContractPDFWithPdfLib(contract: any, options: PdfL
 
     y -= 8;
     drawText("Article 7 – Substitution", 11, true);
-    drawText("En cas d’impossibilité de fournir le bien réservé à la date souhaitée, ALLURE CREATION fournira un bien de même catégorie ou de qualité supérieure, sans frais supplémentaires.");
+    drawText(`En cas d'impossibilité de fournir le bien réservé à la date souhaitée, ${orgName} fournira un bien de même catégorie ou de qualité supérieure, sans frais supplémentaires.`);
 
     y -= 8;
     drawText("Article 8 – Non-restitution des accessoires", 11, true);

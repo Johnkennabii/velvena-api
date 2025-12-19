@@ -133,19 +133,19 @@ export const TEMPLATE_VARIABLES = {
   },
   'org.siret': {
     description: 'Numéro SIRET',
-    example: '985 287 880 0014',
+    example: '123 456 789 0000',
   },
   'org.address': {
     description: 'Adresse de l\'entreprise',
-    example: '4 avenue Laurent Cély',
+    example: '12 rue de la paix',
   },
   'org.city': {
     description: 'Ville de l\'entreprise',
-    example: 'Asnières-sur-Seine',
+    example: 'Paris',
   },
   'org.postalCode': {
     description: 'Code postal de l\'entreprise',
-    example: '92600',
+    example: '75000',
   },
   'org.country': {
     description: 'Pays de l\'entreprise',
@@ -153,7 +153,7 @@ export const TEMPLATE_VARIABLES = {
   },
   'org.fullAddress': {
     description: 'Adresse complète de l\'entreprise',
-    example: '4 avenue Laurent Cély, 92600 Asnières-sur-Seine',
+    example: '12 rue de la Paix, 75002 Paris',
   },
   'org.email': {
     description: 'Email de l\'entreprise',
@@ -161,23 +161,23 @@ export const TEMPLATE_VARIABLES = {
   },
   'org.phone': {
     description: 'Téléphone de l\'entreprise',
-    example: '+33 1 23 45 67 89',
+    example: '+33 1 01 01 01 01',
   },
   'org.managerGender': {
     description: 'Genre du gérant (Mr, Mme, Mx)',
-    example: 'Madame',
+    example: 'Monsieur',
   },
   'org.managerFirstName': {
     description: 'Prénom du gérant',
-    example: 'Hassna',
+    example: 'Jean',
   },
   'org.managerLastName': {
     description: 'Nom du gérant',
-    example: 'NAFILI',
+    example: 'Dupont',
   },
   'org.managerFullName': {
     description: 'Nom complet du gérant',
-    example: 'Hassna NAFILI',
+    example: 'Jean Dupont',
   },
   'org.managerTitle': {
     description: 'Titre/Poste du gérant',

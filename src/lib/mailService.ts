@@ -1655,7 +1655,7 @@ async function buildRawMime(options: MailComposerOptions): Promise<Buffer> {
       ...options,
       date: new Date(),
       headers: {
-        "X-Mailer": "Allure Création Mailer",
+        "X-Mailer": "Velvena Mailer",
         "X-Priority": "3",
         Importance: "Normal",
         "X-MSMail-Priority": "Normal",

@@ -87,12 +87,12 @@ export function prepareContractTemplateData(contract: any): Record<string, any> 
   // ============================
   // ORGANISATION
   // ============================
-  const orgCity = organization.city?.trim() || "Asnières-sur-Seine";
-  const orgAddress = organization.address?.trim() || "4 avenue Laurent Cély";
-  const orgPostalCode = organization.postal_code?.trim() || "92600";
+  const orgCity = organization.city?.trim() || "";
+  const orgAddress = organization.address?.trim() || "";
+  const orgPostalCode = organization.postal_code?.trim() || "";
 
-  const managerFirstName = organization.manager_first_name?.trim() || "Hassna";
-  const managerLastName = organization.manager_last_name?.trim() || "NAFILI";
+  const managerFirstName = organization.manager_first_name?.trim() || "";
+  const managerLastName = organization.manager_last_name?.trim() || "";
   const managerFullName = [managerFirstName, managerLastName].filter(Boolean).join(" ");
 
   // ============================
