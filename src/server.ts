@@ -56,6 +56,7 @@ import {
 } from "./controllers/contractController/contractController.js";
 
 import { requireActiveSubscription } from "./middleware/subscriptionMiddleware.js";
+import { startScheduler, stopScheduler } from "./jobs/scheduler.js";
 
 // 🧩 1️⃣ Création de ton app Express
 const app = express();
@@ -330,8 +331,38 @@ app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '0.0.0.0'; // Écouter sur toutes les interfaces (requis pour Docker)
 
+// Variable pour stocker l'ID du scheduler
+let schedulerIntervalId: NodeJS.Timeout | null = null;
+
 server.listen(PORT, HOST, () => {
   console.log(`🚀 API + Socket.IO running on http://${HOST}:${PORT}`);
   console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`   Health check: http://${HOST}:${PORT}/health`);
+
+  // Démarrer le scheduler des jobs de maintenance
+  schedulerIntervalId = startScheduler();
+  console.log(`⏰ Scheduler de maintenance démarré (exécution quotidienne à 2h00)`);
+});
+
+// Gestion propre de l'arrêt du serveur
+process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM reçu, arrêt gracieux du serveur...');
+  if (schedulerIntervalId) {
+    stopScheduler(schedulerIntervalId);
+  }
+  server.close(() => {
+    console.log('✅ Serveur arrêté proprement');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('🛑 SIGINT reçu, arrêt gracieux du serveur...');
+  if (schedulerIntervalId) {
+    stopScheduler(schedulerIntervalId);
+  }
+  server.close(() => {
+    console.log('✅ Serveur arrêté proprement');
+    process.exit(0);
+  });
 });
