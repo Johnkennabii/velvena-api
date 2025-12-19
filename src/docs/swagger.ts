@@ -67,6 +67,8 @@ import pricingRuleSchemas from "./components/schemas/pricing-rule/index.js";
 import billingPaths from "./paths/billing/index.js";
 import billingSchemas from "./components/schemas/billing/index.js";
 
+import accountPaths from "./paths/account/index.js";
+
 import mailPath from "./paths/mail/index.js" ;
 import mailSchemas from "./components/schemas/mail/index.js";
 
@@ -108,6 +110,7 @@ export const swaggerDocument = {
     { name: "Service Types", description: "Endpoints for managing service types (rental types, pricing methods)" },
     { name: "Pricing Rules", description: "Endpoints for managing pricing rules and calculating rental prices" },
     { name: "Billing & Subscription", description: "Endpoints for managing subscriptions, quotas, and features" },
+    { name: "Account", description: "Account management endpoints (deletion, data export)" },
   ],
   paths: {
     ...userAuthPath,
@@ -133,6 +136,7 @@ export const swaggerDocument = {
     ...organizationPaths,
     ...pricingRulePaths,
     ...billingPaths,
+    ...accountPaths,
   },
   components: {
     schemas: {

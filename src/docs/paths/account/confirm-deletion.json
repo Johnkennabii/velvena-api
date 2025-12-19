@@ -1,0 +1,165 @@
+{
+  "/account/confirm-deletion": {
+    "post": {
+      "tags": ["Account"],
+      "summary": "Confirm account deletion (Step 2/2)",
+      "description": "Confirms and executes account deletion after validating the 6-digit code sent via email. This will:\n\n1. ✅ Export all organization data as a ZIP file (signed contracts, Stripe invoices, clients, prospects)\n2. 🗑️ Permanently delete all organization data from the database\n3. 💳 Cancel active Stripe subscriptions\n4. 📧 Send confirmation email with ZIP attachment\n\n⚠️ **WARNING: This action is IRREVERSIBLE!** All data will be permanently deleted.",
+      "operationId": "confirmAccountDeletion",
+      "security": [{ "bearerAuth": [] }],
+      "requestBody": {
+        "required": true,
+        "description": "The 6-digit validation code received via email",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "validationCode": {
+                  "type": "string",
+                  "description": "6-digit validation code from email",
+                  "example": "123456",
+                  "pattern": "^[0-9]{6}$"
+                }
+              },
+              "required": ["validationCode"]
+            },
+            "example": {
+              "validationCode": "123456"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "✅ Account successfully deleted",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "message": {
+                    "type": "string",
+                    "example": "Account successfully deleted. Export file has been sent to your email."
+                  },
+                  "deletedData": {
+                    "type": "object",
+                    "description": "Summary of deleted data",
+                    "properties": {
+                      "users": { "type": "number", "example": 5 },
+                      "dresses": { "type": "number", "example": 120 },
+                      "contracts": { "type": "number", "example": 45 },
+                      "customers": { "type": "number", "example": 89 },
+                      "prospects": { "type": "number", "example": 34 }
+                    }
+                  }
+                },
+                "required": ["success", "message", "deletedData"]
+              },
+              "example": {
+                "success": true,
+                "message": "Account successfully deleted. Export file has been sent to your email.",
+                "deletedData": {
+                  "users": 5,
+                  "dresses": 120,
+                  "contracts": 45,
+                  "customers": 89,
+                  "prospects": 34
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "❌ Bad request - Invalid or expired validation code",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": { "type": "boolean", "example": false },
+                  "error": { "type": "string" }
+                }
+              },
+              "examples": {
+                "missingCode": {
+                  "summary": "Missing validation code",
+                  "value": {
+                    "success": false,
+                    "error": "Validation code is required"
+                  }
+                },
+                "invalidCode": {
+                  "summary": "Invalid validation code",
+                  "value": {
+                    "success": false,
+                    "error": "Invalid validation code"
+                  }
+                },
+                "expiredCode": {
+                  "summary": "Validation code expired",
+                  "value": {
+                    "success": false,
+                    "error": "Validation code expired. Please request deletion again."
+                  }
+                },
+                "noDeletionRequest": {
+                  "summary": "No deletion request found",
+                  "value": {
+                    "success": false,
+                    "error": "No deletion request found. Please request deletion first."
+                  }
+                },
+                "wrongUser": {
+                  "summary": "Different user attempting confirmation",
+                  "value": {
+                    "success": false,
+                    "error": "Only the user who requested deletion can confirm it"
+                  }
+                },
+                "exportFailed": {
+                  "summary": "Data export failed (deletion aborted for safety)",
+                  "value": {
+                    "success": false,
+                    "error": "Failed to export data. Deletion aborted for safety."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "🔒 Unauthorized - Missing or invalid authentication token",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": { "type": "boolean", "example": false },
+                  "error": { "type": "string", "example": "Authentication required" }
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "💥 Internal server error during deletion",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": { "type": "boolean", "example": false },
+                  "error": { "type": "string", "example": "Failed to complete account deletion" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
