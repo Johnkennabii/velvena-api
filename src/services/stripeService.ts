@@ -258,12 +258,32 @@ export async function syncSubscription(
       paused: "suspended",
     };
 
-    const status = statusMap[subscription.status] || "suspended";
+    let status = statusMap[subscription.status] || "suspended";
+
+    // 🎯 LOGIQUE SPÉCIALE: Si l'organisation était en trial gratuit ET qu'une souscription payante est créée,
+    // on termine immédiatement le trial et on active l'abonnement, même si Stripe dit "trialing"
+    const wasInFreeTrial = organization.subscription_status === "trial" && !organization.stripe_subscription_id;
+    const isNewPaidSubscription = plan && plan.code !== "free";
+
+    if (wasInFreeTrial && isNewPaidSubscription) {
+      // Forcer le statut à "active" pour terminer le trial immédiatement
+      status = "active";
+      logger.info(
+        { organizationId, planCode },
+        "🎉 Trial gratuit terminé, abonnement payant activé immédiatement"
+      );
+    }
 
     // Calculate trial and subscription end dates
-    const trialEnd = subscription.trial_end
-      ? new Date(subscription.trial_end * 1000)
-      : null;
+    let trialEnd: Date | null = null;
+
+    // Si on force le passage de trial à active, on met trial_ends_at à null
+    if (wasInFreeTrial && isNewPaidSubscription) {
+      trialEnd = null; // Le trial est terminé
+    } else if (subscription.trial_end) {
+      trialEnd = new Date(subscription.trial_end * 1000);
+    }
+
     const subscriptionEnd =
       subscription.status === "canceled" && subscription.ended_at
         ? new Date(subscription.ended_at * 1000)
