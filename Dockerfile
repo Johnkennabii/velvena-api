@@ -60,9 +60,9 @@ COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
 COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nodejs:nodejs /app/src ./src
 
-# Create uploads directory
-RUN mkdir -p /app/uploads && \
-    chown -R nodejs:nodejs /app/uploads
+# Create uploads and temp directories
+RUN mkdir -p /app/uploads /app/temp/exports && \
+    chown -R nodejs:nodejs /app/uploads /app/temp
 
 # Switch to nodejs user
 USER nodejs
