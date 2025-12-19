@@ -4,10 +4,15 @@ import pino from "../../lib/logger.js";
 import type { AuthenticatedRequest } from "../../types/express.js";
 
 // GET all colors
-export const getDressColors = async (_req: AuthenticatedRequest, res: Response) => {
+export const getDressColors = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const organizationId = req.user?.organizationId;
+
     const colors = await prisma.dressColor.findMany({
-      where: { deleted_at: null },
+      where: {
+        deleted_at: null,
+        organization_id: organizationId ?? null,
+      },
       orderBy: { name: "asc" },
     });
     res.json({ success: true, data: colors });
@@ -26,7 +31,12 @@ export const createDressColor = async (req: AuthenticatedRequest, res: Response)
     }
 
     const color = await prisma.dressColor.create({
-      data: { name, hex_code, created_by: req.user?.id ?? null },
+      data: {
+        name,
+        hex_code,
+        organization_id: req.user?.organizationId ?? null,
+        created_by: req.user?.id ?? null
+      },
     });
 
     res.status(201).json({ success: true, data: color });

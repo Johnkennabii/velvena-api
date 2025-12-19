@@ -1,4 +1,5 @@
 import { Router } from "express";
+import authMiddleware from "../../middleware/authMiddleware.js";
 import {
   getAllContractPackages,
   getContractPackageById,
@@ -10,11 +11,11 @@ import {
 
 const router = Router();
 
-router.get("/", getAllContractPackages);
-router.get("/:id", getContractPackageById);
-router.post("/", createContractPackage);
-router.put("/:id", updateContractPackage);
-router.patch("/:id/soft", softDeleteContractPackage);
-router.delete("/:id/hard", hardDeleteContractPackage);
+router.get("/", authMiddleware, getAllContractPackages);
+router.get("/:id", authMiddleware, getContractPackageById);
+router.post("/", authMiddleware, createContractPackage);
+router.put("/:id", authMiddleware, updateContractPackage);
+router.patch("/:id/soft", authMiddleware, softDeleteContractPackage);
+router.delete("/:id/hard", authMiddleware, hardDeleteContractPackage);
 
 export default router;

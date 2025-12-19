@@ -4,10 +4,15 @@ import pino from "../../lib/logger.js";
 import type { AuthenticatedRequest } from "../../types/express.js";
 
 // GET all dress sizes
-export const getDressSizes = async (_req: AuthenticatedRequest, res: Response) => {
+export const getDressSizes = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const organizationId = req.user?.organizationId;
+
     const sizes = await prisma.dressSize.findMany({
-      where: { deleted_at: null },
+      where: {
+        deleted_at: null,
+        organization_id: organizationId ?? null,
+      },
       orderBy: { name: "asc" },
     });
     pino.info({ count: sizes.length }, "📌 Récupération des tailles");
@@ -27,6 +32,7 @@ export const createDressSize = async (req: AuthenticatedRequest, res: Response) 
     const size = await prisma.dressSize.create({
       data: {
         name,
+        organization_id: req.user?.organizationId ?? null,
         created_by: req.user?.id ?? null,
       },
     });

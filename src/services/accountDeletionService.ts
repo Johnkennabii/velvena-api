@@ -4,7 +4,12 @@ import pino from "../lib/logger.js";
 import nodemailer from "nodemailer";
 import Stripe from "stripe";
 import { exportOrganizationData } from "./dataExportService.js";
+import {
+  getAccountDeletionValidationEmailTemplate,
+  type AccountDeletionValidationEmailData,
+} from "../templates/emailTemplates.js";
 import fs from "fs";
+import { getRedisClient } from "../lib/redis.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2025-11-17.clover",
@@ -19,7 +24,72 @@ interface DeletionRequest {
   userRole: string; // Role of the user who requested deletion
 }
 
-// In-memory store for deletion codes (in production, use Redis)
+// Redis key prefix for deletion requests
+const REDIS_PREFIX = "account_deletion:";
+
+/**
+ * Sauvegarde une demande de suppression dans Redis
+ */
+async function saveDeletionRequest(organizationId: string, request: DeletionRequest): Promise<void> {
+  try {
+    const redis = getRedisClient();
+    const key = `${REDIS_PREFIX}${organizationId}`;
+    const ttl = Math.floor((request.expiresAt.getTime() - Date.now()) / 1000); // TTL en secondes
+
+    await redis.set(key, JSON.stringify(request), "EX", ttl);
+    pino.info({ organizationId, ttl }, "✅ Demande de suppression sauvegardée dans Redis");
+  } catch (err) {
+    pino.error({ err, organizationId }, "❌ Erreur sauvegarde Redis, fallback sur Map en mémoire");
+    // Fallback sur Map en mémoire si Redis est indisponible
+    deletionRequests.set(organizationId, request);
+  }
+}
+
+/**
+ * Récupère une demande de suppression depuis Redis
+ */
+async function getDeletionRequest(organizationId: string): Promise<DeletionRequest | null> {
+  try {
+    const redis = getRedisClient();
+    const key = `${REDIS_PREFIX}${organizationId}`;
+    const data = await redis.get(key);
+
+    if (!data) {
+      // Fallback: vérifier le Map en mémoire
+      const memoryRequest = deletionRequests.get(organizationId);
+      return memoryRequest || null;
+    }
+
+    const request = JSON.parse(data) as DeletionRequest;
+    // Reconvertir les dates (JSON les transforme en string)
+    request.expiresAt = new Date(request.expiresAt);
+    request.requestedAt = new Date(request.requestedAt);
+
+    return request;
+  } catch (err) {
+    pino.error({ err, organizationId }, "❌ Erreur lecture Redis, fallback sur Map");
+    return deletionRequests.get(organizationId) || null;
+  }
+}
+
+/**
+ * Supprime une demande de suppression de Redis
+ */
+async function deleteDeletionRequest(organizationId: string): Promise<void> {
+  try {
+    const redis = getRedisClient();
+    const key = `${REDIS_PREFIX}${organizationId}`;
+    await redis.del(key);
+    pino.info({ organizationId }, "🗑️ Demande de suppression retirée de Redis");
+  } catch (err) {
+    pino.error({ err, organizationId }, "❌ Erreur suppression Redis");
+  }
+
+  // Nettoyer aussi le Map en mémoire (fallback)
+  deletionRequests.delete(organizationId);
+}
+
+// In-memory fallback store (used only if Redis is unavailable)
 const deletionRequests = new Map<string, DeletionRequest>();
 
 interface RequestDeletionResult {
@@ -91,29 +161,36 @@ export async function requestAccountDeletion(
     }
 
     const userRole = requestingUser.profile?.role?.name;
-    if (userRole !== "owner" && userRole !== "admin") {
+
+    // Check if user has permission to delete
+    // ADMIN and MANAGER can delete, others cannot
+    const canDelete = userRole === "ADMIN" || userRole === "MANAGER";
+
+    if (!canDelete) {
       return {
         success: false,
         message:
-          "Only organization owners and admins can request account deletion",
+          "Only organization managers and admins can request account deletion",
       };
     }
 
-    // ✅ ADMINS can delete without email validation
-    // ✅ OWNERS (managers) must validate via email code
-    const isAdmin = userRole === "admin";
+    // ✅ ADMIN can delete without email validation
+    // ✅ MANAGER must validate via email code
+    const isAdmin = userRole === "ADMIN";
 
     if (isAdmin) {
       // For admins: No email validation required
       // Store a dummy request for confirmation step
-      deletionRequests.set(organizationId, {
+      const adminRequest = {
         organizationId,
         validationCode: "ADMIN_BYPASS", // Special code for admins
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h validity
         requestedBy: requestedByUserId,
         requestedAt: new Date(),
         userRole: "admin",
-      });
+      };
+
+      await saveDeletionRequest(organizationId, adminRequest);
 
       pino.info(
         { organizationId, userId: requestedByUserId },
@@ -127,23 +204,25 @@ export async function requestAccountDeletion(
       };
     }
 
-    // For owners: Email validation required
+    // For managers: Email validation required
     const validationCode = crypto.randomInt(100000, 999999).toString();
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
 
     // Store deletion request
-    deletionRequests.set(organizationId, {
+    const managerRequest = {
       organizationId,
       validationCode,
       expiresAt,
       requestedBy: requestedByUserId,
       requestedAt: new Date(),
-      userRole: "owner",
-    });
+      userRole: "manager",
+    };
+
+    await saveDeletionRequest(organizationId, managerRequest);
 
     pino.info(
       { organizationId, expiresAt },
-      "📧 Owner deletion request - sending validation code to organization email..."
+      "📧 Manager deletion request - sending validation code to organization email..."
     );
 
     // Send validation email to ORGANIZATION email (not user email)
@@ -198,7 +277,7 @@ export async function confirmAccountDeletion(
     );
 
     // Verify deletion request exists
-    const request = deletionRequests.get(organizationId);
+    const request = await getDeletionRequest(organizationId);
 
     if (!request) {
       return {
@@ -225,13 +304,13 @@ export async function confirmAccountDeletion(
         "🔓 Admin deletion confirmed - bypassing email validation"
       );
     } else {
-      // For owner requests, strict validation required
+      // For manager requests, strict validation required
 
       // Verify code matches
       if (request.validationCode !== validationCode) {
         pino.warn(
           { organizationId },
-          "⚠️ Invalid deletion code provided by owner"
+          "⚠️ Invalid deletion code provided by manager"
         );
 
         return {
@@ -242,7 +321,7 @@ export async function confirmAccountDeletion(
 
       // Verify code hasn't expired
       if (new Date() > request.expiresAt) {
-        deletionRequests.delete(organizationId);
+        await deleteDeletionRequest(organizationId);
         return {
           success: false,
           message: "Validation code expired. Please request deletion again.",
@@ -251,7 +330,7 @@ export async function confirmAccountDeletion(
 
       pino.info(
         { organizationId },
-        "✅ Owner deletion code validated successfully"
+        "✅ Manager deletion code validated successfully"
       );
     }
 
@@ -267,6 +346,25 @@ export async function confirmAccountDeletion(
       { organizationId },
       "✅ Validation successful, proceeding with deletion..."
     );
+
+    // ========================================
+    // STEP 0: GET USER EMAIL BEFORE DELETION
+    // ========================================
+    const requestingUser = await prisma.user.findUnique({
+      where: { id: requestedByUserId },
+      select: { email: true },
+    });
+
+    if (!requestingUser?.email) {
+      pino.error({ userId: requestedByUserId }, "❌ Cannot find user email");
+      return {
+        success: false,
+        message: "User email not found. Cannot proceed with deletion.",
+      };
+    }
+
+    const userEmail = requestingUser.email;
+    pino.info({ userEmail }, "✅ User email retrieved for confirmation");
 
     // ========================================
     // STEP 1: EXPORT DATA
@@ -342,35 +440,90 @@ export async function confirmAccountDeletion(
 
     // Delete in correct order to respect foreign key constraints
     try {
-      // 1. Delete contracts (references dresses and customers)
+      // 1. First, delete contract-related junction tables
+      // Get all contract IDs for this organization
+      const contractIds = await prisma.contract.findMany({
+        where: { organization_id: organizationId },
+        select: { id: true },
+      });
+      const contractIdList = contractIds.map(c => c.id);
+
+      if (contractIdList.length > 0) {
+        // Delete contract sign links
+        await prisma.contractSignLink.deleteMany({
+          where: { contract_id: { in: contractIdList } },
+        });
+        // Delete contract dress links
+        await prisma.contractDress.deleteMany({
+          where: { contract_id: { in: contractIdList } },
+        });
+        // Delete contract addon links
+        await prisma.contractAddonLink.deleteMany({
+          where: { contract_id: { in: contractIdList } },
+        });
+        pino.info("✓ Contract junction tables deleted");
+      }
+
+      // 2. Now delete contracts
       const contractsResult = await prisma.contract.deleteMany({
         where: { organization_id: organizationId },
       });
       deletedData.contracts = contractsResult.count;
       pino.info({ count: contractsResult.count }, "✓ Contracts deleted");
 
-      // 2. Delete dresses
+      // 3. Delete dresses
       const dressesResult = await prisma.dress.deleteMany({
         where: { organization_id: organizationId },
       });
       deletedData.dresses = dressesResult.count;
       pino.info({ count: dressesResult.count }, "✓ Dresses deleted");
 
-      // 3. Delete customers
+      // 4. Delete customers
       const customersResult = await prisma.customer.deleteMany({
         where: { organization_id: organizationId },
       });
       deletedData.customers = customersResult.count;
       pino.info({ count: customersResult.count }, "✓ Customers deleted");
 
-      // 4. Delete prospects
+      // 5. Delete prospects
       const prospectsResult = await prisma.prospect.deleteMany({
         where: { organization_id: organizationId },
       });
       deletedData.prospects = prospectsResult.count;
       pino.info({ count: prospectsResult.count }, "✓ Prospects deleted");
 
-      // 5. Delete reference data (dress types, sizes, colors, conditions)
+      // 6. Delete contract templates, addons, packages, and pricing rules
+      await prisma.contractTemplate.deleteMany({
+        where: { organization_id: organizationId },
+      });
+
+      // Get all package IDs for this organization before deleting packages
+      const packageIds = await prisma.contractPackage.findMany({
+        where: { organization_id: organizationId },
+        select: { id: true },
+      });
+      const packageIdList = packageIds.map(p => p.id);
+
+      // Delete PackageAddon links before deleting packages
+      if (packageIdList.length > 0) {
+        await prisma.packageAddon.deleteMany({
+          where: { package_id: { in: packageIdList } },
+        });
+        pino.info("✓ Package addon links deleted");
+      }
+
+      await prisma.contractPackage.deleteMany({
+        where: { organization_id: organizationId },
+      });
+      await prisma.contractAddon.deleteMany({
+        where: { organization_id: organizationId },
+      });
+      await prisma.pricingRule.deleteMany({
+        where: { organization_id: organizationId },
+      });
+      pino.info("✓ Contract-related data deleted");
+
+      // 7. Delete reference data (dress types, sizes, colors, conditions)
       await prisma.dressType.deleteMany({
         where: { organization_id: organizationId },
       });
@@ -385,25 +538,37 @@ export async function confirmAccountDeletion(
       });
       pino.info("✓ Reference data deleted");
 
-      // 6. Delete user profiles and users
+      // 8. Delete user-related data (profiles, notifications, then users)
       const users = await prisma.user.findMany({
         where: { organization_id: organizationId },
         select: { id: true },
       });
+      const userIdList = users.map(u => u.id);
 
-      for (const user of users) {
-        await prisma.profile.deleteMany({
-          where: { userId: user.id },
+      if (userIdList.length > 0) {
+        // Delete notification links
+        await prisma.notificationUserLink.deleteMany({
+          where: { user_id: { in: userIdList } },
         });
+        pino.info("✓ Notification links deleted");
+
+        // Delete profiles
+        for (const user of users) {
+          await prisma.profile.deleteMany({
+            where: { userId: user.id },
+          });
+        }
+        pino.info("✓ User profiles deleted");
       }
 
+      // Finally delete users
       const usersResult = await prisma.user.deleteMany({
         where: { organization_id: organizationId },
       });
       deletedData.users = usersResult.count;
       pino.info({ count: usersResult.count }, "✓ Users deleted");
 
-      // 7. Finally, delete the organization itself
+      // 9. Finally, delete the organization itself
       await prisma.organization.delete({
         where: { id: organizationId },
       });
@@ -424,16 +589,15 @@ export async function confirmAccountDeletion(
     // ========================================
     // STEP 4: SEND CONFIRMATION EMAIL WITH ZIP
     // ========================================
-    const orgEmail = organization?.stripe_customer_id || "deleted-org";
     await sendDeletionConfirmationEmail(
-      request.requestedBy,
+      userEmail,
       organizationId,
       exportResult.zipPath!,
       deletedData
     );
 
-    // Remove deletion request from memory
-    deletionRequests.delete(organizationId);
+    // Remove deletion request from Redis
+    await deleteDeletionRequest(organizationId);
 
     pino.info(
       { organizationId, deletedData },
@@ -473,53 +637,22 @@ async function sendDeletionValidationEmail(
     secure: process.env.SMTP_SECURE === "true",
     auth: {
       user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
+      pass: process.env.SMTP_PASS,
     },
   });
+
+  const emailData: AccountDeletionValidationEmailData = {
+    organizationName,
+    organizationEmail: email,
+    validationCode,
+    expiresAt,
+  };
 
   const mailOptions = {
     from: process.env.SMTP_FROM || "noreply@velvena.com",
     to: email,
-    subject: "🚨 Account Deletion Confirmation - Validation Code",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #d32f2f;">⚠️ Account Deletion Request</h2>
-
-        <p>A request to delete the account for <strong>${organizationName}</strong> has been initiated.</p>
-
-        <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
-          <h3 style="margin-top: 0; color: #856404;">Validation Code</h3>
-          <p style="font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 10px 0; color: #212529;">
-            ${validationCode}
-          </p>
-          <p style="margin-bottom: 0; font-size: 14px; color: #856404;">
-            This code expires at ${expiresAt.toLocaleString("en-US", { timeZone: "UTC" })} UTC (30 minutes)
-          </p>
-        </div>
-
-        <div style="background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0;">
-          <h4 style="margin-top: 0; color: #721c24;">⚠️ Warning: This action is irreversible</h4>
-          <p style="margin-bottom: 0; color: #721c24;">
-            Confirming this deletion will:
-          </p>
-          <ul style="color: #721c24;">
-            <li>Permanently delete all your data (users, dresses, contracts, clients, prospects)</li>
-            <li>Cancel your Stripe subscription</li>
-            <li>Export your data as a ZIP file and send it to this email</li>
-          </ul>
-        </div>
-
-        <p style="color: #666;">
-          If you did not request this deletion, please ignore this email and contact support immediately.
-        </p>
-
-        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-
-        <p style="font-size: 12px; color: #999;">
-          This email was sent by Velvena. This is an automated message, please do not reply.
-        </p>
-      </div>
-    `,
+    subject: `⚠️ Suppression de compte – Code de validation`,
+    html: getAccountDeletionValidationEmailTemplate(emailData),
   };
 
   await transporter.sendMail(mailOptions);
@@ -531,21 +664,11 @@ async function sendDeletionValidationEmail(
  * Send deletion confirmation email with ZIP attachment
  */
 async function sendDeletionConfirmationEmail(
-  userId: string,
+  userEmail: string,
   organizationId: string,
   zipPath: string,
   deletedData: any
 ): Promise<void> {
-  // Get user email
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { email: true },
-  });
-
-  if (!user) {
-    pino.warn({ userId }, "⚠️ User not found, cannot send confirmation email");
-    return;
-  }
 
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
@@ -553,13 +676,13 @@ async function sendDeletionConfirmationEmail(
     secure: process.env.SMTP_SECURE === "true",
     auth: {
       user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
+      pass: process.env.SMTP_PASS,
     },
   });
 
   const mailOptions = {
     from: process.env.SMTP_FROM || "noreply@velvena.com",
-    to: user.email,
+    to: userEmail,
     subject: "✅ Account Deleted - Your Data Export",
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -617,7 +740,7 @@ async function sendDeletionConfirmationEmail(
 
   await transporter.sendMail(mailOptions);
 
-  pino.info({ email: user.email }, "📧 Deletion confirmation email sent with ZIP attachment");
+  pino.info({ email: userEmail }, "📧 Deletion confirmation email sent with ZIP attachment");
 
   // Clean up ZIP file after sending email (7 days retention)
   setTimeout(() => {
@@ -630,11 +753,14 @@ async function sendDeletionConfirmationEmail(
 
 /**
  * Cleanup expired deletion requests
+ * Note: Redis gère l'expiration automatiquement avec TTL
+ * Cette fonction nettoie seulement le fallback Map en mémoire
  */
 function cleanupExpiredDeletionRequests(): void {
   const now = new Date();
   let cleaned = 0;
 
+  // Nettoyer seulement le Map en mémoire (fallback)
   for (const [orgId, request] of deletionRequests.entries()) {
     if (now > request.expiresAt) {
       deletionRequests.delete(orgId);
@@ -643,15 +769,15 @@ function cleanupExpiredDeletionRequests(): void {
   }
 
   if (cleaned > 0) {
-    pino.info({ cleaned }, "🧹 Cleaned up expired deletion requests");
+    pino.info({ cleaned }, "🧹 Cleaned up expired deletion requests from memory");
   }
 }
 
 /**
  * Get pending deletion request (for debugging/admin)
  */
-export function getPendingDeletionRequest(
+export async function getPendingDeletionRequest(
   organizationId: string
-): DeletionRequest | undefined {
-  return deletionRequests.get(organizationId);
+): Promise<DeletionRequest | null> {
+  return await getDeletionRequest(organizationId);
 }

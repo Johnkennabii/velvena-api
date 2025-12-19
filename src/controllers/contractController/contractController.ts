@@ -15,6 +15,10 @@ import { emitAndStoreNotification } from "../../utils/notifications.js";
 import { buildStoragePath, buildListPrefix, buildPublicUrl } from "../../utils/storageHelper.js";
 import { requireOrganizationContext } from "../../utils/organizationHelper.js";
 import type { AuthenticatedRequest } from "../../types/express.js";
+import {
+  getContractSignEmailTemplate,
+  type ContractSignEmailData,
+} from "../../templates/emailTemplates.js";
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 
 const s3 = new S3Client({
@@ -547,108 +551,22 @@ export const generateSignatureLink = async (req: Request, res: Response) => {
     // ✉️ Préparation de l'email
     const customerFirstName = contract.customer?.firstname?.trim() || "";
     const customerLastName = contract.customer?.lastname?.trim() || "";
+    const customerName = `${customerFirstName} ${customerLastName}`.trim() || "Client";
     const organizationName = contract.organization?.name || "Votre Organisation";
+
+    const emailData: ContractSignEmailData = {
+      organizationName,
+      customerName,
+      contractNumber: contract.contract_number || "",
+      signatureUrl: url,
+      expiresAt: expiresAtFormatted,
+    };
 
 const mailOptions = {
   from: process.env.SMTP_FROM,
   to: email,
-  subject: `Signature électronique de votre contrat – ${organizationName}`,
-  html: `
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f7f7f7; padding:40px 0; font-family:Arial, sans-serif;">
-    <tr>
-      <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background:white; padding:32px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
-
-          <!-- HEADER -->
-          <tr>
-            <td style="text-align:center; padding-bottom:20px;">
-              <h2 style="margin:0; font-size:22px; color:#111827;">
-                Signature électronique – ${organizationName}
-              </h2>
-              <p style="margin:6px 0 0; color:#6b7280; font-size:14px;">
-                Contrat à signer en ligne
-              </p>
-            </td>
-          </tr>
-
-          <!-- INTRO -->
-          <tr>
-            <td style="font-size:15px; color:#374151; line-height:1.6;">
-              Bonjour ${customerLastName || ""} ${customerFirstName || ""},<br><br>
-              Votre contrat ${organizationName} est prêt. Vous pouvez désormais procéder à sa
-              <strong>signature électronique</strong> en suivant les étapes ci-dessous.
-            </td>
-          </tr>
-
-          <!-- STEPS -->
-          <tr>
-            <td style="padding:20px 0;">
-              <div style="background:#f3f4f6; padding:16px; border-radius:8px; color:#374151; font-size:14px; line-height:1.6;">
-                <strong>Étapes à suivre :</strong>
-                <ol style="margin:12px 0 0 18px; padding:0;">
-                  <li>Cliquez sur le lien ou le bouton ci-dessous.</li>
-                  <li>Vérifiez attentivement les informations du contrat.</li>
-                  <li>Cochez la case de validation pour confirmer votre accord.</li>
-                  <li>Validez votre signature électronique.</li>
-                </ol>
-              </div>
-            </td>
-          </tr>
-
-          <!-- BUTTON -->
-          <tr>
-            <td style="text-align:center; padding:20px 0;">
-              <a href="${url}"
-                 style="
-                   display:inline-block;
-                   padding:12px 24px;
-                   background:#111827;
-                   color:white;
-                   text-decoration:none;
-                   border-radius:6px;
-                   font-size:15px;
-                   font-weight:bold;
-                 "
-                 target="_blank"
-              >
-                Signer mon contrat
-              </a>
-            </td>
-          </tr>
-
-          <!-- RAW URL -->
-          <tr>
-            <td style="font-size:13px; color:#6b7280; text-align:center; padding-bottom:20px;">
-              Si le bouton ne fonctionne pas, utilisez ce lien :<br>
-              <a href="${url}" style="color:#2563eb;">${url}</a>
-            </td>
-          </tr>
-
-          <!-- EXPIRATION -->
-          <tr>
-            <td>
-              <div style="background:#fff7ed; border:1px solid #fed7aa; padding:16px; border-radius:8px; font-size:14px; color:#9a3412;">
-                ⚠️ <strong>Important :</strong> ce lien expirera le <strong>${expiresAtFormatted}</strong>.<br>
-                Au-delà de cette date, un nouveau lien devra être généré.
-              </div>
-            </td>
-          </tr>
-
-          <!-- FOOTER -->
-          <tr>
-            <td style="padding-top:28px; font-size:14px; color:#374151; line-height:1.6;">
-              Si vous avez la moindre question ou rencontrez une difficulté,
-              vous pouvez répondre directement par voie téléphonique.<br><br>
-              Merci de votre confiance,<br>
-              <strong>L'équipe ${organizationName}</strong>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-  `,
+  subject: `✍️ Signature de votre contrat – ${organizationName}`,
+  html: getContractSignEmailTemplate(emailData),
 };
     logger.info({ to: email }, "📤 Envoi de l’e-mail de signature en cours...");
 

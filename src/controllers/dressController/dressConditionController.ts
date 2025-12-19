@@ -4,10 +4,15 @@ import pino from "../../lib/logger.js";
 import type { AuthenticatedRequest } from "../../types/express.js";
 
 // GET all conditions
-export const getDressConditions = async (_req: AuthenticatedRequest, res: Response) => {
+export const getDressConditions = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const organizationId = req.user?.organizationId;
+
     const conditions = await prisma.dressCondition.findMany({
-      where: { deleted_at: null },
+      where: {
+        deleted_at: null,
+        organization_id: organizationId ?? null,
+      },
       orderBy: { name: "asc" },
     });
     pino.info({ count: conditions.length }, "📌 Récupération des conditions");
@@ -25,7 +30,11 @@ export const createDressCondition = async (req: AuthenticatedRequest, res: Respo
     if (!name) return res.status(400).json({ success: false, error: "Name is required" });
 
     const condition = await prisma.dressCondition.create({
-      data: { name, created_by: req.user?.id ?? null },
+      data: {
+        name,
+        organization_id: req.user?.organizationId ?? null,
+        created_by: req.user?.id ?? null
+      },
     });
 
     pino.info({ condition }, "✅ Condition créée");

@@ -4,10 +4,15 @@ import pino from "../../lib/logger.js";
 import type { AuthenticatedRequest } from "../../types/express.js";
 
 // GET all addons
-export const getContractAddons = async (_req: AuthenticatedRequest, res: Response) => {
+export const getContractAddons = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const organizationId = req.user?.organizationId;
+
     const addons = await prisma.contractAddon.findMany({
-      where: { deleted_at: null },
+      where: {
+        deleted_at: null,
+        organization_id: organizationId ?? null,
+      },
       orderBy: { name: "asc" },
     });
     res.json({ success: true, data: addons });
@@ -48,6 +53,7 @@ export const createContractAddon = async (req: AuthenticatedRequest, res: Respon
         price_ht,
         price_ttc,
         included: included ?? false,
+        organization_id: req.user?.organizationId ?? null,
         created_by: req.user?.id ?? null,
       },
     });

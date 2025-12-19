@@ -4,8 +4,13 @@ import { v4 as uuidv4 } from "uuid";
 
 export const getAllContractPackages = async (req: Request, res: Response) => {
   try {
+    const organizationId = (req as any).user?.organizationId;
+
     const packages = await prisma.contractPackage.findMany({
-      where: { deleted_at: null },
+      where: {
+        deleted_at: null,
+        organization_id: organizationId ?? null,
+      },
       include: { addons: true },
     });
     res.json({ success: true, data: packages });
@@ -42,6 +47,7 @@ export const createContractPackage = async (req: Request, res: Response) => {
         num_dresses,
         price_ht,
         price_ttc,
+        organization_id: (req as any).user?.organizationId || null,
         created_at: now,
         created_by: (req as any).user?.id || null,
         ...(addon_ids && addon_ids.length > 0

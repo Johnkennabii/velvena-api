@@ -18,7 +18,7 @@ router.post(
   authMiddleware,
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const userId = (req as any).user?.userId;
+      const userId = (req as any).user?.id;
       const organizationId = (req as any).user?.organizationId;
 
       if (!userId || !organizationId) {
@@ -71,7 +71,7 @@ router.post(
   authMiddleware,
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const userId = (req as any).user?.userId;
+      const userId = (req as any).user?.id;
       const organizationId = (req as any).user?.organizationId;
       const { validationCode } = req.body;
 

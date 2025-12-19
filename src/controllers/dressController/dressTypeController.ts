@@ -4,10 +4,14 @@ import prisma from "../../lib/prisma.js";
 import pino from "../../lib/logger.js";
 
 // Récupérer tous les types (hors supprimés si soft delete)
-export const getDressTypes = async (_req: Request, res: Response) => {
+export const getDressTypes = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const organizationId = req.user?.organizationId;
     const types = await prisma.dressType.findMany({
-      where: { deleted_at: null },
+      where: {
+        deleted_at: null,
+        organization_id: organizationId ?? null,
+      },
       orderBy: { name: "asc" },
     });
     res.json({ success: true, data: types });
@@ -33,6 +37,7 @@ export const createDressType = async (req: AuthenticatedRequest, res: Response) 
       data: {
         name,
         description,
+        organization_id: req.user?.organizationId ?? null,
         created_by: req.user?.id ?? null,
       },
     });

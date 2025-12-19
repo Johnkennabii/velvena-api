@@ -48,14 +48,14 @@ async function updateAllOrganizations() {
         data: {
           siret: org.siret || "98528788000014",
           manager_gender: "Madame",
-          manager_first_name: "Hassna",
-          manager_last_name: "NAFILI",
+          manager_first_name: "Jean",
+          manager_last_name: "Dupont",
           manager_title: "gérante",
 
           // S'assurer que les champs de base sont remplis
-          city: "Asnières-sur-Seine",
-          address: "4 avenue Laurent Cély",
-          postal_code: "92600",
+          city: "Paris",
+          address: "12 rue de la paix",
+          postal_code: "75000",
           country: "France",
         },
       });
