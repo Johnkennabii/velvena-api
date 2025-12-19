@@ -3,7 +3,7 @@
     "post": {
       "tags": ["Account"],
       "summary": "Request account deletion (Step 1/2)",
-      "description": "Initiates the account deletion process by generating a 6-digit validation code and sending it via email. Only organization owners and admins can request account deletion. The validation code expires in 30 minutes.",
+      "description": "Initiates the account deletion process.\n\n**For ADMINS:**\n- No email validation required\n- Can proceed immediately to confirmation step\n- Response message: 'Admin deletion request approved. You can proceed immediately.'\n\n**For OWNERS (managers):**\n- Generates a 6-digit validation code\n- Code sent to **organization email** (not user email)\n- Code expires in 30 minutes\n- Organization email must be set in organization settings",
       "operationId": "requestAccountDeletion",
       "security": [{ "bearerAuth": [] }],
       "requestBody": {
@@ -42,10 +42,23 @@
                 },
                 "required": ["success", "message", "expiresAt"]
               },
-              "example": {
-                "success": true,
-                "message": "Validation code sent to contact@velvena.com. Code expires in 30 minutes.",
-                "expiresAt": "2025-12-19T14:30:00.000Z"
+              "examples": {
+                "ownerRequest": {
+                  "summary": "Owner/Manager request (email validation required)",
+                  "value": {
+                    "success": true,
+                    "message": "Validation code sent to organization email: contact@velvena.com. Code expires in 30 minutes.",
+                    "expiresAt": "2025-12-19T14:30:00.000Z"
+                  }
+                },
+                "adminRequest": {
+                  "summary": "Admin request (no email validation)",
+                  "value": {
+                    "success": true,
+                    "message": "Admin deletion request approved. You can proceed immediately.",
+                    "expiresAt": "2025-12-20T14:00:00.000Z"
+                  }
+                }
               }
             }
           }
@@ -74,6 +87,13 @@
                   "value": {
                     "success": false,
                     "error": "Organization not found"
+                  }
+                },
+                "noOrgEmail": {
+                  "summary": "Organization email not set (Owner/Manager only)",
+                  "value": {
+                    "success": false,
+                    "error": "Organization email is required for validation. Please set it in organization settings."
                   }
                 }
               }

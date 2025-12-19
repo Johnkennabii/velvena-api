@@ -16,6 +16,7 @@ interface DeletionRequest {
   expiresAt: Date;
   requestedBy: string;
   requestedAt: Date;
+  userRole: string; // Role of the user who requested deletion
 }
 
 // In-memory store for deletion codes (in production, use Redis)
@@ -98,11 +99,37 @@ export async function requestAccountDeletion(
       };
     }
 
-    // Generate 6-digit validation code
-    const validationCode = crypto.randomInt(100000, 999999).toString();
+    // ✅ ADMINS can delete without email validation
+    // ✅ OWNERS (managers) must validate via email code
+    const isAdmin = userRole === "admin";
 
-    // Code expires in 30 minutes
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+    if (isAdmin) {
+      // For admins: No email validation required
+      // Store a dummy request for confirmation step
+      deletionRequests.set(organizationId, {
+        organizationId,
+        validationCode: "ADMIN_BYPASS", // Special code for admins
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h validity
+        requestedBy: requestedByUserId,
+        requestedAt: new Date(),
+        userRole: "admin",
+      });
+
+      pino.info(
+        { organizationId, userId: requestedByUserId },
+        "🔓 Admin deletion request - no email validation required"
+      );
+
+      return {
+        success: true,
+        message: "Admin deletion request approved. You can proceed immediately.",
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      };
+    }
+
+    // For owners: Email validation required
+    const validationCode = crypto.randomInt(100000, 999999).toString();
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
 
     // Store deletion request
     deletionRequests.set(organizationId, {
@@ -111,16 +138,24 @@ export async function requestAccountDeletion(
       expiresAt,
       requestedBy: requestedByUserId,
       requestedAt: new Date(),
+      userRole: "owner",
     });
 
     pino.info(
       { organizationId, expiresAt },
-      "📧 Deletion validation code generated, sending email..."
+      "📧 Owner deletion request - sending validation code to organization email..."
     );
 
-    // Send validation email
+    // Send validation email to ORGANIZATION email (not user email)
+    if (!organization.email) {
+      return {
+        success: false,
+        message: "Organization email is required for validation. Please set it in organization settings.",
+      };
+    }
+
     await sendDeletionValidationEmail(
-      organization.email || requestingUser.email,
+      organization.email, // Always send to organization email for owners
       organization.name,
       validationCode,
       expiresAt
@@ -131,7 +166,7 @@ export async function requestAccountDeletion(
 
     return {
       success: true,
-      message: `Validation code sent to ${organization.email || requestingUser.email}. Code expires in 30 minutes.`,
+      message: `Validation code sent to organization email: ${organization.email}. Code expires in 30 minutes.`,
       expiresAt,
     };
   } catch (error) {
@@ -172,26 +207,52 @@ export async function confirmAccountDeletion(
       };
     }
 
-    // Verify code matches
-    if (request.validationCode !== validationCode) {
-      pino.warn(
-        { organizationId },
-        "⚠️ Invalid deletion code provided"
+    // ✅ ADMIN BYPASS: Admins can use special code or no code
+    const isAdminRequest = request.userRole === "admin";
+
+    if (isAdminRequest) {
+      // For admin requests, accept either "ADMIN_BYPASS" or empty string
+      if (validationCode !== "ADMIN_BYPASS" && validationCode !== "") {
+        pino.warn(
+          { organizationId },
+          "⚠️ Admin attempting to use code instead of bypass"
+        );
+        // Still allow admin to proceed without code validation
+      }
+
+      pino.info(
+        { organizationId, userId: requestedByUserId },
+        "🔓 Admin deletion confirmed - bypassing email validation"
       );
+    } else {
+      // For owner requests, strict validation required
 
-      return {
-        success: false,
-        message: "Invalid validation code",
-      };
-    }
+      // Verify code matches
+      if (request.validationCode !== validationCode) {
+        pino.warn(
+          { organizationId },
+          "⚠️ Invalid deletion code provided by owner"
+        );
 
-    // Verify code hasn't expired
-    if (new Date() > request.expiresAt) {
-      deletionRequests.delete(organizationId);
-      return {
-        success: false,
-        message: "Validation code expired. Please request deletion again.",
-      };
+        return {
+          success: false,
+          message: "Invalid validation code",
+        };
+      }
+
+      // Verify code hasn't expired
+      if (new Date() > request.expiresAt) {
+        deletionRequests.delete(organizationId);
+        return {
+          success: false,
+          message: "Validation code expired. Please request deletion again.",
+        };
+      }
+
+      pino.info(
+        { organizationId },
+        "✅ Owner deletion code validated successfully"
+      );
     }
 
     // Verify requester matches

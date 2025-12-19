@@ -83,13 +83,9 @@ router.post(
         return;
       }
 
-      if (!validationCode) {
-        res.status(400).json({
-          success: false,
-          error: "Validation code is required",
-        });
-        return;
-      }
+      // Validation code is optional for admins (they can send empty string or "ADMIN_BYPASS")
+      // For owners, it's required
+      const codeToUse = validationCode || "ADMIN_BYPASS";
 
       pino.info(
         { userId, organizationId },
@@ -98,7 +94,7 @@ router.post(
 
       const result = await confirmAccountDeletion(
         organizationId,
-        validationCode.toString(),
+        codeToUse.toString(),
         userId
       );
 

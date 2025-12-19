@@ -3,12 +3,12 @@
     "post": {
       "tags": ["Account"],
       "summary": "Confirm account deletion (Step 2/2)",
-      "description": "Confirms and executes account deletion after validating the 6-digit code sent via email. This will:\n\n1. ✅ Export all organization data as a ZIP file (signed contracts, Stripe invoices, clients, prospects)\n2. 🗑️ Permanently delete all organization data from the database\n3. 💳 Cancel active Stripe subscriptions\n4. 📧 Send confirmation email with ZIP attachment\n\n⚠️ **WARNING: This action is IRREVERSIBLE!** All data will be permanently deleted.",
+      "description": "Confirms and executes account deletion.\n\n**For ADMINS:**\n- Can send `validationCode` as empty string or \"ADMIN_BYPASS\"\n- No email validation required\n- Proceeds immediately with deletion\n\n**For OWNERS (managers):**\n- Must provide the 6-digit code from organization email\n- Code must be valid and not expired\n\n**Deletion Process:**\n1. ✅ Export all organization data as a ZIP file (signed contracts, Stripe invoices, clients, prospects)\n2. 🗑️ Permanently delete all organization data from the database\n3. 💳 Cancel active Stripe subscriptions\n4. 📧 Send confirmation email with ZIP attachment\n\n⚠️ **WARNING: This action is IRREVERSIBLE!** All data will be permanently deleted.",
       "operationId": "confirmAccountDeletion",
       "security": [{ "bearerAuth": [] }],
       "requestBody": {
         "required": true,
-        "description": "The 6-digit validation code received via email",
+        "description": "Validation code (required for owners, optional for admins)",
         "content": {
           "application/json": {
             "schema": {
@@ -16,15 +16,24 @@
               "properties": {
                 "validationCode": {
                   "type": "string",
-                  "description": "6-digit validation code from email",
-                  "example": "123456",
-                  "pattern": "^[0-9]{6}$"
+                  "description": "6-digit code from email (owners) or empty string/ADMIN_BYPASS (admins)",
+                  "example": "123456"
+                }
+              }
+            },
+            "examples": {
+              "ownerCode": {
+                "summary": "Owner/Manager with email code",
+                "value": {
+                  "validationCode": "123456"
                 }
               },
-              "required": ["validationCode"]
-            },
-            "example": {
-              "validationCode": "123456"
+              "adminBypass": {
+                "summary": "Admin without code",
+                "value": {
+                  "validationCode": ""
+                }
+              }
             }
           }
         }
