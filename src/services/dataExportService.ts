@@ -5,6 +5,11 @@ import { Readable } from "stream";
 import prisma from "../lib/prisma.js";
 import pino from "../lib/logger.js";
 import Stripe from "stripe";
+import {
+  dataExportsCounter,
+  exportFileSizeHistogram,
+  exportDurationHistogram,
+} from "../utils/metrics.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2025-11-17.clover",
@@ -30,6 +35,9 @@ interface ExportResult {
 export async function exportOrganizationData(
   organizationId: string
 ): Promise<ExportResult> {
+  // 📊 Metrics: Start timer for export duration
+  const exportTimer = exportDurationHistogram.startTimer();
+
   const timestamp = Date.now();
   const tempDir = path.join(process.cwd(), "temp", "exports");
   const zipFileName = `organization_${organizationId}_${timestamp}.zip`;
@@ -334,12 +342,26 @@ export async function exportOrganizationData(
       "✅ Organization data export completed successfully"
     );
 
+    // 📊 Metrics: Stop timer and record successful export
+    exportTimer();
+    dataExportsCounter.inc({ status: "success" });
+
+    // 📊 Metrics: Record file size
+    if (fs.existsSync(zipPath)) {
+      const fileStats = fs.statSync(zipPath);
+      exportFileSizeHistogram.observe(fileStats.size);
+    }
+
     return {
       success: true,
       zipPath,
       stats,
     };
   } catch (error) {
+    // 📊 Metrics: Stop timer and record failed export
+    exportTimer();
+    dataExportsCounter.inc({ status: "failure" });
+
     pino.error(
       { organizationId, error },
       "❌ Failed to export organization data"

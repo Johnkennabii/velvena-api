@@ -1,6 +1,7 @@
 import prisma from "../lib/prisma.js";
 import pino from "../lib/logger.js";
 import type { Request } from "express";
+import { auditLogsCounter } from "../utils/metrics.js";
 
 /**
  * Audit Logger Service
@@ -131,6 +132,12 @@ export async function logAudit(data: AuditLogData) {
 
     const auditLog = await prisma.auditLog.create({
       data: createData,
+    });
+
+    // 📊 Metrics: Count audit log creation
+    auditLogsCounter.inc({
+      action: data.action,
+      status: data.status,
     });
 
     pino.info(

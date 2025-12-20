@@ -20,6 +20,15 @@ import {
   logAccountDeletionFailed,
   logDataExport,
 } from "./auditLogger.js";
+import {
+  deletionRequestsCounter,
+  deletionValidationFailuresCounter,
+  deletionConfirmedCounter,
+  deletionDurationHistogram,
+  deletionRecordsGauge,
+  emailsSentCounter,
+  emailSendDurationHistogram,
+} from "../utils/metrics.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2025-11-17.clover",
@@ -225,6 +234,9 @@ export async function requestAccountDeletion(
         req
       );
 
+      // 📊 Metrics: Count successful deletion request
+      deletionRequestsCounter.inc({ status: "success", role: "ADMIN" });
+
       return {
         success: true,
         message: "Admin deletion request approved. You can proceed immediately.",
@@ -261,12 +273,25 @@ export async function requestAccountDeletion(
       };
     }
 
-    await sendDeletionValidationEmail(
-      organization.email, // Always send to organization email for owners
-      organization.name,
-      validationCode,
-      expiresAt
-    );
+    // 📊 Metrics: Measure email send duration
+    const emailTimer = emailSendDurationHistogram.startTimer();
+
+    try {
+      await sendDeletionValidationEmail(
+        organization.email, // Always send to organization email for owners
+        organization.name,
+        validationCode,
+        expiresAt
+      );
+
+      // 📊 Metrics: Email sent successfully
+      emailTimer();
+      emailsSentCounter.inc({ type: "validation", status: "success" });
+    } catch (emailError) {
+      emailTimer();
+      emailsSentCounter.inc({ type: "validation", status: "failure" });
+      throw emailError;
+    }
 
     // Log manager deletion request with code sent
     await logAccountDeletionRequested(
@@ -284,6 +309,9 @@ export async function requestAccountDeletion(
       expiresAt,
       req
     );
+
+    // 📊 Metrics: Count successful deletion request
+    deletionRequestsCounter.inc({ status: "success", role: "MANAGER" });
 
     // Cleanup expired codes (run async)
     cleanupExpiredDeletionRequests();
@@ -307,6 +335,9 @@ export async function requestAccountDeletion(
       req
     );
 
+    // 📊 Metrics: Count failed deletion request
+    deletionRequestsCounter.inc({ status: "failure", role: "unknown" });
+
     return {
       success: false,
       message: "Failed to process deletion request",
@@ -324,6 +355,9 @@ export async function confirmAccountDeletion(
   requestedByUserId: string,
   req?: Request
 ): Promise<ConfirmDeletionResult> {
+  // 📊 Metrics: Start timer for total deletion duration
+  const deletionTimer = deletionDurationHistogram.startTimer();
+
   try {
     pino.info(
       { organizationId, requestedByUserId },
@@ -375,6 +409,9 @@ export async function confirmAccountDeletion(
           req
         );
 
+        // 📊 Metrics: Count invalid code attempts
+        deletionValidationFailuresCounter.inc({ reason: "invalid_code" });
+
         return {
           success: false,
           message: "Invalid validation code",
@@ -390,6 +427,9 @@ export async function confirmAccountDeletion(
           request.expiresAt,
           req
         );
+
+        // 📊 Metrics: Count expired code attempts
+        deletionValidationFailuresCounter.inc({ reason: "expired_code" });
 
         await deleteDeletionRequest(organizationId);
         return {
@@ -692,12 +732,26 @@ export async function confirmAccountDeletion(
       req
     );
 
+    // 📊 Metrics: Stop timer and record successful deletion
+    deletionTimer();
+    deletionConfirmedCounter.inc({ role: request.userRole || "unknown" });
+
+    // 📊 Metrics: Record number of deleted records by type
+    deletionRecordsGauge.set({ resource_type: "users" }, deletedData.users);
+    deletionRecordsGauge.set({ resource_type: "dresses" }, deletedData.dresses);
+    deletionRecordsGauge.set({ resource_type: "customers" }, deletedData.customers);
+    deletionRecordsGauge.set({ resource_type: "prospects" }, deletedData.prospects);
+    deletionRecordsGauge.set({ resource_type: "contracts" }, deletedData.contracts);
+
     return {
       success: true,
       message: "Account successfully deleted. Export file has been sent to your email.",
       deletedData,
     };
   } catch (error) {
+    // 📊 Metrics: Stop timer even on failure
+    deletionTimer();
+
     pino.error(
       { organizationId, error },
       "❌ Failed to confirm account deletion"
