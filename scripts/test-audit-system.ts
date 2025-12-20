@@ -210,7 +210,8 @@ async function main() {
       console.log(`
 Action: ${log.action}
 Status: ${log.status}
-User: ${log.user?.email || "N/A"}
+User ID: ${log.user_id || "N/A"}
+Organization ID: ${log.organization_id || "N/A"}
 Created: ${log.created_at.toISOString()}
 Retention: ${log.retention_until.toISOString()} (${retentionYears} years)
 Metadata: ${log.metadata ? JSON.stringify(log.metadata, null, 2) : "N/A"}

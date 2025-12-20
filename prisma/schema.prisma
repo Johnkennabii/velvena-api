@@ -106,7 +106,6 @@ model Organization {
   // Subscription & Usage
   subscription SubscriptionPlan? @relation(fields: [subscription_plan_id], references: [id])
   usage_events UsageEvent[]
-  audit_logs   AuditLog[]
 
   @@index([slug])
   @@index([is_active])
@@ -132,7 +131,6 @@ model User {
   organization       Organization           @relation(fields: [organization_id], references: [id])
   profile            Profile?
   notifications      NotificationUserLink[]
-  audit_logs         AuditLog[]
 
   @@index([organization_id])
 }
@@ -885,9 +883,9 @@ model AuditLog {
   created_at DateTime @default(now())
   retention_until DateTime // Auto-calculated: created_at + 7 years (RGPD compliance)
 
-  // Relations
-  organization Organization? @relation(fields: [organization_id], references: [id])
-  user         User?         @relation(fields: [user_id], references: [id])
+  // Note: No relations defined for organization_id and user_id
+  // These are kept as simple string references for audit trail purposes
+  // This prevents cascade deletes and maintains historical integrity
 
   @@index([organization_id])
   @@index([user_id])

@@ -110,22 +110,27 @@ export async function logAudit(data: AuditLogData) {
     const retention_until = new Date();
     retention_until.setFullYear(retention_until.getFullYear() + 7);
 
+    // Build data object explicitly to avoid spread operator issues with Prisma
+    const createData: any = {
+      action: data.action,
+      status: data.status,
+      retention_until,
+    };
+
+    // Add optional fields only if they exist
+    if (data.organization_id) createData.organization_id = data.organization_id;
+    if (data.user_id) createData.user_id = data.user_id;
+    if (data.resource_type) createData.resource_type = data.resource_type as string;
+    if (data.resource_id) createData.resource_id = data.resource_id;
+    if (data.ip_address) createData.ip_address = data.ip_address;
+    if (data.user_agent) createData.user_agent = data.user_agent;
+    if (data.method) createData.method = data.method;
+    if (data.endpoint) createData.endpoint = data.endpoint;
+    if (data.error_message) createData.error_message = data.error_message;
+    if (data.metadata) createData.metadata = data.metadata;
+
     const auditLog = await prisma.auditLog.create({
-      data: {
-        ...(data.organization_id && { organization_id: data.organization_id }),
-        ...(data.user_id && { user_id: data.user_id }),
-        action: data.action,
-        ...(data.resource_type && { resource_type: data.resource_type as string }),
-        ...(data.resource_id && { resource_id: data.resource_id }),
-        ...(data.ip_address && { ip_address: data.ip_address }),
-        ...(data.user_agent && { user_agent: data.user_agent }),
-        ...(data.method && { method: data.method }),
-        ...(data.endpoint && { endpoint: data.endpoint }),
-        status: data.status,
-        ...(data.error_message && { error_message: data.error_message }),
-        ...(data.metadata && { metadata: data.metadata }),
-        retention_until,
-      },
+      data: createData,
     });
 
     pino.info(
@@ -470,14 +475,7 @@ export async function getOrganizationAuditLogs(
       orderBy: { created_at: "desc" },
       take: limit,
       skip: offset,
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
-      },
+      // Note: No includes - organization_id and user_id are simple string references
     }),
     prisma.auditLog.count({ where }),
   ]);
@@ -527,14 +525,7 @@ export async function getUserAuditLogs(
       orderBy: { created_at: "desc" },
       take: limit,
       skip: offset,
-      include: {
-        organization: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
+      // Note: No includes - organization_id and user_id are simple string references
     }),
     prisma.auditLog.count({ where }),
   ]);
