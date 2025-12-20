@@ -34,7 +34,7 @@ router.post(
         "📨 Account deletion request received"
       );
 
-      const result = await requestAccountDeletion(organizationId, userId);
+      const result = await requestAccountDeletion(organizationId, userId, req);
 
       if (!result.success) {
         res.status(400).json({
@@ -95,7 +95,8 @@ router.post(
       const result = await confirmAccountDeletion(
         organizationId,
         codeToUse.toString(),
-        userId
+        userId,
+        req
       );
 
       if (!result.success) {

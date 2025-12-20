@@ -10,6 +10,16 @@ import {
 } from "../templates/emailTemplates.js";
 import fs from "fs";
 import { getRedisClient } from "../lib/redis.js";
+import type { Request } from "express";
+import {
+  logAccountDeletionRequested,
+  logAccountDeletionCodeSent,
+  logAccountDeletionInvalidCode,
+  logAccountDeletionExpiredCode,
+  logAccountDeletionConfirmed,
+  logAccountDeletionFailed,
+  logDataExport,
+} from "./auditLogger.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2025-11-17.clover",
@@ -119,7 +129,8 @@ interface ConfirmDeletionResult {
  */
 export async function requestAccountDeletion(
   organizationId: string,
-  requestedByUserId: string
+  requestedByUserId: string,
+  req?: Request
 ): Promise<RequestDeletionResult> {
   try {
     pino.info(
@@ -167,6 +178,14 @@ export async function requestAccountDeletion(
     const canDelete = userRole === "ADMIN" || userRole === "MANAGER";
 
     if (!canDelete) {
+      // Log unauthorized attempt
+      await logAccountDeletionFailed(
+        organizationId,
+        requestedByUserId,
+        `Unauthorized: User role '${userRole}' cannot request account deletion`,
+        req
+      );
+
       return {
         success: false,
         message:
@@ -195,6 +214,15 @@ export async function requestAccountDeletion(
       pino.info(
         { organizationId, userId: requestedByUserId },
         "🔓 Admin deletion request - no email validation required"
+      );
+
+      // Log admin deletion request
+      await logAccountDeletionRequested(
+        organizationId,
+        requestedByUserId,
+        "ADMIN",
+        requestingUser.email,
+        req
       );
 
       return {
@@ -240,6 +268,23 @@ export async function requestAccountDeletion(
       expiresAt
     );
 
+    // Log manager deletion request with code sent
+    await logAccountDeletionRequested(
+      organizationId,
+      requestedByUserId,
+      "MANAGER",
+      requestingUser.email,
+      req
+    );
+
+    await logAccountDeletionCodeSent(
+      organizationId,
+      requestedByUserId,
+      organization.email,
+      expiresAt,
+      req
+    );
+
     // Cleanup expired codes (run async)
     cleanupExpiredDeletionRequests();
 
@@ -252,6 +297,14 @@ export async function requestAccountDeletion(
     pino.error(
       { organizationId, error },
       "❌ Failed to request account deletion"
+    );
+
+    // Log failure
+    await logAccountDeletionFailed(
+      organizationId,
+      requestedByUserId,
+      error instanceof Error ? error.message : "Unknown error",
+      req
     );
 
     return {
@@ -268,7 +321,8 @@ export async function requestAccountDeletion(
 export async function confirmAccountDeletion(
   organizationId: string,
   validationCode: string,
-  requestedByUserId: string
+  requestedByUserId: string,
+  req?: Request
 ): Promise<ConfirmDeletionResult> {
   try {
     pino.info(
@@ -313,6 +367,14 @@ export async function confirmAccountDeletion(
           "⚠️ Invalid deletion code provided by manager"
         );
 
+        // Log invalid code attempt
+        await logAccountDeletionInvalidCode(
+          organizationId,
+          requestedByUserId,
+          validationCode,
+          req
+        );
+
         return {
           success: false,
           message: "Invalid validation code",
@@ -321,6 +383,14 @@ export async function confirmAccountDeletion(
 
       // Verify code hasn't expired
       if (new Date() > request.expiresAt) {
+        // Log expired code attempt
+        await logAccountDeletionExpiredCode(
+          organizationId,
+          requestedByUserId,
+          request.expiresAt,
+          req
+        );
+
         await deleteDeletionRequest(organizationId);
         return {
           success: false,
@@ -388,6 +458,15 @@ export async function confirmAccountDeletion(
     pino.info(
       { organizationId, stats: exportResult.stats },
       "✅ Data exported successfully"
+    );
+
+    // Log data export
+    await logDataExport(
+      organizationId,
+      requestedByUserId,
+      exportResult.zipPath!,
+      exportResult.stats,
+      req
     );
 
     // ========================================
@@ -604,6 +683,15 @@ export async function confirmAccountDeletion(
       "✅ Account deletion completed successfully"
     );
 
+    // Log successful deletion
+    await logAccountDeletionConfirmed(
+      organizationId,
+      requestedByUserId,
+      deletedData,
+      exportResult.zipPath,
+      req
+    );
+
     return {
       success: true,
       message: "Account successfully deleted. Export file has been sent to your email.",
@@ -613,6 +701,14 @@ export async function confirmAccountDeletion(
     pino.error(
       { organizationId, error },
       "❌ Failed to confirm account deletion"
+    );
+
+    // Log failure
+    await logAccountDeletionFailed(
+      organizationId,
+      requestedByUserId,
+      error instanceof Error ? error.message : "Unknown error during confirmation",
+      req
     );
 
     return {

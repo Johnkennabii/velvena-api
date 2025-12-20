@@ -106,6 +106,7 @@ model Organization {
   // Subscription & Usage
   subscription SubscriptionPlan? @relation(fields: [subscription_plan_id], references: [id])
   usage_events UsageEvent[]
+  audit_logs   AuditLog[]
 
   @@index([slug])
   @@index([is_active])
@@ -131,6 +132,7 @@ model User {
   organization       Organization           @relation(fields: [organization_id], references: [id])
   profile            Profile?
   notifications      NotificationUserLink[]
+  audit_logs         AuditLog[]
 
   @@index([organization_id])
 }
@@ -841,4 +843,57 @@ model UsageEvent {
   @@index([event_month])
   @@index([event_day])
   @@index([created_at])
+}
+
+// Audit Log for critical operations (RGPD compliance - 7 years retention)
+model AuditLog {
+  id              String   @id @default(uuid())
+  organization_id String?
+  user_id         String?
+
+  // Action details
+  action        String // "ACCOUNT_DELETION_REQUESTED", "ACCOUNT_DELETION_CONFIRMED", "ACCOUNT_DELETION_CANCELLED", etc.
+  resource_type String? // "organization", "user", "contract", etc.
+  resource_id   String? // ID of the affected resource
+
+  // Context
+  ip_address String?
+  user_agent String?
+  method     String? // HTTP method (POST, DELETE, etc.)
+  endpoint   String? // API endpoint called
+
+  // Result
+  status        String // "SUCCESS", "FAILURE"
+  error_message String? // Error details if status = FAILURE
+
+  // Metadata (flexible JSON for additional context)
+  metadata Json?
+  /**
+   * Example for account deletion:
+   * {
+   *   "validation_code": "123456",
+   *   "user_role": "MANAGER",
+   *   "user_email": "user@example.com",
+   *   "organization_name": "My Company",
+   *   "deletion_reason": "user_requested",
+   *   "data_exported": true,
+   *   "export_file_path": "/backups/org_xyz_20251220.zip"
+   * }
+   */
+
+  // Timestamps
+  created_at DateTime @default(now())
+  retention_until DateTime // Auto-calculated: created_at + 7 years (RGPD compliance)
+
+  // Relations
+  organization Organization? @relation(fields: [organization_id], references: [id])
+  user         User?         @relation(fields: [user_id], references: [id])
+
+  @@index([organization_id])
+  @@index([user_id])
+  @@index([action])
+  @@index([resource_type])
+  @@index([status])
+  @@index([created_at])
+  @@index([retention_until]) // For automated cleanup after 7 years
 }
