@@ -246,6 +246,27 @@ export const emailVerificationResendCounter = new Counter({
 });
 
 // ==========================================
+// Métriques AI (Ollama)
+// ==========================================
+
+// Requêtes AI
+export const aiRequestCounter = new Counter({
+  name: "ai_requests_total",
+  help: "Total number of AI requests",
+  labelNames: ["status", "model"], // status: success/error, model: nom du modèle
+  registers: [register],
+});
+
+// Durée des requêtes AI
+export const aiRequestDuration = new Histogram({
+  name: "ai_request_duration_seconds",
+  help: "Duration of AI requests in seconds",
+  labelNames: ["model"],
+  buckets: [0.5, 1, 2, 5, 10, 30, 60, 120], // En secondes
+  registers: [register],
+});
+
+// ==========================================
 // Métriques Redis
 // ==========================================
 

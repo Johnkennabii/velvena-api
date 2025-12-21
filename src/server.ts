@@ -50,6 +50,7 @@ import billingRoutes from "./routes/billing.js";
 import metricsRoutes from "./routes/metrics.js";
 import stripeWebhooksRoutes from "./routes/stripe-webhooks.js";
 import accountDeletionRoutes from "./routes/accountDeletionRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js";
 
 import {
   getContractSignLink,
@@ -311,6 +312,7 @@ app.use("/api-keys", apiKeyRoutes);
 app.use("/api", maintenanceRoutes);
 app.use("/billing", billingRoutes);
 app.use("/account", accountDeletionRoutes);
+app.use("/ai", aiRoutes);
 
 // Health check routes (no auth required)
 app.use(healthRoutes);
