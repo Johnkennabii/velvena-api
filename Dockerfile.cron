@@ -32,22 +32,23 @@ RUN npx prisma generate
 COPY src ./src
 COPY scripts ./scripts
 
-# Create crontab for nodejs user
-RUN echo "# Audit logs cleanup - Every day at 2 AM" > /etc/crontabs/nodejs && \
-    echo "0 2 * * * cd /app && npx tsx scripts/cleanup-audit-logs.ts >> /var/log/cron-audit-cleanup.log 2>&1" >> /etc/crontabs/nodejs && \
-    chmod 0644 /etc/crontabs/nodejs
+# Create crontab for root user (crond requires root)
+RUN echo "# Audit logs cleanup - Every day at 2 AM" > /etc/crontabs/root && \
+    echo "0 2 * * * cd /app && npx tsx scripts/cleanup-audit-logs.ts >> /var/log/cron-audit-cleanup.log 2>&1" >> /etc/crontabs/root && \
+    chmod 0644 /etc/crontabs/root
 
 # Create log directory
 RUN mkdir -p /var/log && \
     touch /var/log/cron-audit-cleanup.log && \
-    chown -R nodejs:nodejs /var/log/cron-audit-cleanup.log /app
+    chown -R nodejs:nodejs /app
 
-# Switch to nodejs user
-USER nodejs
+# Copy entrypoint script
+COPY docker-entrypoint-cron.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint-cron.sh
 
 # Health check - verify cron is running
 HEALTHCHECK --interval=60s --timeout=3s --start-period=10s --retries=3 \
     CMD pgrep crond || exit 1
 
-# Start cron in foreground
-CMD ["crond", "-f", "-l", "2"]
+# Start cron via entrypoint (as root - required for crond)
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint-cron.sh"]
