@@ -211,6 +211,41 @@ export const emailSendDurationHistogram = new Histogram({
 });
 
 // ==========================================
+// Métriques Email Verification
+// ==========================================
+
+// Emails de vérification envoyés
+export const emailVerificationSentCounter = new Counter({
+  name: "email_verification_sent_total",
+  help: "Total number of verification emails sent",
+  labelNames: ["status"], // status: success/failure
+  registers: [register],
+});
+
+// Vérifications d'email réussies
+export const emailVerifiedCounter = new Counter({
+  name: "email_verified_total",
+  help: "Total number of successful email verifications",
+  registers: [register],
+});
+
+// Vérifications d'email échouées
+export const emailVerificationFailedCounter = new Counter({
+  name: "email_verification_failed_total",
+  help: "Total number of failed email verifications",
+  labelNames: ["reason"], // reason: invalid_token/expired_token/already_verified
+  registers: [register],
+});
+
+// Renvois d'email de vérification
+export const emailVerificationResendCounter = new Counter({
+  name: "email_verification_resend_total",
+  help: "Total number of verification email resends",
+  labelNames: ["status"], // status: success/failure
+  registers: [register],
+});
+
+// ==========================================
 // Métriques Redis
 // ==========================================
 
