@@ -5,7 +5,7 @@ import {
   listModels,
   getModelInfo,
 } from "../controllers/aiController/aiController.js";
-import { authenticateToken } from "../middleware/authMiddleware.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -14,27 +14,27 @@ const router = Router();
  * @desc    Generate AI completion
  * @access  Private (requires JWT)
  */
-router.post("/generate", authenticateToken, generateCompletion);
+router.post("/generate", authMiddleware, generateCompletion);
 
 /**
  * @route   POST /ai/chat
  * @desc    Chat with AI
  * @access  Private (requires JWT)
  */
-router.post("/chat", authenticateToken, chat);
+router.post("/chat", authMiddleware, chat);
 
 /**
  * @route   GET /ai/models
  * @desc    List available AI models
  * @access  Private (requires JWT)
  */
-router.get("/models", authenticateToken, listModels);
+router.get("/models", authMiddleware, listModels);
 
 /**
  * @route   GET /ai/models/:model
  * @desc    Get info about a specific AI model
  * @access  Private (requires JWT)
  */
-router.get("/models/:model", authenticateToken, getModelInfo);
+router.get("/models/:model", authMiddleware, getModelInfo);
 
 export default router;
