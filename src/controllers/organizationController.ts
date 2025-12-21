@@ -5,6 +5,10 @@ import logger from "../lib/logger.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { sendWelcomeEmail } from "../services/welcomeEmailService.js";
+import {
+  generateEmailVerificationToken,
+  sendVerificationEmail,
+} from "../services/emailVerificationService.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
@@ -190,6 +194,7 @@ export const getOrganizationStats = async (
       customersCount,
       prospectsCount,
       activeContractsCount,
+      rentedDressesCount,
     ] = await Promise.all([
       prisma.user.count({
         where: { organization_id: orgId, deleted_at: null },
@@ -210,6 +215,15 @@ export const getOrganizationStats = async (
           status: { in: ["signed", "active", "in_progress"] },
         },
       }),
+      prisma.contractDress.count({
+        where: {
+          contract: {
+            organization_id: orgId,
+            deleted_at: null,
+            status: { in: ["signed", "active", "in_progress"] },
+          },
+        },
+      }),
     ]);
 
     res.json({
@@ -218,6 +232,7 @@ export const getOrganizationStats = async (
       customers: customersCount,
       prospects: prospectsCount,
       active_contracts: activeContractsCount,
+      rented_dresses: rentedDressesCount,
     });
   } catch (err: any) {
     logger.error({ err }, "Failed to fetch organization stats");
@@ -505,18 +520,6 @@ export const initializeOrganization = async (
       return { organization, user };
     });
 
-    // Generate JWT token for immediate login
-    const token = jwt.sign(
-      {
-        id: result.user.id,
-        email: result.user.email,
-        role: "MANAGER",
-        organizationId: result.organization.id, // Add organizationId to JWT payload
-      },
-      JWT_SECRET,
-      { expiresIn: "6h" }
-    );
-
     logger.info(
       {
         organizationId: result.organization.id,
@@ -526,37 +529,34 @@ export const initializeOrganization = async (
       "Organization initialized successfully with first MANAGER user"
     );
 
-    // Send welcome email asynchronously (don't await to avoid blocking response)
-    sendWelcomeEmail({
-      organizationName: result.organization.name,
-      firstName: result.user.profile?.firstName ?? undefined,
-      lastName: result.user.profile?.lastName ?? undefined,
-      userEmail: result.user.email,
-      slug: result.organization.slug,
-      trialEndsAt: result.organization.trial_ends_at!,
-    }).catch((err) => {
-      logger.error({ err }, "Failed to send welcome email (non-blocking)");
+    // Generate email verification token
+    const verificationToken = await generateEmailVerificationToken(result.user.id);
+
+    // Send verification email asynchronously (don't await to avoid blocking response)
+    sendVerificationEmail(
+      {
+        userId: result.user.id,
+        userEmail: result.user.email,
+        firstName: result.user.profile?.firstName ?? undefined,
+        lastName: result.user.profile?.lastName ?? undefined,
+        organizationName: result.organization.name,
+      },
+      verificationToken
+    ).catch((err) => {
+      logger.error({ err }, "Failed to send verification email (non-blocking)");
     });
 
     res.status(201).json({
-      message: "Organization created successfully",
-      token,
+      message: "Organization created successfully. Please check your email to verify your account.",
+      success: true,
+      email_verification_required: true,
       organization: {
         id: result.organization.id,
         name: result.organization.name,
         slug: result.organization.slug,
-        subscription_plan: result.organization.subscription_plan,
-        subscription_status: result.organization.subscription_status,
-        trial_ends_at: result.organization.trial_ends_at,
       },
       user: {
-        id: result.user.id,
         email: result.user.email,
-        role: result.user.profile?.role?.name,
-        profile: {
-          firstName: result.user.profile?.firstName,
-          lastName: result.user.profile?.lastName,
-        },
       },
     });
   } catch (err: any) {

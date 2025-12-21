@@ -154,6 +154,25 @@ export const getDresses = async (req: AuthenticatedRequest, res: Response) => {
     const shouldCount = (take !== undefined && take > 0) || (skip !== undefined && skip >= 0);
     const total = shouldCount ? await prisma.dress.count({ where }) : undefined;
 
+    // Add rental count for each dress
+    const dressesWithRentalCount = await Promise.all(
+      dresses.map(async (dress) => {
+        const rentalCount = await prisma.contractDress.count({
+          where: {
+            dress_id: dress.id,
+            contract: {
+              organization_id: organizationId,
+              deleted_at: null,
+            },
+          },
+        });
+        return {
+          ...dress,
+          rental_count: rentalCount,
+        };
+      })
+    );
+
     pino.info(
       {
         count: dresses.length,
@@ -173,7 +192,7 @@ export const getDresses = async (req: AuthenticatedRequest, res: Response) => {
 
     res.json({
       success: true,
-      data: dresses,
+      data: dressesWithRentalCount,
       ...(shouldCount ? { total } : {}),
     });
   } catch (err: any) {
@@ -194,22 +213,41 @@ export const getDressById = async (req: AuthenticatedRequest, res: Response) => 
     const organizationId = requireOrganizationContext(req, res);
     if (!organizationId) return; // Error response already sent
 
-    const dress = await prisma.dress.findFirst({
-      where: {
-        id: id as string,
-        organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
-      },
-      include: {
-        type: true,
-        size: true,
-        condition: true,
-        color: true,
-      },
-    });
+    const [dress, rentalCount] = await Promise.all([
+      prisma.dress.findFirst({
+        where: {
+          id: id as string,
+          organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+        },
+        include: {
+          type: true,
+          size: true,
+          condition: true,
+          color: true,
+        },
+      }),
+      prisma.contractDress.count({
+        where: {
+          dress_id: id as string,
+          contract: {
+            organization_id: organizationId,
+            deleted_at: null,
+          },
+        },
+      }),
+    ]);
+
     if (!dress || dress.deleted_at) {
       return res.status(404).json({ success: false, error: "Dress not found" });
     }
-    res.status(200).json({ success: true, data: dress });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        ...dress,
+        rental_count: rentalCount,
+      }
+    });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur récupération robe par ID");
     res.status(500).json({ success: false, error: "Failed to fetch dress by ID" });
@@ -746,12 +784,31 @@ export const getDressesWithDetails = async (req: AuthenticatedRequest, res: Resp
       }),
     ]);
 
+    // Add rental count for each dress
+    const resultsWithRentalCount = await Promise.all(
+      results.map(async (dress) => {
+        const rentalCount = await prisma.contractDress.count({
+          where: {
+            dress_id: dress.id,
+            contract: {
+              organization_id: organizationId,
+              deleted_at: null,
+            },
+          },
+        });
+        return {
+          ...dress,
+          rental_count: rentalCount,
+        };
+      })
+    );
+
     res.json({
       success: true,
       total,
       page: pageNum,
       limit: limitNum,
-      data: results,
+      data: resultsWithRentalCount,
     });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur récupération robes avec détails");

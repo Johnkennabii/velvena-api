@@ -29,6 +29,7 @@ export default {
       customers: { type: "integer", example: 450 },
       prospects: { type: "integer", example: 23 },
       active_contracts: { type: "integer", example: 15 },
+      rented_dresses: { type: "integer", example: 35, description: "Number of dresses currently rented in active contracts" },
     },
   },
   CreateOrganizationInput: {
