@@ -19,6 +19,8 @@ import {
   getContractSignEmailTemplate,
   type ContractSignEmailData,
 } from "../../templates/emailTemplates.js";
+import { templateRenderer } from "../../services/unifiedTemplateRenderer.js";
+import { prepareContractTemplateData } from "../../services/templateDataService.js";
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 
 const s3 = new S3Client({
@@ -223,6 +225,79 @@ export const createContract = async (req: AuthenticatedRequest, res: Response) =
       },
     });
 
+    // 📄 Generate rendered_template if template is assigned
+    if (finalTemplateId) {
+      try {
+        // Fetch full contract with all relations for template rendering
+        const fullContract = await prisma.contract.findUnique({
+          where: { id: contract.id },
+          include: {
+            customer: true,
+            organization: true,
+            contract_type: true,
+            template: true,
+            package: {
+              include: {
+                addons: {
+                  include: {
+                    addon: true,
+                  },
+                },
+              },
+            },
+            addon_links: {
+              include: {
+                addon: true,
+              },
+            },
+            dresses: {
+              include: {
+                dress: {
+                  include: {
+                    type: true,
+                    size: true,
+                    color: true,
+                    condition: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        // Generate HTML from template structure
+        if (fullContract?.template?.structure) {
+          const templateData = prepareContractTemplateData(fullContract);
+          const renderedHtml = templateRenderer.render(
+            fullContract.template.structure as any,
+            templateData
+          );
+
+          // Update contract with rendered_template
+          await prisma.contract.update({
+            where: { id: contract.id },
+            data: { rendered_template: renderedHtml },
+          });
+
+          logger.info(
+            { contractId: contract.id, templateId: finalTemplateId },
+            "✅ rendered_template generated successfully"
+          );
+        } else {
+          logger.warn(
+            { contractId: contract.id, templateId: finalTemplateId },
+            "⚠️ Template has no structure, skipping rendered_template generation"
+          );
+        }
+      } catch (renderError) {
+        logger.error(
+          { err: renderError, contractId: contract.id, templateId: finalTemplateId },
+          "❌ Failed to generate rendered_template (non-blocking)"
+        );
+        // Don't fail contract creation if rendering fails
+      }
+    }
+
     res.status(201).json({ success: true, data: contract });
   } catch (error) {
     logger.error(error, "Failed to create contract");
@@ -286,6 +361,79 @@ export const updateContract = async (req: AuthenticatedRequest, res: Response) =
       ]);
 
       logger.info("✅ Addons updated successfully");
+    }
+
+    // 📄 Regenerate rendered_template if template is assigned
+    if (updatedContract.template_id) {
+      try {
+        // Fetch full contract with all relations for template rendering
+        const fullContract = await prisma.contract.findUnique({
+          where: { id: contractId },
+          include: {
+            customer: true,
+            organization: true,
+            contract_type: true,
+            template: true,
+            package: {
+              include: {
+                addons: {
+                  include: {
+                    addon: true,
+                  },
+                },
+              },
+            },
+            addon_links: {
+              include: {
+                addon: true,
+              },
+            },
+            dresses: {
+              include: {
+                dress: {
+                  include: {
+                    type: true,
+                    size: true,
+                    color: true,
+                    condition: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        // Generate HTML from template structure
+        if (fullContract?.template?.structure) {
+          const templateData = prepareContractTemplateData(fullContract);
+          const renderedHtml = templateRenderer.render(
+            fullContract.template.structure as any,
+            templateData
+          );
+
+          // Update contract with rendered_template
+          await prisma.contract.update({
+            where: { id: contractId },
+            data: { rendered_template: renderedHtml },
+          });
+
+          logger.info(
+            { contractId, templateId: updatedContract.template_id },
+            "✅ rendered_template regenerated successfully after update"
+          );
+        } else {
+          logger.warn(
+            { contractId, templateId: updatedContract.template_id },
+            "⚠️ Template has no structure, skipping rendered_template regeneration"
+          );
+        }
+      } catch (renderError) {
+        logger.error(
+          { err: renderError, contractId, templateId: updatedContract.template_id },
+          "❌ Failed to regenerate rendered_template (non-blocking)"
+        );
+        // Don't fail contract update if rendering fails
+      }
     }
 
     // 3️⃣ Réponse finale
@@ -628,69 +776,91 @@ export const getContractSignLink = async (req: Request, res: Response) => {
       return res.status(410).json({ success: false, error: "Lien expiré" });
     }
 
-    // 📄 Générer le rendered_template si un template existe
+    // 📄 Récupérer le rendered_template (priorité au pré-généré)
     let renderedTemplate: string | null = null;
     const contract = signLink.contract as any; // Type assertion pour accéder à template_id
 
-    try {
-      // Chercher le template associé au contrat
-      let template;
-      if (contract.template_id) {
-        template = await prisma.contractTemplate.findUnique({
-          where: { id: contract.template_id as string },
-        });
-        logger.info(
-          { contractId: contract.id, templateId: contract.template_id },
-          "📄 Template spécifique trouvé pour ce contrat"
-        );
-      }
-
-      // Si pas de template assigné, chercher le template par défaut du type
-      if (!template && contract.contract_type_id) {
-        template = await prisma.contractTemplate.findFirst({
-          where: {
-            contract_type_id: contract.contract_type_id,
-            is_default: true,
-            is_active: true,
-            deleted_at: null,
-            OR: [
-              { organization_id: contract.organization_id },
-              { organization_id: null },
-            ],
-          },
-          orderBy: [
-            { organization_id: "desc" },
-          ],
-        });
-
-        if (template) {
+    // 1️⃣ Priorité au rendered_template déjà généré lors de la création/modification
+    if (contract.rendered_template) {
+      renderedTemplate = contract.rendered_template;
+      logger.info(
+        { contractId: contract.id },
+        "✅ Utilisation du rendered_template pré-généré"
+      );
+    } else {
+      // 2️⃣ Si pas de rendered_template, essayer de le générer maintenant
+      try {
+        // Chercher le template associé au contrat
+        let template;
+        if (contract.template_id) {
+          template = await prisma.contractTemplate.findUnique({
+            where: { id: contract.template_id as string },
+          });
           logger.info(
-            { contractId: contract.id, templateId: template.id },
-            "📄 Template par défaut trouvé pour la page de signature"
+            { contractId: contract.id, templateId: contract.template_id },
+            "📄 Template spécifique trouvé pour ce contrat"
           );
         }
-      }
 
-      // Si un template est trouvé, le compiler
-      if (template && template.content) {
-        const { renderContractTemplate } = await import("../../services/templateRenderer.js");
-        renderedTemplate = renderContractTemplate(template.content, contract);
-        logger.info(
-          { contractId: contract.id, templateId: template.id },
-          "✨ Template compilé avec succès pour la page de signature"
+        // Si pas de template assigné, chercher le template par défaut du type
+        if (!template && contract.contract_type_id) {
+          template = await prisma.contractTemplate.findFirst({
+            where: {
+              contract_type_id: contract.contract_type_id,
+              is_default: true,
+              is_active: true,
+              deleted_at: null,
+              OR: [
+                { organization_id: contract.organization_id },
+                { organization_id: null },
+              ],
+            },
+            orderBy: [
+              { organization_id: "desc" },
+            ],
+          });
+
+          if (template) {
+            logger.info(
+              { contractId: contract.id, templateId: template.id },
+              "📄 Template par défaut trouvé pour la page de signature"
+            );
+          }
+        }
+
+        // Si un template est trouvé, le compiler
+        if (template) {
+          // Priorité à la structure JSON (nouveau système)
+          if (template.structure) {
+            const templateData = prepareContractTemplateData(contract);
+            renderedTemplate = templateRenderer.render(template.structure as any, templateData);
+            logger.info(
+              { contractId: contract.id, templateId: template.id },
+              "✨ Template JSON compilé avec succès (nouveau système)"
+            );
+          }
+          // Fallback au système Handlebars (ancien système)
+          else if (template.content) {
+            const { renderContractTemplate } = await import("../../services/templateRenderer.js");
+            renderedTemplate = renderContractTemplate(template.content, contract);
+            logger.info(
+              { contractId: contract.id, templateId: template.id },
+              "✨ Template Handlebars compilé avec succès (ancien système)"
+            );
+          }
+        } else {
+          logger.info(
+            { contractId: contract.id },
+            "📝 Aucun template trouvé, le frontend utilisera le fallback"
+          );
+        }
+      } catch (error) {
+        logger.error(
+          { error, contractId: contract.id },
+          "❌ Erreur lors de la compilation du template, utilisation du fallback"
         );
-      } else {
-        logger.info(
-          { contractId: contract.id },
-          "📝 Aucun template trouvé, le frontend utilisera le fallback"
-        );
+        // On continue sans template, le frontend utilisera le fallback
       }
-    } catch (error) {
-      logger.error(
-        { error, contractId: contract.id },
-        "❌ Erreur lors de la compilation du template, utilisation du fallback"
-      );
-      // On continue sans template, le frontend utilisera le fallback
     }
 
     // ✅ Ajout d'un flag pour indiquer si le contrat est déjà signé

@@ -4,6 +4,10 @@ import jwt from "jsonwebtoken";
 import prisma from "../../lib/prisma.js";
 import logger from "../../lib/logger.js";
 import type { AuthenticatedRequest } from "../../types/express.js";
+import {
+  verifyEmailToken,
+  resendVerificationEmail,
+} from "../../services/emailVerificationService.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
@@ -97,6 +101,15 @@ export const login = async (req: AuthenticatedRequest, res: Response) => {
     });
 
     if (!user) return res.status(401).json({ error: "User not found" });
+
+    // Check if email is verified
+    if (!user.email_verified) {
+      return res.status(403).json({
+        error: "Email not verified",
+        message: "Veuillez vérifier votre adresse email avant de vous connecter. Consultez votre boîte de réception.",
+        email_verification_required: true,
+      });
+    }
 
     // Check if organization is active
     if (!user.organization.is_active) {
@@ -240,5 +253,128 @@ export const refresh = async (req: AuthenticatedRequest, res: Response) => {
   } catch (err: any) {
     logger.error({ err }, "Failed to refresh token");
     res.status(400).json({ error: err.message });
+  }
+};
+
+/**
+ * Verify email address using token from email link
+ * GET /auth/verify-email/:token
+ */
+export const verifyEmail = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Le lien de vérification est invalide"
+      });
+    }
+
+    logger.info({ token }, "Attempting to verify email");
+
+    const result = await verifyEmailToken(token);
+
+    if (!result) {
+      return res.status(400).json({
+        success: false,
+        message: "Le lien de vérification est invalide ou a expiré. Veuillez demander un nouveau lien.",
+      });
+    }
+
+    logger.info({ userId: result.userId, email: result.email }, "Email verified successfully");
+
+    // Generate JWT token for automatic login after verification
+    const user = await prisma.user.findUnique({
+      where: { id: result.userId },
+      include: {
+        profile: { include: { role: true } },
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const roleName = user.profile?.role?.name ?? null;
+    const jwtToken = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: roleName,
+        organizationId: user.organization_id,
+      },
+      JWT_SECRET,
+      { expiresIn: "6h" }
+    );
+
+    res.json({
+      success: true,
+      token: jwtToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        email_verified: true,
+        role: roleName,
+        profile: user.profile,
+        organizationId: user.organization_id,
+        organization: user.organization,
+      },
+    });
+  } catch (err: any) {
+    logger.error({ err }, "Failed to verify email");
+    res.status(500).json({
+      success: false,
+      message: "Erreur lors de la vérification de l'email"
+    });
+  }
+};
+
+/**
+ * Resend verification email
+ * POST /auth/resend-verification
+ * Body: { email: string }
+ */
+export const resendVerification = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "L'adresse email est requise"
+      });
+    }
+
+    logger.info({ email }, "Attempting to resend verification email");
+
+    const sent = await resendVerificationEmail(email);
+
+    if (!sent) {
+      return res.status(400).json({
+        success: false,
+        message: "Impossible de renvoyer l'email de vérification. L'email est peut-être déjà vérifié ou n'existe pas.",
+      });
+    }
+
+    logger.info({ email }, "Verification email resent successfully");
+
+    res.json({
+      success: true,
+      message: "Email de vérification envoyé. Veuillez consulter votre boîte de réception.",
+    });
+  } catch (err: any) {
+    logger.error({ err }, "Failed to resend verification email");
+    res.status(500).json({
+      success: false,
+      message: "Erreur lors du renvoi de l'email"
+    });
   }
 };

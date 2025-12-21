@@ -128,11 +128,18 @@ model User {
   raw_user_meta_data Json?
   updated_at         DateTime?              @updatedAt
   updated_by         String?
+
+  // Email verification
+  email_verified                      Boolean   @default(false)
+  email_verification_token            String?   @unique
+  email_verification_token_expires_at DateTime?
+
   organization       Organization           @relation(fields: [organization_id], references: [id])
   profile            Profile?
   notifications      NotificationUserLink[]
 
   @@index([organization_id])
+  @@index([email_verification_token])
 }
 
 model Profile {
@@ -539,6 +546,7 @@ model Contract {
   contract_type_id       String
   package_id             String?
   template_id            String? // Référence au template utilisé
+  rendered_template      String?             @db.Text // HTML généré à partir du template
   created_at             DateTime            @default(now())
   created_by             String?
   updated_at             DateTime?           @updatedAt

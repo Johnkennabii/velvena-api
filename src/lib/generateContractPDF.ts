@@ -31,7 +31,7 @@ export async function generateContractPDF(
     if (!token) {
       throw new Error("Token de signature manquant pour la génération du PDF");
     }
-    const apiUrl = `https://api.allure-creation.fr/sign-links/${token}`;
+    const apiUrl = `https://api.velvena.fr/sign-links/${token}`;
     const response = await fetch(apiUrl);
     const json = await response.json();
 
@@ -166,12 +166,11 @@ export async function generateContractPDF(
     </div>`
     : contract.signed_at
     ? `
-    <div class="signatures">
-      <p style="font-size: 11px;"><strong>Signé électroniquement conformément à l'article 1367 du Code civil.</strong></p>
-      <div class="signature-metadata">
-        <p><strong>Signataire :</strong> ${customerFullName}</p>
-        <p><strong>E-mail :</strong> ${customer.email || "Non renseigné"}</p>
-        <p><strong>Date/Heure :</strong> ${
+    <div class="electronic-signature-block">
+      <h3 class="signature-title">✓ Document signé électroniquement</h3>
+      <div class="signature-details">
+        <p><strong>Référence de signature :</strong> ${contract.signature_reference || "Non disponible"}</p>
+        <p><strong>Date et heure :</strong> ${
           contract.signed_at
             ? new Date(contract.signed_at).toLocaleString("fr-FR", {
                 day: "2-digit",
@@ -182,10 +181,13 @@ export async function generateContractPDF(
               })
             : "Non disponible"
         }</p>
+        <p><strong>Adresse IP :</strong> ${contract.signature_ip || "Non disponible"}</p>
         <p><strong>Localisation :</strong> ${contract.signature_location || "Non disponible"}</p>
-        <p><strong>IP :</strong> ${contract.signature_ip || "Non disponible"}</p>
-        <p><strong>Référence :</strong> ${contract.signature_reference || "Non disponible"}</p>
       </div>
+      <p class="signature-legal-notice">
+        Ce document a été signé électroniquement conformément à l'article 1367 du Code civil.
+        La signature électronique a la même valeur juridique qu'une signature manuscrite.
+      </p>
     </div>`
     : "";
 
@@ -471,6 +473,72 @@ const forfaitJournalierClauses = `
       // Rendre avec le système unifié (retourne HTML complet)
       html = templateRenderer.render(template.structure as any, contractData);
 
+      // 📝 Ajouter la section de signature électronique si le contrat est signé
+      if (contract.signed_at) {
+        const electronicSignatureSection = `
+    <div class="electronic-signature-block">
+      <h3 class="signature-title">✓ Document signé électroniquement</h3>
+      <div class="signature-details">
+        <p><strong>Référence de signature :</strong> ${contract.signature_reference || "Non disponible"}</p>
+        <p><strong>Date et heure :</strong> ${
+          new Date(contract.signed_at).toLocaleString("fr-FR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+          })
+        }</p>
+        <p><strong>Adresse IP :</strong> ${contract.signature_ip || "Non disponible"}</p>
+        <p><strong>Localisation :</strong> ${contract.signature_location || "Non disponible"}</p>
+      </div>
+      <p class="signature-legal-notice">
+        Ce document a été signé électroniquement conformément à l'article 1367 du Code civil.
+        La signature électronique a la même valeur juridique qu'une signature manuscrite.
+      </p>
+    </div>`;
+
+        // Ajouter les styles CSS pour la section de signature électronique dans le <head>
+        const electronicSignatureStyles = `
+    .electronic-signature-block {
+      margin-top: 3rem;
+      padding: 1.5rem;
+      border: 2px solid #10b981;
+      border-radius: 0.5rem;
+      background-color: #f0fdf4;
+      page-break-inside: avoid;
+    }
+    .signature-title {
+      color: #059669;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      font-size: 16px;
+    }
+    .signature-details {
+      font-size: 0.875rem;
+      color: #374151;
+      line-height: 1.5;
+    }
+    .signature-details p {
+      margin: 0.5rem 0;
+    }
+    .signature-legal-notice {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 1rem;
+      font-style: italic;
+      line-height: 1.4;
+    }`;
+
+        // Injecter les styles dans le <head>
+        html = html.replace('</style>', `${electronicSignatureStyles}\n  </style>`);
+
+        // Injecter la section avant la fin du </body>
+        html = html.replace('</body>', `${electronicSignatureSection}\n</body>`);
+
+        logger.info({ contractId }, "✅ Section de signature électronique ajoutée au PDF (template JSON)");
+      }
+
       // 💾 Mettre à jour le cache HTML (en arrière-plan, sans bloquer)
       // Cela permet d'avoir une version pré-générée pour la prochaine fois
       prisma.contractTemplate.update({
@@ -483,6 +551,30 @@ const forfaitJournalierClauses = `
       // Legacy : Utiliser l'ancien système Handlebars
       logger.info({ contractId, templateId: template.id }, "📝 Utilisation du système Handlebars (legacy)");
       renderedContent = renderContractTemplate(template.content || '', contract);
+
+      // Générer la section de signature électronique si le contrat est signé
+      const electronicSignatureSection = contract.signed_at ? `
+    <div class="electronic-signature-block">
+      <h3 class="signature-title">✓ Document signé électroniquement</h3>
+      <div class="signature-details">
+        <p><strong>Référence de signature :</strong> ${contract.signature_reference || "Non disponible"}</p>
+        <p><strong>Date et heure :</strong> ${
+          new Date(contract.signed_at).toLocaleString("fr-FR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+          })
+        }</p>
+        <p><strong>Adresse IP :</strong> ${contract.signature_ip || "Non disponible"}</p>
+        <p><strong>Localisation :</strong> ${contract.signature_location || "Non disponible"}</p>
+      </div>
+      <p class="signature-legal-notice">
+        Ce document a été signé électroniquement conformément à l'article 1367 du Code civil.
+        La signature électronique a la même valeur juridique qu'une signature manuscrite.
+      </p>
+    </div>` : '';
 
       // Wrapper dans une structure HTML complète avec Tailwind CSS CDN
       html = `
@@ -511,10 +603,40 @@ const forfaitJournalierClauses = `
         display: none;
       }
     }
+    .electronic-signature-block {
+      margin-top: 3rem;
+      padding: 1.5rem;
+      border: 2px solid #10b981;
+      border-radius: 0.5rem;
+      background-color: #f0fdf4;
+      page-break-inside: avoid;
+    }
+    .signature-title {
+      color: #059669;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      font-size: 16px;
+    }
+    .signature-details {
+      font-size: 0.875rem;
+      color: #374151;
+      line-height: 1.5;
+    }
+    .signature-details p {
+      margin: 0.5rem 0;
+    }
+    .signature-legal-notice {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 1rem;
+      font-style: italic;
+      line-height: 1.4;
+    }
   </style>
 </head>
 <body class="bg-white p-8">
   ${renderedContent}
+  ${electronicSignatureSection}
 </body>
 </html>
       `;
@@ -672,6 +794,35 @@ const forfaitJournalierClauses = `
       .signature-metadata strong {
         font-size: 9px;
         font-weight: 600;
+      }
+      .electronic-signature-block {
+        margin-top: 3rem;
+        padding: 1.5rem;
+        border: 2px solid #10b981;
+        border-radius: 0.5rem;
+        background-color: #f0fdf4;
+        page-break-inside: avoid;
+      }
+      .signature-title {
+        color: #059669;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 16px;
+      }
+      .signature-details {
+        font-size: 0.875rem;
+        color: #374151;
+        line-height: 1.5;
+      }
+      .signature-details p {
+        margin: 0.5rem 0;
+      }
+      .signature-legal-notice {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 1rem;
+        font-style: italic;
+        line-height: 1.4;
       }
       table.dress-table {
         width: 100%;

@@ -172,7 +172,7 @@ export function prepareContractTemplateData(contract: any): Record<string, any> 
       city: `${orgCity} ${orgPostalCode}`,
       phone: organization.phone || "-",
       email: organization.email || "-",
-      siret: organization.siret || "985 287 880 0014",
+      siret: organization.siret || "Non renseigné",
       managerFullName: managerFullName,
     },
 
