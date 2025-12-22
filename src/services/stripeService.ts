@@ -218,18 +218,16 @@ export async function syncSubscription(
 ): Promise<SubscriptionSyncResult> {
   try {
     // Fetch subscription from Stripe with all fields
-    const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId, {
-      expand: ['latest_invoice', 'default_payment_method'],
-    });
+    const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
 
-    // DEBUG: Log full subscription object
+    // Cast to any to access Stripe fields not in TypeScript types
+    const stripeSubData = subscription as any;
+
     logger.info({
       subscriptionId: stripeSubscriptionId,
       status: subscription.status,
-      cancel_at_period_end: (subscription as any).cancel_at_period_end,
-      current_period_end: (subscription as any).current_period_end,
-      current_period_start: (subscription as any).current_period_start,
-      canceled_at: (subscription as any).canceled_at,
+      cancel_at_period_end: stripeSubData.cancel_at_period_end,
+      canceled_at: stripeSubData.canceled_at,
       ended_at: subscription.ended_at,
     }, "📊 Stripe subscription data retrieved");
 
@@ -317,24 +315,42 @@ export async function syncSubscription(
         : null;
 
     // Detect cancellation type
-    const cancelAtPeriodEnd = (subscription as any).cancel_at_period_end || false;
-    const currentPeriodEnd = (subscription as any).current_period_end;
+    // Note: TypeScript types may not include all Stripe fields, so we need to cast
+    const stripeSubscription = subscription as any;
+    const cancelAtPeriodEnd = stripeSubscription.cancel_at_period_end || false;
+
+    // IMPORTANT: current_period_end is in items.data[0], not at subscription level
+    // This is how the Stripe API returns the data
+    const currentPeriodEnd = stripeSubscription.items?.data?.[0]?.current_period_end;
+    const currentPeriodStart = stripeSubscription.items?.data?.[0]?.current_period_start;
 
     // Log for debugging
-    logger.debug({
+    logger.info({
       organizationId,
       cancelAtPeriodEnd,
       currentPeriodEnd,
+      currentPeriodStart,
       currentPeriodEndDate: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : null,
       subscriptionStatus: subscription.status,
-    }, "Cancellation detection");
+    }, "🔍 Cancellation detection");
 
-    const effectiveSubscriptionEnd = cancelAtPeriodEnd && currentPeriodEnd
-      ? new Date(currentPeriodEnd * 1000)
-      : subscriptionEnd;
+    // Calculate effective subscription end date
+    let effectiveSubscriptionEnd: Date | null = null;
+
+    if (cancelAtPeriodEnd && currentPeriodEnd) {
+      // Subscription will end at the end of current period
+      effectiveSubscriptionEnd = new Date(currentPeriodEnd * 1000);
+      logger.info({
+        organizationId,
+        effectiveSubscriptionEnd: effectiveSubscriptionEnd.toISOString(),
+      }, "✅ Setting subscription_ends_at to current_period_end");
+    } else if (subscriptionEnd) {
+      // Subscription already cancelled
+      effectiveSubscriptionEnd = subscriptionEnd;
+    }
 
     // DEBUG: Log what we're about to save
-    const dataToUpdate = {
+    const dataToUpdate: any = {
       stripe_subscription_id: subscription.id,
       subscription_plan_id: plan?.id || organization.subscription_plan_id,
       subscription_status: status,
@@ -343,6 +359,11 @@ export async function syncSubscription(
       subscription_ends_at: effectiveSubscriptionEnd,
       cancel_at_period_end: cancelAtPeriodEnd,
     };
+
+    // Also update deprecated subscription_plan field for backward compatibility
+    if (plan?.code) {
+      dataToUpdate.subscription_plan = plan.code;
+    }
 
     logger.info({
       organizationId,
@@ -467,6 +488,7 @@ export async function updateSubscription(
       where: { id: organizationId },
       data: {
         subscription_plan_id: newPlan.id,
+        subscription_plan: newPlan.code, // Also update deprecated field for backward compatibility
       },
     });
 

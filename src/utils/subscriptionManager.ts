@@ -416,6 +416,7 @@ export async function changeSubscriptionPlan(
     where: { id: organizationId },
     data: {
       subscription_plan_id: newPlanId,
+      subscription_plan: newPlan.code, // Also update deprecated field for backward compatibility
       subscription_status: "active",
       subscription_started_at: new Date(),
       updated_by: userId ?? null,
