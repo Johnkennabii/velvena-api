@@ -140,6 +140,7 @@ export async function createCheckoutSession(
       subscription_data: subscriptionData,
       success_url: successUrl || stripeConfig.successUrl,
       cancel_url: cancelUrl || stripeConfig.cancelUrl,
+      allow_promotion_codes: true, // Permet aux utilisateurs de saisir un code promo
       metadata: {
         organizationId: organization.id,
         planCode: plan.code,
