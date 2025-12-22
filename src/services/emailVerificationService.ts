@@ -16,7 +16,7 @@ import {
 } from "../utils/metrics.js";
 
 const VERIFICATION_TOKEN_EXPIRY_HOURS = 24;
-const APP_URL = process.env.APP_URL || "http://localhost:5173";
+const APP_URL = process.env.APP_URL || "http://localhost:4173";
 
 export interface VerificationEmailData {
   userId: string;
