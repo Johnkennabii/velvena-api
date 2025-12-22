@@ -650,3 +650,99 @@ export function getAccountDeletionValidationEmailTemplate(data: AccountDeletionV
 
   return getEmailBaseHTML(content, data.organizationName);
 }
+
+export interface TrialExpiringEmailData {
+  organizationName: string;
+  userName: string;
+  daysRemaining: number;
+  trialEndsAt: Date;
+  upgradeUrl: string;
+}
+
+export function getTrialExpiringEmailTemplate(
+  data: TrialExpiringEmailData
+): string {
+  const trialEndsAtFormatted = new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "full",
+    timeStyle: "short",
+    timeZone: "Europe/Paris",
+  }).format(data.trialEndsAt);
+
+  // Customize urgency level based on days remaining
+  let urgencyColor = "#f59e0b"; // Default amber
+  let urgencyEmoji = "⏰";
+  let urgencyMessage = "Votre période d'essai se termine bientôt";
+
+  if (data.daysRemaining === 1) {
+    urgencyColor = "#dc2626"; // Red
+    urgencyEmoji = "🚨";
+    urgencyMessage = "Dernière chance ! Votre période d'essai se termine demain";
+  } else if (data.daysRemaining === 3) {
+    urgencyColor = "#f59e0b"; // Amber
+    urgencyEmoji = "⚡";
+    urgencyMessage = "Plus que 3 jours de période d'essai";
+  } else if (data.daysRemaining === 7) {
+    urgencyColor = "#3b82f6"; // Blue
+    urgencyEmoji = "📅";
+    urgencyMessage = "Encore 7 jours pour profiter de votre essai";
+  }
+
+  const content = `
+<h2 style="margin:0 0 16px 0; color:${urgencyColor}; font-size:24px; font-weight:700;">
+  ${urgencyEmoji} ${urgencyMessage}
+</h2>
+
+<p style="margin:0 0 16px 0; color:#4a5568; font-size:16px; line-height:1.6;">
+  Bonjour <strong>${data.userName}</strong>,
+</p>
+
+<p style="margin:0 0 16px 0; color:#4a5568; font-size:16px; line-height:1.6;">
+  Votre période d'essai gratuite de <strong>${data.organizationName}</strong> se termine dans <strong style="color:${urgencyColor};">${data.daysRemaining} jour${data.daysRemaining > 1 ? "s" : ""}</strong>.
+</p>
+
+<div style="background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left:4px solid ${urgencyColor}; padding:24px; margin:24px 0; border-radius:8px;">
+  <p style="margin:0 0 8px 0; color:#78350f; font-size:16px; font-weight:600;">
+    📆 Date de fin de l'essai :
+  </p>
+  <p style="margin:0; color:#78350f; font-size:18px; font-weight:700;">
+    ${trialEndsAtFormatted}
+  </p>
+</div>
+
+<p style="margin:24px 0 16px 0; color:#4a5568; font-size:16px; line-height:1.6;">
+  Pour continuer à profiter de Velvena et de toutes ses fonctionnalités, choisissez un abonnement dès maintenant :
+</p>
+
+<ul style="margin:0 0 24px 20px; padding:0; color:#4a5568; font-size:15px; line-height:1.8;">
+  <li>✅ Gestion complète de votre catalogue de robes</li>
+  <li>✅ Création et signature électronique de contrats</li>
+  <li>✅ Suivi des clients et prospects</li>
+  <li>✅ Facturation et paiements</li>
+  <li>✅ Notifications temps réel</li>
+  <li>✅ Export de données illimité</li>
+</ul>
+
+<div style="text-align:center; margin:32px 0;">
+  <a href="${data.upgradeUrl}" style="display:inline-block; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:#ffffff; text-decoration:none; padding:16px 48px; border-radius:8px; font-weight:600; font-size:18px; box-shadow:0 4px 6px rgba(102, 126, 234, 0.4);">
+    🚀 Choisir mon abonnement
+  </a>
+</div>
+
+<hr style="border:none; border-top:1px solid #e2e8f0; margin:32px 0;">
+
+<div style="background:#f3f4f6; border-radius:4px; padding:16px; margin:24px 0;">
+  <p style="margin:0 0 8px 0; color:#374151; font-size:14px; font-weight:600;">
+    ℹ️ Que se passe-t-il si je ne souscris pas ?
+  </p>
+  <p style="margin:0; color:#6b7280; font-size:14px; line-height:1.6;">
+    Votre accès à la plateforme sera suspendu, mais vos données seront conservées en sécurité. Vous pourrez souscrire à tout moment pour retrouver l'accès à votre compte.
+  </p>
+</div>
+
+<p style="margin:24px 0 0 0; color:#6b7280; font-size:14px; line-height:1.6;">
+  Des questions ? Contactez-nous à <a href="mailto:contact@velvena.fr" style="color:#667eea; text-decoration:none;">contact@velvena.fr</a>
+</p>
+  `;
+
+  return getEmailBaseHTML(content, data.organizationName);
+}

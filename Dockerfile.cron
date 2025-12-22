@@ -35,11 +35,15 @@ COPY scripts ./scripts
 # Create crontab for root user (crond requires root)
 RUN echo "# Audit logs cleanup - Every day at 2 AM" > /etc/crontabs/root && \
     echo "0 2 * * * cd /app && npx tsx scripts/cleanup-audit-logs.ts >> /var/log/cron-audit-cleanup.log 2>&1" >> /etc/crontabs/root && \
+    echo "" >> /etc/crontabs/root && \
+    echo "# Trial expiration check - Every day at 9 AM" >> /etc/crontabs/root && \
+    echo "0 9 * * * cd /app && npx tsx scripts/check-trial-expiration.ts >> /var/log/cron-trial-check.log 2>&1" >> /etc/crontabs/root && \
     chmod 0644 /etc/crontabs/root
 
 # Create log directory
 RUN mkdir -p /var/log && \
     touch /var/log/cron-audit-cleanup.log && \
+    touch /var/log/cron-trial-check.log && \
     chown -R nodejs:nodejs /app
 
 # Copy entrypoint script

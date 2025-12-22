@@ -26,6 +26,7 @@ Lors de votre inscription et utilisation de Velvena, nous collectons :
   - Adresse de l'organisation
   - Plan d'abonnement (Starter, Pro)
   - Date de fin de période d'essai
+  - Statut d'abonnement (trial, active, canceled, etc.)
 
 ### 2.2 Données des Clients de Location
 
@@ -78,6 +79,7 @@ Nous utilisons vos données pour :
 | Gestion de votre compte utilisateur | Exécution du contrat |
 | Gestion des locations et contrats | Exécution du contrat |
 | Envoi d'emails de vérification | Exécution du contrat |
+| Envoi d'emails de rappel d'expiration d'essai | Exécution du contrat |
 | Facturation et paiements | Exécution du contrat + Obligation légale |
 | Conservation des contrats (7 ans) | Obligation légale (comptabilité) |
 | Génération de descriptions de robes par IA | Intérêt légitime (amélioration du service) |
@@ -96,7 +98,9 @@ Nous utilisons vos données pour :
 | Photos de robes | Durée de présence au catalogue | Nécessaire au service |
 | Exports temporaires de données | Suppression automatique après téléchargement | Technique |
 
-**Nettoyage automatique :** Un job automatique s'exécute quotidiennement à 2h00 pour supprimer les logs d'audit de plus de 7 ans.
+**Jobs automatiques :**
+- **2h00 :** Suppression des logs d'audit de plus de 7 ans
+- **9h00 :** Vérification des périodes d'essai et envoi d'emails de rappel (7, 3 et 1 jour avant expiration)
 
 ## 5. Destinataires des Données
 

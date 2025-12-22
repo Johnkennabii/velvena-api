@@ -48,6 +48,10 @@ Pour utiliser Velvena, vous devez :
 
 **Fonctionnalités :** Accès complet à toutes les fonctionnalités pendant la période d'essai
 
+**Rappels automatiques :**
+- Vous recevrez des emails de rappel à 7, 3 et 1 jour avant la fin de votre essai
+- Ces emails sont envoyés uniquement aux utilisateurs MANAGER et ADMIN de votre organisation
+
 **Fin de l'essai :**
 - Vous devez souscrire à un abonnement payant pour continuer à utiliser Velvena
 - Sans souscription, votre accès sera limité mais vos données seront conservées
@@ -201,11 +205,16 @@ Velvena s'engage à maintenir une disponibilité du service de **99%** (hors mai
 
 **Responsabilité client :** Nous vous recommandons d'exporter régulièrement vos données via la fonction d'export disponible dans votre compte.
 
-### 8.4 Nettoyage Automatique
+### 8.4 Jobs Automatiques
 
-Un job automatique s'exécute quotidiennement à **2h00 (Europe/Paris)** pour :
-- Supprimer les logs d'audit de plus de 7 ans
-- Nettoyer les fichiers temporaires d'export
+**Jobs quotidiens (Europe/Paris) :**
+
+1. **2h00 - Nettoyage automatique :**
+   - Suppression des logs d'audit de plus de 7 ans
+   - Nettoyage des fichiers temporaires d'export
+
+2. **9h00 - Vérification des essais :**
+   - Envoi d'emails de rappel pour les périodes d'essai qui expirent dans 7, 3 ou 1 jour
 
 ## 9. Résiliation
 
