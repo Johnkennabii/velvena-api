@@ -216,8 +216,21 @@ export async function syncSubscription(
   stripeSubscriptionId: string
 ): Promise<SubscriptionSyncResult> {
   try {
-    // Fetch subscription from Stripe
-    const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+    // Fetch subscription from Stripe with all fields
+    const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId, {
+      expand: ['latest_invoice', 'default_payment_method'],
+    });
+
+    // DEBUG: Log full subscription object
+    logger.info({
+      subscriptionId: stripeSubscriptionId,
+      status: subscription.status,
+      cancel_at_period_end: (subscription as any).cancel_at_period_end,
+      current_period_end: (subscription as any).current_period_end,
+      current_period_start: (subscription as any).current_period_start,
+      canceled_at: (subscription as any).canceled_at,
+      ended_at: subscription.ended_at,
+    }, "📊 Stripe subscription data retrieved");
 
     const organizationId = subscription.metadata.organizationId;
     const planCode = subscription.metadata.planCode;
@@ -292,6 +305,16 @@ export async function syncSubscription(
     // Detect cancellation type
     const cancelAtPeriodEnd = (subscription as any).cancel_at_period_end || false;
     const currentPeriodEnd = (subscription as any).current_period_end;
+
+    // Log for debugging
+    logger.debug({
+      organizationId,
+      cancelAtPeriodEnd,
+      currentPeriodEnd,
+      currentPeriodEndDate: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : null,
+      subscriptionStatus: subscription.status,
+    }, "Cancellation detection");
+
     const effectiveSubscriptionEnd = cancelAtPeriodEnd && currentPeriodEnd
       ? new Date(currentPeriodEnd * 1000)
       : subscriptionEnd;
