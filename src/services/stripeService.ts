@@ -289,6 +289,13 @@ export async function syncSubscription(
         ? new Date(subscription.ended_at * 1000)
         : null;
 
+    // Detect cancellation type
+    const cancelAtPeriodEnd = (subscription as any).cancel_at_period_end || false;
+    const currentPeriodEnd = (subscription as any).current_period_end;
+    const effectiveSubscriptionEnd = cancelAtPeriodEnd && currentPeriodEnd
+      ? new Date(currentPeriodEnd * 1000)
+      : subscriptionEnd;
+
     // Update organization
     await prisma.organization.update({
       where: { id: organizationId },
@@ -298,7 +305,8 @@ export async function syncSubscription(
         subscription_status: status,
         subscription_started_at: new Date(subscription.created * 1000),
         trial_ends_at: trialEnd,
-        subscription_ends_at: subscriptionEnd,
+        subscription_ends_at: effectiveSubscriptionEnd,
+        cancel_at_period_end: cancelAtPeriodEnd,
       },
     });
 
@@ -472,6 +480,55 @@ export async function cancelSubscription(
     );
   } catch (err: any) {
     logger.error({ err, organizationId }, "Failed to cancel subscription");
+    throw err;
+  }
+}
+
+/**
+ * Reactivate a cancelled subscription (only works if cancel_at_period_end was true)
+ */
+export async function reactivateSubscription(
+  organizationId: string
+): Promise<Stripe.Subscription> {
+  try {
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      throw new Error("Organization not found");
+    }
+
+    if (!organization.stripe_subscription_id) {
+      throw new Error("Organization does not have an active Stripe subscription");
+    }
+
+    // Check if subscription is set to cancel at period end
+    const subscription = await stripe.subscriptions.retrieve(organization.stripe_subscription_id);
+
+    if (!(subscription as any).cancel_at_period_end) {
+      throw new Error("Subscription is not scheduled for cancellation");
+    }
+
+    // Reactivate by setting cancel_at_period_end to false
+    const updatedSubscription = await stripe.subscriptions.update(
+      organization.stripe_subscription_id,
+      {
+        cancel_at_period_end: false,
+      }
+    );
+
+    // Sync to update local database
+    await syncSubscription(organization.stripe_subscription_id);
+
+    logger.info(
+      { organizationId, subscriptionId: organization.stripe_subscription_id },
+      "Reactivated subscription in Stripe"
+    );
+
+    return updatedSubscription;
+  } catch (err: any) {
+    logger.error({ err, organizationId }, "Failed to reactivate subscription");
     throw err;
   }
 }

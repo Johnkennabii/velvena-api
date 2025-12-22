@@ -357,6 +357,7 @@ export async function getSubscriptionStatus(organizationId: string) {
     include: {
       subscription: true,
     },
+    // Ensure cancel_at_period_end is selected
   });
 
   if (!org) {
@@ -367,6 +368,13 @@ export async function getSubscriptionStatus(organizationId: string) {
   const isTrial = org.subscription_status === "trial";
   const isTrialExpired = org.trial_ends_at && org.trial_ends_at < now;
   const isSubscriptionExpired = org.subscription_ends_at && org.subscription_ends_at < now;
+
+  // Cancellation information
+  const isCancelling = (org as any).cancel_at_period_end === true;
+  const cancellationDate = isCancelling ? org.subscription_ends_at : null;
+  const daysUntilCancellation = cancellationDate
+    ? Math.ceil((cancellationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    : null;
 
   return {
     status: org.subscription_status,
@@ -380,6 +388,11 @@ export async function getSubscriptionStatus(organizationId: string) {
     days_remaining: org.trial_ends_at
       ? Math.ceil((org.trial_ends_at.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
       : null,
+    // Cancellation info
+    is_cancelling: isCancelling,
+    cancellation_type: isCancelling ? "end_of_period" : (org.subscription_status === "cancelled" ? "immediate" : null),
+    cancellation_date: cancellationDate,
+    days_until_cancellation: daysUntilCancellation,
   };
 }
 

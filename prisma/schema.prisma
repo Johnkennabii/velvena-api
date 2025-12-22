@@ -57,6 +57,7 @@ model Organization {
   subscription_started_at DateTime? @default(now())
   trial_ends_at           DateTime?
   subscription_ends_at    DateTime? // For cancelled subscriptions
+  cancel_at_period_end    Boolean?  @default(false) // True if subscription will be cancelled at period end
 
   // Stripe Integration
   stripe_customer_id     String? @unique // Stripe Customer ID

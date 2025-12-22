@@ -176,6 +176,7 @@ export async function handleSubscriptionDeleted(
         subscription_status: "cancelled",
         subscription_ends_at: new Date(),
         stripe_subscription_id: null,
+        cancel_at_period_end: false, // Reset flag when deleted
       },
     });
 

@@ -11,6 +11,7 @@ import {
   createCheckoutSession,
   createPortalSession,
   cancelSubscription,
+  reactivateSubscription,
   updateSubscription,
   getInvoices,
 } from "../services/stripeService.js";
@@ -455,6 +456,39 @@ router.post(
       });
     } catch (err: any) {
       logger.error({ err }, "Failed to cancel subscription");
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+/**
+ * POST /api/billing/reactivate-subscription
+ * Reactivate a subscription that was scheduled for cancellation
+ */
+router.post(
+  "/reactivate-subscription",
+  authMiddleware,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.user?.organizationId) {
+        return res.status(401).json({ error: "Organization context required" });
+      }
+
+      await reactivateSubscription(req.user.organizationId);
+
+      logger.info(
+        {
+          organizationId: req.user.organizationId,
+        },
+        "Reactivated subscription"
+      );
+
+      res.json({
+        success: true,
+        message: "Subscription reactivated successfully. It will continue at the end of the current period.",
+      });
+    } catch (err: any) {
+      logger.error({ err }, "Failed to reactivate subscription");
       res.status(500).json({ error: err.message });
     }
   }
