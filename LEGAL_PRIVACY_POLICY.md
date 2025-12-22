@@ -27,6 +27,8 @@ Lors de votre inscription et utilisation de Velvena, nous collectons :
   - Plan d'abonnement (Starter, Pro)
   - Date de fin de période d'essai
   - Statut d'abonnement (trial, active, canceled, etc.)
+  - Indicateur de résiliation programmée (cancel_at_period_end)
+  - Date de fin d'abonnement prévue
 
 ### 2.2 Données des Clients de Location
 

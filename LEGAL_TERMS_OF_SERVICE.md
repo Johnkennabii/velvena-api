@@ -220,17 +220,41 @@ Velvena s'engage à maintenir une disponibilité du service de **99%** (hors mai
 
 ### 9.1 Résiliation par le Client
 
-**Vous pouvez résilier votre abonnement à tout moment :**
+**Vous pouvez résilier votre abonnement à tout moment via deux options :**
+
+#### Option 1 : Résiliation à la fin de la période (recommandé)
+1. Accédez à **Paramètres > Abonnement**
+2. Cliquez sur "Annuler mon abonnement"
+3. Choisissez "Annuler à la fin de la période"
+
+**Effet :**
+- Vous gardez l'accès jusqu'à la date de fin de votre période payée
+- Votre abonnement ne sera pas renouvelé automatiquement
+- **Vous pouvez réactiver votre abonnement** à tout moment avant la date de fin
+- Vous recevrez une notification avec la date exacte de fin d'accès
+- Aucun remboursement au prorata
+
+#### Option 2 : Résiliation immédiate
+1. Accédez à **Paramètres > Abonnement**
+2. Cliquez sur "Annuler mon abonnement"
+3. Choisissez "Annuler immédiatement"
+
+**Effet :**
+- Accès immédiatement coupé
+- **Action irréversible** - vous ne pourrez pas réactiver cet abonnement
+- Aucun remboursement au prorata
+
+#### Suppression complète du compte
+Pour supprimer définitivement votre compte et toutes vos données :
 
 1. Accédez à **Paramètres > Supprimer mon compte**
 2. Un code de validation est envoyé par email
 3. Confirmez la suppression
 
 **Effet :**
-- Accès immédiatement coupé
 - Export automatique de vos données proposé avant suppression
 - Suppression définitive de toutes vos données dans les 48 heures
-- Aucun remboursement au prorata (sauf période d'essai)
+- Action irréversible
 
 ### 9.2 Résiliation par Velvena
 
