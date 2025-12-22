@@ -226,11 +226,11 @@ export async function syncSubscription(
     logger.info({
       subscriptionId: stripeSubscriptionId,
       status: subscription.status,
-      cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
-      currentPeriodEnd: subscription.currentPeriodEnd,
-      currentPeriodStart: subscription.currentPeriodStart,
-      canceledAt: subscription.canceledAt,
-      endedAt: subscription.endedAt,
+      cancel_at_period_end: (subscription as any).cancel_at_period_end,
+      current_period_end: (subscription as any).current_period_end,
+      current_period_start: (subscription as any).current_period_start,
+      canceled_at: (subscription as any).canceled_at,
+      ended_at: subscription.ended_at,
     }, "📊 Stripe subscription data retrieved");
 
     const organizationId = subscription.metadata.organizationId;
@@ -307,18 +307,18 @@ export async function syncSubscription(
     // Si on force le passage de trial à active, on met trial_ends_at à null
     if (wasInFreeTrial && isNewPaidSubscription) {
       trialEnd = null; // Le trial est terminé
-    } else if (subscription.trialEnd) {
-      trialEnd = new Date(subscription.trialEnd * 1000);
+    } else if (subscription.trial_end) {
+      trialEnd = new Date(subscription.trial_end * 1000);
     }
 
     const subscriptionEnd =
-      subscription.status === "canceled" && subscription.endedAt
-        ? new Date(subscription.endedAt * 1000)
+      subscription.status === "canceled" && subscription.ended_at
+        ? new Date(subscription.ended_at * 1000)
         : null;
 
-    // Detect cancellation type (use camelCase for Stripe TypeScript SDK)
-    const cancelAtPeriodEnd = subscription.cancelAtPeriodEnd || false;
-    const currentPeriodEnd = subscription.currentPeriodEnd;
+    // Detect cancellation type
+    const cancelAtPeriodEnd = (subscription as any).cancel_at_period_end || false;
+    const currentPeriodEnd = (subscription as any).current_period_end;
 
     // Log for debugging
     logger.debug({
