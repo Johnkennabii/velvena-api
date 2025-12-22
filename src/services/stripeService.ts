@@ -319,18 +319,28 @@ export async function syncSubscription(
       ? new Date(currentPeriodEnd * 1000)
       : subscriptionEnd;
 
+    // DEBUG: Log what we're about to save
+    const dataToUpdate = {
+      stripe_subscription_id: subscription.id,
+      subscription_plan_id: plan?.id || organization.subscription_plan_id,
+      subscription_status: status,
+      subscription_started_at: new Date(subscription.created * 1000),
+      trial_ends_at: trialEnd,
+      subscription_ends_at: effectiveSubscriptionEnd,
+      cancel_at_period_end: cancelAtPeriodEnd,
+    };
+
+    logger.info({
+      organizationId,
+      dataToUpdate,
+      effectiveSubscriptionEndType: typeof effectiveSubscriptionEnd,
+      effectiveSubscriptionEndValue: effectiveSubscriptionEnd,
+    }, "💾 About to update organization in database");
+
     // Update organization
     await prisma.organization.update({
       where: { id: organizationId },
-      data: {
-        stripe_subscription_id: subscription.id,
-        subscription_plan_id: plan?.id || organization.subscription_plan_id,
-        subscription_status: status,
-        subscription_started_at: new Date(subscription.created * 1000),
-        trial_ends_at: trialEnd,
-        subscription_ends_at: effectiveSubscriptionEnd,
-        cancel_at_period_end: cancelAtPeriodEnd,
-      },
+      data: dataToUpdate,
     });
 
     logger.info(
