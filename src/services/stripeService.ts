@@ -507,9 +507,13 @@ export async function cancelSubscription(
       });
     }
 
+    // Sync subscription to update local database immediately
+    // (don't wait for webhook)
+    await syncSubscription(organization.stripe_subscription_id);
+
     logger.info(
       { organizationId, immediately },
-      "Cancelled subscription in Stripe"
+      "Cancelled subscription in Stripe and synced to database"
     );
   } catch (err: any) {
     logger.error({ err, organizationId }, "Failed to cancel subscription");
