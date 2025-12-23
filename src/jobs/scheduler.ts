@@ -4,10 +4,12 @@
  * Gère l'exécution automatique des tâches planifiées :
  * - Nettoyage des trials expirés (quotidien à 2h du matin)
  * - Nettoyage des souscriptions expirées (quotidien à 2h du matin)
+ * - Nettoyage des fichiers d'export (+24h) (quotidien à 2h du matin)
  */
 
 import pino from "pino";
 import { runSubscriptionMaintenanceJobs } from "./trialExpirationJob.js";
+import { cleanupOldExports } from "../services/dataExportService.js";
 
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 
@@ -51,7 +53,12 @@ async function executeMaintenanceJobs(): Promise<void> {
   try {
     logger.info("⏰ Heure d'exécution des jobs de maintenance atteinte");
 
+    // Run subscription maintenance jobs
     const results = await runSubscriptionMaintenanceJobs();
+
+    // Cleanup old export files (older than 24h)
+    logger.info("🗑️ Cleaning up old export files...");
+    await cleanupOldExports();
 
     lastExecutionDate = new Date();
 
