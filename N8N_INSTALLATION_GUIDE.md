@@ -25,6 +25,30 @@ Ce guide vous accompagne dans l'installation professionnelle de N8N sur votre VP
 └─────────────────┘  └─────────────────────┘
 ```
 
+## ⚠️ Compatibilité avec vos services existants
+
+**N8N est complètement isolé et ne va PAS interférer avec vos services existants :**
+
+✅ **Containers Docker séparés** : N8N tourne dans ses propres containers
+- `velvena-n8n` : Service N8N
+- `velvena-n8n-postgres` : Base de données dédiée N8N (≠ votre PostgreSQL)
+- `velvena-n8n-redis` : Cache dédié N8N
+
+✅ **Ports dédiés** : N8N utilise le port `5678` (accessible uniquement via Nginx)
+
+✅ **Réseaux isolés** :
+- Réseau `n8n-network` : privé pour les services N8N
+- Réseau `velvena-network` : optionnel, pour communiquer avec votre API
+
+✅ **Volumes séparés** :
+- `/opt/n8n` : Installation N8N
+- `/var/lib/n8n` : Données N8N
+- `/var/backups/n8n` : Backups N8N
+
+✅ **Configuration Nginx séparée** : Un fichier de config dédié (`n8n.velvena.fr`)
+
+**Vos services existants continueront de fonctionner normalement !**
+
 ## 🚀 Prérequis
 
 ### Système
@@ -45,6 +69,30 @@ Ce guide vous accompagne dans l'installation professionnelle de N8N sur votre VP
 - DNS pointant vers votre serveur
 
 ## 📥 Installation
+
+### Étape 0 : Vérification pré-installation (IMPORTANT)
+
+**Avant de commencer, vérifiez qu'il n'y a pas de conflits avec vos services existants :**
+
+```bash
+# Sur votre VPS, exécuter le script de pré-vérification
+sudo /opt/n8n/scripts/pre-check.sh
+```
+
+**Ce script vérifie :**
+- ✅ Disponibilité du port 5678
+- ✅ Absence de conflits de noms de containers
+- ✅ Réseaux Docker existants
+- ✅ Espace disque disponible
+- ✅ Services Docker en cours d'exécution
+- ✅ Configuration Nginx
+
+**Résultat attendu :**
+```
+✅ All checks passed!
+✅ No conflicts detected with existing services
+✅ Safe to proceed with N8N installation
+```
 
 ### Étape 1 : Préparation du serveur
 
