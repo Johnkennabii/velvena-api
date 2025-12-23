@@ -1,0 +1,227 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # N8N - Workflow Automation
+  # ============================================
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: velvena-n8n
+    restart: unless-stopped
+
+    ports:
+      - "5678:5678"  # Interface N8N
+
+    environment:
+      # Base Configuration
+      - NODE_ENV=production
+      - N8N_PROTOCOL=https
+      - N8N_HOST=${N8N_DOMAIN}
+      - N8N_PORT=5678
+      - WEBHOOK_URL=https://${N8N_DOMAIN}/
+
+      # Security
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+
+      # Database (PostgreSQL)
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=n8n-postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+
+      # Execution
+      - EXECUTIONS_PROCESS=main
+      - EXECUTIONS_MODE=regular
+      - EXECUTIONS_TIMEOUT=300
+      - EXECUTIONS_TIMEOUT_MAX=600
+
+      # Data Retention
+      - EXECUTIONS_DATA_SAVE_ON_ERROR=all
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=all
+      - EXECUTIONS_DATA_SAVE_ON_PROGRESS=true
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=168  # 7 days
+
+      # Timezone
+      - GENERIC_TIMEZONE=Europe/Paris
+      - TZ=Europe/Paris
+
+      # Logs
+      - N8N_LOG_LEVEL=info
+      - N8N_LOG_OUTPUT=console,file
+      - N8N_LOG_FILE_LOCATION=/home/node/.n8n/logs/
+
+      # Metrics (Prometheus)
+      - N8N_METRICS=true
+      - N8N_METRICS_PREFIX=n8n_
+
+      # Email (SMTP)
+      - N8N_EMAIL_MODE=smtp
+      - N8N_SMTP_HOST=${SMTP_HOST}
+      - N8N_SMTP_PORT=${SMTP_PORT}
+      - N8N_SMTP_USER=${SMTP_USER}
+      - N8N_SMTP_PASS=${SMTP_PASSWORD}
+      - N8N_SMTP_SENDER=${SMTP_SENDER}
+      - N8N_SMTP_SSL=true
+
+      # Custom Variables
+      - N8N_CUSTOM_EXTENSIONS=/home/node/.n8n/custom-extensions
+      - N8N_USER_FOLDER=/home/node/.n8n
+
+    volumes:
+      # Persistent data
+      - n8n_data:/home/node/.n8n
+      - n8n_files:/files
+      - n8n_logs:/home/node/.n8n/logs
+
+      # Custom nodes (optional)
+      # - ./custom-nodes:/home/node/.n8n/custom-extensions
+
+    depends_on:
+      n8n-postgres:
+        condition: service_healthy
+
+    networks:
+      - n8n-network
+      - velvena-network  # Pour communiquer avec votre API
+
+    labels:
+      # Traefik Labels (si vous utilisez Traefik)
+      - "traefik.enable=true"
+      - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`)"
+      - "traefik.http.routers.n8n.entrypoints=websecure"
+      - "traefik.http.routers.n8n.tls=true"
+      - "traefik.http.routers.n8n.tls.certresolver=letsencrypt"
+      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+
+      # Monitoring
+      - "prometheus.scrape=true"
+      - "prometheus.port=5678"
+      - "prometheus.path=/metrics"
+
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5678/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================
+  # PostgreSQL - N8N Database
+  # ============================================
+  n8n-postgres:
+    image: postgres:16-alpine
+    container_name: velvena-n8n-postgres
+    restart: unless-stopped
+
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_NON_ROOT_USER=n8n
+      - POSTGRES_NON_ROOT_PASSWORD=${POSTGRES_PASSWORD}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+
+    volumes:
+      - n8n_postgres_data:/var/lib/postgresql/data
+      - n8n_postgres_backups:/backups
+      - ./init-scripts:/docker-entrypoint-initdb.d
+
+    networks:
+      - n8n-network
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    labels:
+      - "backup.enable=true"
+      - "backup.schedule=0 2 * * *"  # Daily at 2 AM
+
+  # ============================================
+  # Redis - Queue & Cache (Optional mais recommandé)
+  # ============================================
+  n8n-redis:
+    image: redis:7-alpine
+    container_name: velvena-n8n-redis
+    restart: unless-stopped
+
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+
+    volumes:
+      - n8n_redis_data:/data
+
+    networks:
+      - n8n-network
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+# ============================================
+# VOLUMES
+# ============================================
+volumes:
+  n8n_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/n8n/data
+
+  n8n_files:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/n8n/files
+
+  n8n_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/log/n8n
+
+  n8n_postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/n8n/postgres
+
+  n8n_postgres_backups:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/backups/n8n/postgres
+
+  n8n_redis_data:
+    driver: local
+
+# ============================================
+# NETWORKS
+# ============================================
+networks:
+  n8n-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+  velvena-network:
+    external: true  # Réseau partagé avec votre API Velvena
