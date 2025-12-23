@@ -6,8 +6,9 @@ La fonctionnalité d'export de données permet aux organisations de télécharge
 
 ## Disponibilité
 
-- **Plan requis :** Enterprise
-- **Feature gate :** `export_data`
+- **Plans :** Tous les plans (Free, Starter, Pro, Enterprise)
+- **Rôles requis :** MANAGER, ADMIN ou SUPER_ADMIN
+- **Restriction :** Uniquement les utilisateurs avec rôle de gestion
 
 ## Ce qui est exporté
 
@@ -48,7 +49,7 @@ Créer un nouvel export de données.
 
 **Authentification :** Requise (JWT)
 
-**Permissions :** Feature `export_data` requise (plan Enterprise)
+**Permissions :** Rôle MANAGER, ADMIN ou SUPER_ADMIN requis
 
 **Response (200 OK) :**
 ```json
@@ -72,9 +73,10 @@ Créer un nouvel export de données.
 ```json
 {
   "success": false,
-  "error": "Data export feature not available in your plan",
-  "upgrade_required": "enterprise",
-  "message": "Please upgrade to enterprise plan to export your data"
+  "error": "Insufficient permissions",
+  "message": "This action requires one of the following roles: SUPER_ADMIN, ADMIN, MANAGER",
+  "required_roles": ["SUPER_ADMIN", "ADMIN", "MANAGER"],
+  "user_role": "USER"
 }
 ```
 
@@ -84,7 +86,7 @@ Télécharger un fichier d'export existant.
 
 **Authentification :** Requise (JWT)
 
-**Permissions :** Feature `export_data` requise
+**Permissions :** Rôle MANAGER, ADMIN ou SUPER_ADMIN requis
 
 **Sécurité :**
 - Le nom de fichier doit contenir l'ID de l'organisation
@@ -132,7 +134,8 @@ async function createDataExport() {
     }
   } catch (error) {
     if (error.response?.status === 403) {
-      alert('Mise à niveau vers Enterprise requise pour exporter vos données');
+      const errorData = error.response?.data;
+      alert(`Permissions insuffisantes. Rôles requis : ${errorData.required_roles?.join(', ')}`);
     } else {
       console.error('Erreur lors de l\'export:', error);
     }
@@ -240,7 +243,8 @@ POST /data-export/cleanup
 ## Sécurité
 
 - ✅ Authentification JWT requise
-- ✅ Vérification du plan d'abonnement (Enterprise)
+- ✅ Contrôle d'accès basé sur les rôles (RBAC)
+- ✅ Rôles autorisés : MANAGER, ADMIN, SUPER_ADMIN
 - ✅ Validation du propriétaire du fichier
 - ✅ Protection contre directory traversal
 - ✅ Expiration automatique (24h)

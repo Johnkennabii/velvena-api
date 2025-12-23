@@ -5,12 +5,13 @@
  * - Export all data as ZIP (contracts, invoices, clients, prospects)
  * - Download exported ZIP file
  *
- * Feature gate: export_data (Enterprise plan only)
+ * Access Control: MANAGER, ADMIN, SUPER_ADMIN roles only
+ * Available for all subscription plans
  */
 
 import { Router, type Request, type Response } from "express";
 import authMiddleware from "../middleware/authMiddleware.js";
-import { checkFeature } from "../utils/subscriptionManager.js";
+import { requireManager, requireAdmin } from "../middleware/roleMiddleware.js";
 import {
   exportOrganizationData,
   cleanupOldExports,
@@ -24,15 +25,17 @@ const router = Router();
 /**
  * @route POST /api/data-export/create
  * @desc Create a data export (ZIP file) for the organization
- * @access Private (requires export_data feature - Enterprise plan)
+ * @access Private (requires MANAGER, ADMIN or SUPER_ADMIN role)
  */
 router.post(
   "/create",
   authMiddleware,
+  requireManager, // Vérifie que l'utilisateur est MANAGER, ADMIN ou SUPER_ADMIN
   async (req: Request, res: Response): Promise<void> => {
     try {
       const organizationId = (req as any).user?.organizationId;
       const userId = (req as any).user?.id;
+      const userRole = (req as any).userRole; // Ajouté par requireManager middleware
 
       if (!organizationId) {
         res.status(401).json({
@@ -42,21 +45,8 @@ router.post(
         return;
       }
 
-      // Check if organization has access to export_data feature
-      const featureCheck = await checkFeature(organizationId, "export_data");
-
-      if (!featureCheck.allowed) {
-        res.status(403).json({
-          success: false,
-          error: "Data export feature not available in your plan",
-          upgrade_required: featureCheck.upgrade_required,
-          message: `Please upgrade to ${featureCheck.upgrade_required || "Enterprise"} plan to export your data`,
-        });
-        return;
-      }
-
       pino.info(
-        { organizationId, userId },
+        { organizationId, userId, userRole },
         "🗜️ Starting data export request"
       );
 
@@ -101,11 +91,12 @@ router.post(
 /**
  * @route GET /api/data-export/download/:filename
  * @desc Download an exported ZIP file
- * @access Private (requires export_data feature - Enterprise plan)
+ * @access Private (requires MANAGER, ADMIN or SUPER_ADMIN role)
  */
 router.get(
   "/download/:filename",
   authMiddleware,
+  requireManager, // Vérifie que l'utilisateur est MANAGER, ADMIN ou SUPER_ADMIN
   async (req: Request, res: Response): Promise<void> => {
     try {
       const organizationId = (req as any).user?.organizationId;
@@ -123,17 +114,6 @@ router.get(
         res.status(400).json({
           success: false,
           error: "Filename is required",
-        });
-        return;
-      }
-
-      // Check if organization has access to export_data feature
-      const featureCheck = await checkFeature(organizationId, "export_data");
-
-      if (!featureCheck.allowed) {
-        res.status(403).json({
-          success: false,
-          error: "Data export feature not available in your plan",
         });
         return;
       }
@@ -198,16 +178,21 @@ router.get(
 /**
  * @route POST /api/data-export/cleanup
  * @desc Manually trigger cleanup of old export files (admin only)
- * @access Private (Admin only)
+ * @access Private (requires ADMIN or SUPER_ADMIN role)
  */
 router.post(
   "/cleanup",
   authMiddleware,
+  requireAdmin, // Vérifie que l'utilisateur est ADMIN ou SUPER_ADMIN
   async (req: Request, res: Response): Promise<void> => {
     try {
-      // TODO: Add admin role check here when role-based access control is implemented
+      const userId = (req as any).user?.id;
+      const userRole = (req as any).userRole;
 
-      pino.info("🗑️ Manual cleanup of old exports triggered");
+      pino.info(
+        { userId, userRole },
+        "🗑️ Manual cleanup of old exports triggered"
+      );
 
       await cleanupOldExports();
 

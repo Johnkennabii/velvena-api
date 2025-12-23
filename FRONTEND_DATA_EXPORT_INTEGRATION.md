@@ -4,6 +4,11 @@
 
 Ce guide vous aide à intégrer la fonctionnalité d'export de données dans votre interface utilisateur Velvena.
 
+**Contrôle d'accès :**
+- Disponible pour tous les plans d'abonnement
+- Requiert un rôle de gestion : MANAGER, ADMIN ou SUPER_ADMIN
+- Les utilisateurs avec le rôle USER ne peuvent pas exporter les données
+
 ## Interface Utilisateur Recommandée
 
 ### Emplacement
@@ -86,13 +91,14 @@ export function useDataExport() {
 
       if (!response.ok) {
         if (response.status === 403) {
-          // Feature non disponible dans le plan actuel
+          // Permissions insuffisantes
+          const requiredRoles = data.required_roles?.join(', ') || 'MANAGER, ADMIN, SUPER_ADMIN';
           toast({
-            title: "Mise à niveau requise",
-            description: data.error || "Passez au plan Enterprise pour exporter vos données",
+            title: "Permissions insuffisantes",
+            description: `Cette action nécessite un des rôles suivants : ${requiredRoles}`,
             variant: "destructive",
           });
-          setError(data.error || "Plan Enterprise requis");
+          setError(data.error || "Permissions insuffisantes");
           return null;
         }
 
@@ -145,13 +151,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useDataExport } from '@/hooks/useDataExport';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useAuth } from '@/hooks/useAuth'; // Hook pour récupérer l'utilisateur connecté
 
 export function DataExportCard() {
   const { loading, error, createExport, downloadExport } = useDataExport();
-  const { subscription, hasFeature } = useSubscription();
+  const { user } = useAuth();
 
-  const canExport = hasFeature('export_data');
+  // Vérifier si l'utilisateur a un rôle de gestion
+  const canExport = user?.role && ['MANAGER', 'ADMIN', 'SUPER_ADMIN'].includes(user.role);
 
   const handleExport = async () => {
     const result = await createExport();
@@ -224,14 +231,15 @@ export function DataExportCard() {
           <div className="space-y-2">
             <Alert variant="destructive">
               <AlertDescription>
-                Cette fonctionnalité nécessite le plan Enterprise
+                Cette fonctionnalité nécessite un rôle de gestion (MANAGER, ADMIN ou SUPER_ADMIN)
               </AlertDescription>
             </Alert>
-            <Button variant="outline" className="w-full" asChild>
-              <a href="/billing">
-                Passer au plan Enterprise
-              </a>
-            </Button>
+            <p className="text-sm text-muted-foreground">
+              Votre rôle actuel : <strong>{user?.role || 'Non défini'}</strong>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Contactez un administrateur pour obtenir les permissions nécessaires.
+            </p>
           </div>
         )}
 
@@ -245,58 +253,48 @@ export function DataExportCard() {
 }
 ```
 
-### 3. Hook useSubscription pour vérifier les features
+### 3. Hook useAuth pour vérifier le rôle
 
 ```typescript
-// hooks/useSubscription.ts
+// hooks/useAuth.ts
 import { useQuery } from '@tanstack/react-query';
 
-interface SubscriptionFeature {
-  allowed: boolean;
-  feature_name: string;
-  upgrade_required?: string;
+interface User {
+  id: string;
+  email: string;
+  role: string;
+  organizationId: string;
 }
 
-interface SubscriptionData {
-  status: string;
-  plan: {
-    code: string;
-    name: string;
-    features: Record<string, boolean>;
-  };
-  features: Record<string, SubscriptionFeature>;
-}
-
-export function useSubscription() {
+export function useAuth() {
   const { data, isLoading } = useQuery({
-    queryKey: ['subscription'],
+    queryKey: ['user'],
     queryFn: async () => {
-      const response = await fetch('/billing/dashboard', {
+      const response = await fetch('/auth/me', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         }
       });
 
-      if (!response.ok) throw new Error('Failed to fetch subscription');
+      if (!response.ok) throw new Error('Failed to fetch user');
 
-      const result = await response.json();
-      return result.subscription as SubscriptionData;
+      return await response.json() as User;
     }
   });
 
-  const hasFeature = (featureName: string): boolean => {
-    return data?.features?.[featureName]?.allowed ?? false;
+  const hasRole = (role: string): boolean => {
+    return data?.role === role;
   };
 
-  const getFeatureUpgradeRequired = (featureName: string): string | undefined => {
-    return data?.features?.[featureName]?.upgrade_required;
+  const hasAnyRole = (...roles: string[]): boolean => {
+    return roles.includes(data?.role || '');
   };
 
   return {
-    subscription: data,
+    user: data,
     isLoading,
-    hasFeature,
-    getFeatureUpgradeRequired,
+    hasRole,
+    hasAnyRole,
   };
 }
 ```
@@ -419,10 +417,11 @@ describe('useDataExport', () => {
 
 1. **Feedback utilisateur :** Toujours afficher un loader pendant l'export
 2. **Gestion d'erreurs :** Messages clairs et solutions proposées
-3. **Feature gating :** Vérifier `hasFeature('export_data')` avant d'afficher le bouton
+3. **Contrôle d'accès :** Vérifier le rôle utilisateur avant d'afficher le bouton
 4. **Sécurité :** Ne jamais exposer les tokens dans les URLs
 5. **Accessibilité :** Labels clairs et support clavier
-6. **Performance :** Utiliser React Query pour le cache des données de subscription
+6. **Performance :** Utiliser React Query pour le cache du profil utilisateur
+7. **UX :** Afficher clairement le rôle requis et le rôle actuel de l'utilisateur
 
 ## Exemples de Messages Utilisateur
 
@@ -440,18 +439,20 @@ Le téléchargement va commencer automatiquement.
 ⚠️ Ce fichier expire dans 24 heures.
 ```
 
-### Message pour upgrade
+### Message pour permissions insuffisantes
 ```
-🔒 Fonctionnalité réservée au plan Enterprise
+🔒 Permissions insuffisantes
 
-L'export de données est disponible uniquement avec le plan Enterprise.
+Cette fonctionnalité nécessite un rôle de gestion.
 
-Passez à Enterprise pour :
-✅ Exporter toutes vos données
-✅ Conformité RGPD complète
-✅ Support prioritaire
+Rôles autorisés :
+✅ MANAGER
+✅ ADMIN
+✅ SUPER_ADMIN
 
-[Voir les plans]
+Votre rôle actuel : USER
+
+Contactez un administrateur pour obtenir les permissions nécessaires.
 ```
 
 ## Support et Débogage
@@ -459,4 +460,5 @@ Passez à Enterprise pour :
 - Vérifier les logs navigateur (console)
 - Inspecter la réponse réseau dans DevTools
 - Confirmer que le token JWT est valide
-- Vérifier le plan d'abonnement actif
+- Vérifier le rôle de l'utilisateur connecté
+- S'assurer que l'utilisateur a un des rôles requis : MANAGER, ADMIN ou SUPER_ADMIN
