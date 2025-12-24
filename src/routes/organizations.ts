@@ -37,10 +37,12 @@ router.get("/me", getMyOrganization);
 
 /**
  * @route PUT /organizations/me
+ * @route PATCH /organizations/me
  * @desc Update current user's organization
  * @access Private (Admin only - add role check middleware)
  */
 router.put("/me", updateMyOrganization);
+router.patch("/me", updateMyOrganization);
 
 /**
  * @route GET /organizations/me/stats
