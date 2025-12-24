@@ -66,6 +66,11 @@ model Organization {
   // Deprecated - use subscription_plan_id instead
   subscription_plan String? @default("free") // free, basic, pro, enterprise
 
+  // Onboarding tracking
+  onboarding_completed    Boolean   @default(false)
+  onboarding_completed_at DateTime?
+  onboarding_completed_by String?
+
   // Usage & Quotas (cached for performance)
   current_usage Json? // Cached usage counts
   /**

@@ -71,6 +71,9 @@ export const getMyOrganization = async (
         settings: true,
         subscription_plan: true,
         trial_ends_at: true,
+        onboarding_completed: true,
+        onboarding_completed_at: true,
+        onboarding_completed_by: true,
         is_active: true,
         created_at: true,
         updated_at: true,
@@ -116,28 +119,39 @@ export const updateMyOrganization = async (
       manager_last_name,
       manager_title,
       settings,
+      onboarding_completed,
     } = req.body;
+
+    // Prepare update data
+    const updateData: any = {
+      name,
+      email,
+      phone,
+      address,
+      city,
+      postal_code,
+      country,
+      logo_url,
+      siret,
+      manager_gender,
+      manager_first_name,
+      manager_last_name,
+      manager_title,
+      settings,
+      updated_at: new Date(),
+      updated_by: req.user.id,
+    };
+
+    // Auto-fill onboarding tracking fields when onboarding is completed
+    if (onboarding_completed === true) {
+      updateData.onboarding_completed = true;
+      updateData.onboarding_completed_at = new Date();
+      updateData.onboarding_completed_by = req.user.id;
+    }
 
     const organization = await prisma.organization.update({
       where: { id: req.user.organizationId },
-      data: {
-        name,
-        email,
-        phone,
-        address,
-        city,
-        postal_code,
-        country,
-        logo_url,
-        siret,
-        manager_gender,
-        manager_first_name,
-        manager_last_name,
-        manager_title,
-        settings,
-        updated_at: new Date(),
-        updated_by: req.user.id,
-      },
+      data: updateData,
       select: {
         id: true,
         name: true,
@@ -156,6 +170,9 @@ export const updateMyOrganization = async (
         manager_title: true,
         settings: true,
         subscription_plan: true,
+        onboarding_completed: true,
+        onboarding_completed_at: true,
+        onboarding_completed_by: true,
         is_active: true,
         updated_at: true,
       },
