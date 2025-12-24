@@ -8,12 +8,13 @@ import { dirname, join } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load .env from project root
+// Load .env from project root (optional in Docker environments)
 const result = config({ path: join(__dirname, "..", ".env") });
 
 if (result.error) {
-  console.error("❌ Error loading .env file:", result.error);
-  process.exit(1);
+  // In Docker, .env file might not exist - that's OK if env vars are set via docker-compose
+  console.warn("⚠️  .env file not found (this is normal in Docker environments)");
+  console.warn("📦 Using environment variables from docker-compose or system");
 }
 
 // Verify that Stripe keys are loaded
