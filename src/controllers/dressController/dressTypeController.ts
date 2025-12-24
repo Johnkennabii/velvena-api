@@ -49,6 +49,17 @@ export const createDressType = async (req: AuthenticatedRequest, res: Response) 
     });
     return res.json({ success: true, data: dressType });
   } catch (err: any) {
+    pino.error({ err }, "❌ Erreur createDressType");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Un type de robe avec le nom '${req.body.name}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_NAME"
+      });
+    }
+
     return res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -90,8 +101,18 @@ export const updateDressType = async (req: AuthenticatedRequest, res: Response) 
       },
     });
     res.json({ success: true, data: updated });
-  } catch (err) {
+  } catch (err: any) {
     pino.error({ err }, "❌ Erreur updateDressType");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Un type de robe avec le nom '${req.body.name}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_NAME"
+      });
+    }
+
     res.status(500).json({ success: false, error: "Failed to update dress type" });
   }
 };

@@ -60,6 +60,31 @@ export const register = async (req: AuthenticatedRequest, res: Response) => {
     res.status(201).json({ id: newUser.id, email: newUser.email, role: role.name, profile: newUser.profile });
   } catch (err: any) {
     logger.error({ err }, "Failed to register user");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      const field = err.meta?.target?.[0];
+      if (field === "email") {
+        return res.status(409).json({
+          success: false,
+          error: `Un utilisateur avec l'email '${req.body.email}' existe déjà.`,
+          code: "DUPLICATE_EMAIL"
+        });
+      }
+      if (field === "email_verification_token") {
+        return res.status(409).json({
+          success: false,
+          error: "Un conflit de token de vérification s'est produit. Veuillez réessayer.",
+          code: "DUPLICATE_TOKEN"
+        });
+      }
+      return res.status(409).json({
+        success: false,
+        error: "Un utilisateur avec ces informations existe déjà.",
+        code: "DUPLICATE_ENTRY"
+      });
+    }
+
     res.status(400).json({ error: err.message });
   }
 };

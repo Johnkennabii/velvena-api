@@ -161,6 +161,16 @@ export const createPricingRule = async (
     });
   } catch (err: any) {
     logger.error({ err }, "Failed to create pricing rule");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Une règle de pricing avec le nom '${req.body.name}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_NAME"
+      });
+    }
+
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -247,6 +257,16 @@ export const updatePricingRule = async (
     });
   } catch (err: any) {
     logger.error({ err }, "Failed to update pricing rule");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Une règle de pricing avec le nom '${req.body.name}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_NAME"
+      });
+    }
+
     res.status(500).json({ success: false, error: err.message });
   }
 };

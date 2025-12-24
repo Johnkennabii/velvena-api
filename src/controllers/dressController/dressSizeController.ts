@@ -41,6 +41,16 @@ export const createDressSize = async (req: AuthenticatedRequest, res: Response) 
     res.status(201).json({ success: true, data: size });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur création taille");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Une taille avec le nom '${req.body.name}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_NAME"
+      });
+    }
+
     res.status(500).json({ success: false, error: "Failed to create dress size" });
   }
 };
@@ -70,6 +80,16 @@ export const updateDressSize = async (req: AuthenticatedRequest, res: Response) 
     res.json({ success: true, data: size });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur mise à jour taille");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Une taille avec le nom '${req.body.name}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_NAME"
+      });
+    }
+
     res.status(500).json({ success: false, error: "Failed to update dress size" });
   }
 };

@@ -451,6 +451,16 @@ export const createProspect = async (req: AuthenticatedRequest, res: Response) =
     res.status(201).json({ success: true, data: result });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur création prospect");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Un prospect avec l'email '${req.body.email}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_EMAIL"
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: err.message || "Failed to create prospect",
@@ -518,6 +528,16 @@ export const updateProspect = async (req: AuthenticatedRequest, res: Response) =
     res.json({ success: true, data: updated });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur update prospect");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Un prospect avec l'email '${req.body.email}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_EMAIL"
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: err.message || "Failed to update prospect",
@@ -727,6 +747,16 @@ export const convertProspectToCustomer = async (req: AuthenticatedRequest, res: 
     });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur conversion prospect vers customer");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: "Un client avec cet email existe déjà dans votre organisation.",
+        code: "DUPLICATE_EMAIL"
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: err.message || "Failed to convert prospect to customer",

@@ -411,6 +411,16 @@ await emitAndStoreNotification({
     res.status(201).json({ success: true, data: newDress });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur création robe");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Une robe avec la référence '${req.body.reference}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_REFERENCE"
+      });
+    }
+
     res.status(500).json({ success: false, error: "Failed to create dress" });
   }
 };
@@ -553,6 +563,17 @@ export const updateDress = async (req: AuthenticatedRequest, res: Response) => {
     res.json({ success: true, data: updated });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur mise à jour robe");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      const reference = typeof req.body.data === "string" ? JSON.parse(req.body.data).reference : req.body.reference;
+      return res.status(409).json({
+        success: false,
+        error: `Une robe avec la référence '${reference}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_REFERENCE"
+      });
+    }
+
     res.status(500).json({ success: false, error: "Failed to update dress" });
   }
 };

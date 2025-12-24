@@ -140,6 +140,16 @@ export const createCustomer = async (req: AuthenticatedRequest, res: Response) =
     res.status(201).json({ success: true, data: customer });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur création client");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Un client avec l'email '${req.body.email}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_EMAIL"
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: err.message || "Failed to create customer",
@@ -192,6 +202,16 @@ export const updateCustomer = async (req: AuthenticatedRequest, res: Response) =
     res.json({ success: true, data: updated });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur update client");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Un client avec l'email '${req.body.email}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_EMAIL"
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: err.message || "Failed to update customer",

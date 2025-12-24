@@ -61,6 +61,16 @@ export const createContractAddon = async (req: AuthenticatedRequest, res: Respon
     res.status(201).json({ success: true, data: addon });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur création contract addon");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Une option avec le nom '${req.body.name}' existe déjà.`,
+        code: "DUPLICATE_NAME"
+      });
+    }
+
     res.status(500).json({ success: false, error: "Failed to create contract addon" });
   }
 };
@@ -88,6 +98,16 @@ export const updateContractAddon = async (req: AuthenticatedRequest, res: Respon
     res.json({ success: true, data: addon });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur update contract addon");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Une option avec le nom '${req.body.name}' existe déjà.`,
+        code: "DUPLICATE_NAME"
+      });
+    }
+
     res.status(500).json({ success: false, error: "Failed to update contract addon" });
   }
 };

@@ -51,6 +51,16 @@ export const createContractType = async (req: AuthenticatedRequest, res: Respons
     res.status(201).json({ success: true, data: type });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur création contract type");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Un type de contrat avec le nom '${req.body.name}' existe déjà.`,
+        code: "DUPLICATE_NAME"
+      });
+    }
+
     res.status(500).json({ success: false, error: "Failed to create contract type" });
   }
 };
@@ -75,6 +85,16 @@ export const updateContractType = async (req: AuthenticatedRequest, res: Respons
     res.json({ success: true, data: type });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur update contract type");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Un type de contrat avec le nom '${req.body.name}' existe déjà.`,
+        code: "DUPLICATE_NAME"
+      });
+    }
+
     res.status(500).json({ success: false, error: "Failed to update contract type" });
   }
 };

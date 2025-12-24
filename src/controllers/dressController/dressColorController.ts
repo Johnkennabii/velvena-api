@@ -42,6 +42,31 @@ export const createDressColor = async (req: AuthenticatedRequest, res: Response)
     res.status(201).json({ success: true, data: color });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur création couleur");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      const fields = err.meta?.target;
+      if (fields?.includes("hex_code")) {
+        return res.status(409).json({
+          success: false,
+          error: `Une couleur avec le code hex '${req.body.hex_code}' existe déjà dans votre organisation.`,
+          code: "DUPLICATE_HEX_CODE"
+        });
+      }
+      if (fields?.includes("name")) {
+        return res.status(409).json({
+          success: false,
+          error: `Une couleur avec le nom '${req.body.name}' existe déjà dans votre organisation.`,
+          code: "DUPLICATE_NAME"
+        });
+      }
+      return res.status(409).json({
+        success: false,
+        error: "Une couleur avec ces informations existe déjà.",
+        code: "DUPLICATE_ENTRY"
+      });
+    }
+
     res.status(500).json({ success: false, error: "Failed to create color" });
   }
 };
@@ -63,6 +88,31 @@ export const updateDressColor = async (req: AuthenticatedRequest, res: Response)
     res.json({ success: true, data: updated });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur update couleur");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      const fields = err.meta?.target;
+      if (fields?.includes("hex_code")) {
+        return res.status(409).json({
+          success: false,
+          error: `Une couleur avec le code hex '${req.body.hex_code}' existe déjà dans votre organisation.`,
+          code: "DUPLICATE_HEX_CODE"
+        });
+      }
+      if (fields?.includes("name")) {
+        return res.status(409).json({
+          success: false,
+          error: `Une couleur avec le nom '${req.body.name}' existe déjà dans votre organisation.`,
+          code: "DUPLICATE_NAME"
+        });
+      }
+      return res.status(409).json({
+        success: false,
+        error: "Une couleur avec ces informations existe déjà.",
+        code: "DUPLICATE_ENTRY"
+      });
+    }
+
     res.status(500).json({ success: false, error: "Failed to update color" });
   }
 };

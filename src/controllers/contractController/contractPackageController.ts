@@ -64,8 +64,18 @@ export const createContractPackage = async (req: Request, res: Response) => {
     });
 
     res.status(201).json({ success: true, data: pkg });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
+
+    // Handle unique constraint violation
+    if (error.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Un package avec le nom '${req.body.name}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_NAME"
+      });
+    }
+
     res.status(500).json({ success: false, error: "Failed to create contract package" });
   }
 };
@@ -106,8 +116,18 @@ export const updateContractPackage = async (req: Request, res: Response) => {
     });
 
     res.json({ success: true, data: pkg });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
+
+    // Handle unique constraint violation
+    if (error.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Un package avec le nom '${req.body.name}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_NAME"
+      });
+    }
+
     res.status(500).json({ success: false, error: "Failed to update contract package" });
   }
 };

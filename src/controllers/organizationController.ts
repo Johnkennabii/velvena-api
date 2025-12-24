@@ -325,6 +325,38 @@ export const createOrganization = async (
     res.status(201).json(organization);
   } catch (err: any) {
     logger.error({ err }, "Failed to create organization");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      const field = err.meta?.target?.[0];
+      if (field === "slug") {
+        return res.status(409).json({
+          success: false,
+          error: `Une organisation avec le slug '${req.body.name}' existe déjà.`,
+          code: "DUPLICATE_SLUG"
+        });
+      }
+      if (field === "stripe_customer_id") {
+        return res.status(409).json({
+          success: false,
+          error: "Cet ID client Stripe est déjà utilisé.",
+          code: "DUPLICATE_STRIPE_CUSTOMER_ID"
+        });
+      }
+      if (field === "stripe_subscription_id") {
+        return res.status(409).json({
+          success: false,
+          error: "Cet ID d'abonnement Stripe est déjà utilisé.",
+          code: "DUPLICATE_STRIPE_SUBSCRIPTION_ID"
+        });
+      }
+      return res.status(409).json({
+        success: false,
+        error: "Une organisation avec ces informations existe déjà.",
+        code: "DUPLICATE_ENTRY"
+      });
+    }
+
     res.status(500).json({ error: err.message });
   }
 };
@@ -578,6 +610,38 @@ export const initializeOrganization = async (
     });
   } catch (err: any) {
     logger.error({ err }, "Failed to initialize organization");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      const field = err.meta?.target?.[0];
+      if (field === "email") {
+        return res.status(409).json({
+          success: false,
+          error: "Un utilisateur avec cet email existe déjà.",
+          code: "DUPLICATE_EMAIL"
+        });
+      }
+      if (field === "slug") {
+        return res.status(409).json({
+          success: false,
+          error: `Une organisation avec le nom '${req.body.organizationName}' existe déjà.`,
+          code: "DUPLICATE_SLUG"
+        });
+      }
+      if (field === "email_verification_token") {
+        return res.status(409).json({
+          success: false,
+          error: "Un conflit de token de vérification s'est produit. Veuillez réessayer.",
+          code: "DUPLICATE_TOKEN"
+        });
+      }
+      return res.status(409).json({
+        success: false,
+        error: "Une organisation ou un utilisateur avec ces informations existe déjà.",
+        code: "DUPLICATE_ENTRY"
+      });
+    }
+
     res.status(500).json({ error: err.message });
   }
 };

@@ -41,6 +41,16 @@ export const createDressCondition = async (req: AuthenticatedRequest, res: Respo
     res.status(201).json({ success: true, data: condition });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur création condition");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Une condition avec le nom '${req.body.name}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_NAME"
+      });
+    }
+
     res.status(500).json({ success: false, error: "Failed to create condition" });
   }
 };
@@ -60,6 +70,16 @@ export const updateDressCondition = async (req: AuthenticatedRequest, res: Respo
     res.json({ success: true, data: updated });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur update condition");
+
+    // Handle unique constraint violation
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        error: `Une condition avec le nom '${req.body.name}' existe déjà dans votre organisation.`,
+        code: "DUPLICATE_NAME"
+      });
+    }
+
     res.status(500).json({ success: false, error: "Failed to update condition" });
   }
 };
