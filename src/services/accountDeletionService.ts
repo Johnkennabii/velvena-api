@@ -833,50 +833,50 @@ async function sendDeletionConfirmationEmail(
   const mailOptions = {
     from: process.env.SMTP_FROM || "noreply@velvena.com",
     to: userEmail,
-    subject: "✅ Account Deleted - Your Data Export",
+    subject: "✅ Compte supprimé - Export de vos données",
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #388e3c;">✅ Account Successfully Deleted</h2>
+        <h2 style="color: #388e3c;">✅ Compte supprimé avec succès</h2>
 
-        <p>Your organization account has been permanently deleted as requested.</p>
+        <p>Votre compte organisation a été définitivement supprimé comme demandé.</p>
 
         <div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: 15px; margin: 20px 0;">
-          <h3 style="margin-top: 0; color: #0c5460;">📊 Deleted Data Summary</h3>
+          <h3 style="margin-top: 0; color: #0c5460;">📊 Résumé des données supprimées</h3>
           <ul style="color: #0c5460;">
-            <li>${deletedData.users} users</li>
-            <li>${deletedData.dresses} dresses</li>
-            <li>${deletedData.contracts} contracts</li>
-            <li>${deletedData.customers} customers</li>
+            <li>${deletedData.users} utilisateurs</li>
+            <li>${deletedData.dresses} robes</li>
+            <li>${deletedData.contracts} contrats</li>
+            <li>${deletedData.customers} clients</li>
             <li>${deletedData.prospects} prospects</li>
           </ul>
         </div>
 
         <p>
-          <strong>Your data export is attached to this email as a ZIP file.</strong>
+          <strong>Votre export de données est joint à cet email sous forme de fichier ZIP.</strong>
         </p>
 
-        <p>The ZIP file contains:</p>
+        <p>Le fichier ZIP contient :</p>
         <ul>
-          <li>📄 All signed contracts (PDFs)</li>
-          <li>💳 Stripe invoices (PDFs + JSON metadata)</li>
-          <li>👥 Clients data (JSON + CSV)</li>
-          <li>🔍 Prospects data (JSON + CSV)</li>
-          <li>📋 Export manifest (MANIFEST.json)</li>
+          <li>📄 Tous les contrats signés (PDF)</li>
+          <li>💳 Factures Stripe (PDF + métadonnées JSON)</li>
+          <li>👥 Données clients (JSON + CSV)</li>
+          <li>🔍 Données prospects (JSON + CSV)</li>
+          <li>📋 Manifeste d'export (MANIFEST.json)</li>
         </ul>
 
         <p style="color: #666; font-size: 14px; margin-top: 30px;">
-          This export complies with GDPR data portability requirements.
-          Please save this file to a secure location. The download link will expire in 7 days.
+          Cet export est conforme aux exigences RGPD de portabilité des données.
+          Veuillez sauvegarder ce fichier dans un emplacement sécurisé. Le lien de téléchargement expirera dans 7 jours.
         </p>
 
         <p style="color: #666;">
-          Thank you for using Velvena. We're sorry to see you go.
+          Merci d'avoir utilisé Velvena. Nous sommes désolés de vous voir partir.
         </p>
 
         <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
         <p style="font-size: 12px; color: #999;">
-          This email was sent by Velvena. This is an automated message, please do not reply.
+          Cet email a été envoyé par Velvena. Ceci est un message automatique, merci de ne pas y répondre.
         </p>
       </div>
     `,
