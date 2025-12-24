@@ -26,18 +26,24 @@ export const getDressTypes = async (req: AuthenticatedRequest, res: Response) =>
 export const createDressType = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { name, description } = req.body;
-    // Check for uniqueness of name (not soft-deleted)
+    const organizationId = req.user?.organizationId;
+
+    // Check for uniqueness of name within the organization (not soft-deleted)
     const existing = await prisma.dressType.findFirst({
-      where: { name, deleted_at: null },
+      where: {
+        name,
+        deleted_at: null,
+        organization_id: organizationId ?? null,
+      },
     });
     if (existing) {
-      return res.status(400).json({ success: false, error: "Dress type name already exists" });
+      return res.status(400).json({ success: false, error: "Dress type name already exists in your organization" });
     }
     const dressType = await prisma.dressType.create({
       data: {
         name,
         description,
-        organization_id: req.user?.organizationId ?? null,
+        organization_id: organizationId ?? null,
         created_by: req.user?.id ?? null,
       },
     });
@@ -53,22 +59,25 @@ export const updateDressType = async (req: AuthenticatedRequest, res: Response) 
     const id = req.params.id as string;
     if (!id) return res.status(400).json({ success: false, error: "Missing id parameter" });
     const { name, description } = req.body;
-    // Ensure the type exists
+    const organizationId = req.user?.organizationId;
+
+    // Ensure the type exists and belongs to the user's organization
     const existing = await prisma.dressType.findUnique({ where: { id } });
     if (!existing) {
       return res.status(404).json({ success: false, error: "Dress type not found" });
     }
-    // Check uniqueness of name (excluding itself, not soft-deleted)
+    // Check uniqueness of name within organization (excluding itself, not soft-deleted)
     if (name) {
       const nameExists = await prisma.dressType.findFirst({
         where: {
           name,
           deleted_at: null,
+          organization_id: organizationId ?? null,
           NOT: { id },
         },
       });
       if (nameExists) {
-        return res.status(400).json({ success: false, error: "Another dress type with this name already exists" });
+        return res.status(400).json({ success: false, error: "Another dress type with this name already exists in your organization" });
       }
     }
     const updated = await prisma.dressType.update({
