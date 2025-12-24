@@ -15,6 +15,7 @@
     "prisma:generate": "prisma generate",
     "prisma:seed": "tsx prisma/seed.ts",
     "stripe:sync": "tsx scripts/sync-plans-to-stripe.ts",
+    "stripe:update-prices": "tsx scripts/update-stripe-prices.ts",
     "stripe:test-webhook": "tsx scripts/test-webhook-endpoint.ts",
     "docker:build": "docker build -t velvena-api:latest .",
     "docker:up": "docker-compose up -d",
