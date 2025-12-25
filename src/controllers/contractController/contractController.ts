@@ -678,7 +678,7 @@ export const generateSignatureLink = async (req: Request, res: Response) => {
       "📝 Statut du contrat mis à jour en attente de signature"
     );
 
-    const baseUrl = process.env.FRONTEND_URL || "https://app.velvena.fr";
+    const baseUrl = process.env.APP_URL || "https://app.velvena.fr";
     const url = new URL(`/sign-links/${signLink.token}`, baseUrl).toString();
 
     const expiresAtFormatted = signLink.expires_at.toLocaleString("fr-FR", {

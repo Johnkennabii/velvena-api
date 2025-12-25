@@ -136,7 +136,7 @@ async function checkTrialExpiration() {
               userName: user.profile?.first_name || "User",
               daysRemaining: daysMark,
               trialEndsAt: trialEndsAt,
-              upgradeUrl: `${process.env.FRONTEND_URL || "https://app.velvena.fr"}/settings/billing`,
+              upgradeUrl: `${process.env.APP_URL || "https://app.velvena.fr"}/settings/billing`,
             }
           );
 

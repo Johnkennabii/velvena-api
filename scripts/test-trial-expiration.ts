@@ -29,7 +29,7 @@ async function testTrialExpirationEmails() {
   const testEmail = process.env.TEST_EMAIL || "test@example.com";
   const organizationName = "Test Organization";
   const userName = "Test User";
-  const upgradeUrl = `${process.env.FRONTEND_URL || "https://app.velvena.fr"}/settings/billing`;
+  const upgradeUrl = `${process.env.APP_URL || "https://app.velvena.fr"}/settings/billing`;
 
   try {
     // Test 1: 7-day warning
