@@ -445,7 +445,7 @@ export function findBestPricingRule(
 ): (typeof rules)[0] | null {
   const applicableRules = rules
     .filter((rule) => isPricingRuleApplicable(rule, context))
-    .sort((a, b) => b.priority - a.priority); // Highest priority first
+    .sort((a, b) => a.priority - b.priority); // Lowest priority first (0 = highest priority)
 
   return applicableRules[0] || null;
 }

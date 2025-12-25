@@ -39,7 +39,7 @@ export const getPricingRules = async (
       include: {
         contract_type: true,
       },
-      orderBy: [{ priority: "desc" }, { name: "asc" }],
+      orderBy: [{ priority: "asc" }, { name: "asc" }], // Lowest priority value first (0 = highest priority)
     });
 
     res.json({
@@ -392,7 +392,7 @@ export const calculatePriceEndpoint = async (
         where: withOrgOrGlobal(req.user.organizationId, {
           is_active: true,
         }),
-        orderBy: { priority: "desc" },
+        orderBy: { priority: "asc" }, // Lowest priority value first (0 = highest priority)
       });
 
       const startDate = new Date(start_date);
