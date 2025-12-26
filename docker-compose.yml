@@ -252,7 +252,7 @@ services:
     networks:
       - velvena-network
 
-  # Cron Jobs Service (audit log cleanup, etc.)
+  # Cron Jobs Service (audit log cleanup, backups, trial expiration)
   cron:
     build:
       context: .
@@ -269,8 +269,22 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-velvena_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-velvena_db}?schema=public
       REDIS_URL: redis://:${REDIS_PASSWORD_ENCODED}@redis:6379
       TZ: Europe/Paris
+      # Postgres credentials for backups
+      POSTGRES_USER: ${POSTGRES_USER:-velvena_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-velvena_db}
+      # Backup configuration
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+      # Hetzner Object Storage for remote backups
+      HETZNER_ACCESS_KEY: ${HETZNER_ACCESS_KEY}
+      HETZNER_SECRET_KEY: ${HETZNER_SECRET_KEY}
+      HETZNER_ENDPOINT: ${HETZNER_ENDPOINT}
+      HETZNER_BUCKET: ${HETZNER_BUCKET}
+      HETZNER_REGION: ${HETZNER_REGION:-hel1}
     volumes:
       - ./logs/cron:/var/log
+      - ./backups:/backups
     networks:
       - velvena-network
     logging:
