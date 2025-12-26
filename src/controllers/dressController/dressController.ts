@@ -735,6 +735,9 @@ export const getDressesWithDetails = async (req: AuthenticatedRequest, res: Resp
       endDate,
       id,
       search,
+      is_for_sale,
+      stock_quantity,
+      in_stock,
     } = req.query;
 
     const pageNum = parseInt(page as string, 10);
@@ -787,6 +790,26 @@ export const getDressesWithDetails = async (req: AuthenticatedRequest, res: Resp
         { name: { contains: keyword, mode: "insensitive" } },
         { reference: { contains: keyword, mode: "insensitive" } },
       ];
+    }
+
+    // ✅ Filter by is_for_sale (true/false)
+    if (is_for_sale !== undefined) {
+      where.is_for_sale = String(is_for_sale) === "true";
+    }
+
+    // ✅ Filter by exact stock_quantity
+    if (stock_quantity !== undefined) {
+      where.stock_quantity = parseInt(String(stock_quantity), 10);
+    }
+
+    // ✅ Filter by in_stock (stock > 0)
+    if (in_stock !== undefined) {
+      const inStockBool = String(in_stock) === "true";
+      if (inStockBool) {
+        where.stock_quantity = { gt: 0 };
+      } else {
+        where.stock_quantity = { lte: 0 };
+      }
     }
 
     const [total, results] = await Promise.all([
