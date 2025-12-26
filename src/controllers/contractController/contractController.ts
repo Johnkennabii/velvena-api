@@ -137,6 +137,55 @@ export const createContract = async (req: AuthenticatedRequest, res: Response) =
 
     const now = new Date();
 
+    // 🛍️ Check if this is a sale contract and validate stock
+    let isSaleContract = false;
+    if (contract_type_id) {
+      const contractType = await prisma.contractType.findUnique({
+        where: { id: contract_type_id },
+      });
+
+      if (contractType?.name === "Vente") {
+        isSaleContract = true;
+
+        // ✅ Validate stock for sale contracts
+        if (dresses && dresses.length > 0) {
+          for (const d of dresses) {
+            const dress = await prisma.dress.findUnique({
+              where: { id: d.dress_id },
+              select: {
+                id: true,
+                name: true,
+                reference: true,
+                stock_quantity: true,
+                is_for_sale: true
+              },
+            });
+
+            if (!dress) {
+              return res.status(404).json({
+                success: false,
+                error: `Dress with ID ${d.dress_id} not found`,
+              });
+            }
+
+            if (!dress.is_for_sale) {
+              return res.status(400).json({
+                success: false,
+                error: `Dress "${dress.name}" (${dress.reference}) is not available for sale`,
+              });
+            }
+
+            if (dress.stock_quantity <= 0) {
+              return res.status(400).json({
+                success: false,
+                error: `Dress "${dress.name}" (${dress.reference}) is out of stock`,
+              });
+            }
+          }
+        }
+      }
+    }
+
     // 🔍 Auto-assigner le template par défaut si non fourni
     let finalTemplateId = template_id;
     if (!finalTemplateId && contract_type_id) {
@@ -224,6 +273,24 @@ export const createContract = async (req: AuthenticatedRequest, res: Response) =
         dresses: { include: { dress: true } },
       },
     });
+
+    // 🛍️ Decrement stock for sale contracts
+    if (isSaleContract && dresses && dresses.length > 0) {
+      for (const d of dresses) {
+        await prisma.dress.update({
+          where: { id: d.dress_id },
+          data: {
+            stock_quantity: {
+              decrement: 1,
+            },
+          },
+        });
+        logger.info(
+          { dressId: d.dress_id, contractId: contract.id },
+          "📦 Stock decremented for sold dress"
+        );
+      }
+    }
 
     // 📄 Generate rendered_template if template is assigned
     if (finalTemplateId) {

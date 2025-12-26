@@ -1129,6 +1129,7 @@ export const getDressesAvailability = async (req: AuthenticatedRequest, res: Res
       where: {
         deleted_at: null,
         organization_id: organizationId, // ✅ Multi-tenant isolation (works with SUPER_ADMIN context)
+        stock_quantity: { gt: 0 }, // ✅ Exclude sold-out dresses
       },
       select: {
         id: true,
@@ -1138,6 +1139,8 @@ export const getDressesAvailability = async (req: AuthenticatedRequest, res: Res
         price_ttc: true,
         price_per_day_ht: true,
         price_per_day_ttc: true,
+        stock_quantity: true,
+        is_for_sale: true,
         images: true,
       },
     });

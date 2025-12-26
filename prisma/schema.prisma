@@ -279,6 +279,8 @@ model Dress {
   color_id                 String?
   price_per_day_ht         Decimal
   price_per_day_ttc        Decimal
+  stock_quantity           Int                        @default(1)
+  is_for_sale              Boolean                    @default(false)
   organization             Organization               @relation(fields: [organization_id], references: [id])
   ContractDress            ContractDress[]
   prospect_reservations    ProspectDressReservation[]

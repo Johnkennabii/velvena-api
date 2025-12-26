@@ -338,6 +338,7 @@ export const calculatePriceEndpoint = async (
       start_date,
       end_date,
       pricing_rule_id,
+      contract_type_id,
       overrides,
     } = req.body;
 
@@ -384,6 +385,7 @@ export const calculatePriceEndpoint = async (
             { organization_id: null },
           ],
           is_active: true,
+          ...(contract_type_id && { contract_type_id }), // ✅ Filter by contract type
         },
       });
     } else {
@@ -391,6 +393,7 @@ export const calculatePriceEndpoint = async (
       const allRules = await prisma.pricingRule.findMany({
         where: withOrgOrGlobal(req.user.organizationId, {
           is_active: true,
+          ...(contract_type_id && { contract_type_id }), // ✅ Filter by contract type
         }),
         orderBy: { priority: "asc" }, // Lowest priority value first (0 = highest priority)
       });
