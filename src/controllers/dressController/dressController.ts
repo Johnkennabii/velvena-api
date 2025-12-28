@@ -272,6 +272,8 @@ export const createDress = async (req: AuthenticatedRequest, res: Response) => {
       size_id,
       condition_id,
       color_id,
+      is_for_sale,
+      stock_quantity,
     } = req.body;
 
     // Log the received body values
@@ -288,6 +290,8 @@ export const createDress = async (req: AuthenticatedRequest, res: Response) => {
           size_id,
           condition_id,
           color_id,
+          is_for_sale,
+          stock_quantity,
         },
       },
       "📥 Données reçues pour createDress"
@@ -369,6 +373,8 @@ export const createDress = async (req: AuthenticatedRequest, res: Response) => {
       condition_id,
       color_id,
       created_by: req.user?.id ?? null,
+      ...(is_for_sale !== undefined && { is_for_sale: Boolean(is_for_sale) }),
+      ...(stock_quantity !== undefined && { stock_quantity: parseInt(String(stock_quantity), 10) }),
     };
     // Log the final uploadedFiles and data object
     pino.info({ uploadedFiles, data }, "ℹ️ Prepared data for prisma.dress.create");
@@ -474,6 +480,8 @@ export const updateDress = async (req: AuthenticatedRequest, res: Response) => {
       condition_id,
       color_id,
       published_post,
+      is_for_sale,
+      stock_quantity,
     } = body;
     pino.info({ id, body }, "📥 Données reçues pour updateDress");
 
@@ -550,6 +558,8 @@ export const updateDress = async (req: AuthenticatedRequest, res: Response) => {
       condition_id,
       color_id,
       updated_by: req.user?.id ?? null,
+      ...(is_for_sale !== undefined && { is_for_sale: Boolean(is_for_sale) }),
+      ...(stock_quantity !== undefined && { stock_quantity: parseInt(String(stock_quantity), 10) }),
       ...publishedData,
     };
     pino.info({ uploadedFiles, updateData }, "ℹ️ Prepared data for prisma.dress.update");
