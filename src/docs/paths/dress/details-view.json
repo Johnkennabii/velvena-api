@@ -2,8 +2,8 @@
   "/dresses/details-view": {
     "get": {
       "tags": ["Dresses"],
-      "summary": "Get all dresses with detailed view and filters",
-      "description": "Retrieves a paginated and filtered list of dresses from the SQL view `dresses_with_details`. The endpoint supports multiple query filters including size, type, color, price, and creation date. It is optimized for catalog display and management dashboards.",
+      "summary": "Get all dresses with detailed view, filters, and metadata",
+      "description": "Retrieves a paginated and filtered list of dresses with comprehensive filter metadata. The endpoint supports multiple query filters including size, type, color, price, and creation date. **NEW**: Returns filter metadata (types, sizes, colors, conditions with counts), price range statistics, and stock information in a single request - eliminating the need for separate filter endpoint calls. Optimized for catalog display and management dashboards.",
       "operationId": "getDressesWithDetails",
       "security": [{ "bearerAuth": [] }],
       "parameters": [
@@ -92,7 +92,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["success", "data", "page", "limit", "total"],
+                "required": ["success", "data", "page", "limit", "total", "filters"],
                 "properties": {
                   "success": { "type": "boolean", "example": true },
                   "total": { "type": "integer", "example": 42 },
@@ -108,6 +108,7 @@
                         "reference": { "type": "string", "example": "RE-2025-001" },
                         "price_ttc": { "type": "number", "example": 650.0 },
                         "price_per_day_ttc": { "type": "number", "example": 90.0 },
+                        "rental_count": { "type": "integer", "example": 3, "description": "Number of times this dress has been rented" },
                         "type_name": { "type": "string", "example": "Robe de soirée" },
                         "size_label": { "type": "string", "example": "M" },
                         "color_name": { "type": "string", "example": "Rouge Bordeaux" },
@@ -115,12 +116,82 @@
                         "created_at": { "type": "string", "format": "date-time" }
                       }
                     }
+                  },
+                  "filters": {
+                    "type": "object",
+                    "description": "Available filter options with counts for building dynamic filter UI",
+                    "properties": {
+                      "types": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "format": "uuid" },
+                            "name": { "type": "string", "example": "Robe de soirée" },
+                            "count": { "type": "integer", "example": 15, "description": "Number of dresses with this type" }
+                          }
+                        }
+                      },
+                      "sizes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "format": "uuid" },
+                            "name": { "type": "string", "example": "M" },
+                            "count": { "type": "integer", "example": 18, "description": "Number of dresses with this size" }
+                          }
+                        }
+                      },
+                      "colors": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "format": "uuid" },
+                            "name": { "type": "string", "example": "Rouge Bordeaux" },
+                            "hex_code": { "type": "string", "example": "#8B0000" },
+                            "count": { "type": "integer", "example": 7, "description": "Number of dresses with this color" }
+                          }
+                        }
+                      },
+                      "conditions": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "format": "uuid" },
+                            "name": { "type": "string", "example": "Très bon état" },
+                            "count": { "type": "integer", "example": 20, "description": "Number of dresses in this condition" }
+                          }
+                        }
+                      },
+                      "priceRange": {
+                        "type": "object",
+                        "description": "Price statistics for slider UI",
+                        "properties": {
+                          "min_ttc": { "type": "number", "example": 150.0 },
+                          "max_ttc": { "type": "number", "example": 1200.0 },
+                          "min_per_day_ttc": { "type": "number", "example": 20.0 },
+                          "max_per_day_ttc": { "type": "number", "example": 180.0 }
+                        }
+                      },
+                      "stockInfo": {
+                        "type": "object",
+                        "description": "Stock statistics for dashboard",
+                        "properties": {
+                          "total_in_stock": { "type": "integer", "example": 35 },
+                          "total_sold_out": { "type": "integer", "example": 7 },
+                          "total_for_sale": { "type": "integer", "example": 12 }
+                        }
+                      }
+                    }
                   }
                 }
               },
               "examples": {
                 "default": {
-                  "summary": "Paginated dresses example",
+                  "summary": "Paginated dresses with filter metadata",
                   "value": {
                     "success": true,
                     "total": 2,
@@ -133,6 +204,7 @@
                         "reference": "RE-2025-001",
                         "price_ttc": 650,
                         "price_per_day_ttc": 90,
+                        "rental_count": 3,
                         "type_name": "Robe de soirée",
                         "size_label": "M",
                         "color_name": "Rouge Bordeaux",
@@ -145,13 +217,47 @@
                         "reference": "RG-2025-014",
                         "price_ttc": 720,
                         "price_per_day_ttc": 110,
+                        "rental_count": 1,
                         "type_name": "Robe de cérémonie",
                         "size_label": "S",
                         "color_name": "Bleu Nuit",
                         "condition_label": "Neuf",
                         "created_at": "2025-08-21T10:00:00.000Z"
                       }
-                    ]
+                    ],
+                    "filters": {
+                      "types": [
+                        { "id": "uuid-type-1", "name": "Robe de soirée", "count": 15 },
+                        { "id": "uuid-type-2", "name": "Robe de mariée", "count": 8 },
+                        { "id": "uuid-type-3", "name": "Robe de cérémonie", "count": 12 }
+                      ],
+                      "sizes": [
+                        { "id": "uuid-size-1", "name": "S", "count": 12 },
+                        { "id": "uuid-size-2", "name": "M", "count": 18 },
+                        { "id": "uuid-size-3", "name": "L", "count": 9 }
+                      ],
+                      "colors": [
+                        { "id": "uuid-color-1", "name": "Rouge Bordeaux", "hex_code": "#8B0000", "count": 7 },
+                        { "id": "uuid-color-2", "name": "Bleu Nuit", "hex_code": "#191970", "count": 11 },
+                        { "id": "uuid-color-3", "name": "Blanc Ivoire", "hex_code": "#FFFFF0", "count": 15 }
+                      ],
+                      "conditions": [
+                        { "id": "uuid-cond-1", "name": "Neuf", "count": 5 },
+                        { "id": "uuid-cond-2", "name": "Très bon état", "count": 20 },
+                        { "id": "uuid-cond-3", "name": "Bon état", "count": 10 }
+                      ],
+                      "priceRange": {
+                        "min_ttc": 150.0,
+                        "max_ttc": 1200.0,
+                        "min_per_day_ttc": 20.0,
+                        "max_per_day_ttc": 180.0
+                      },
+                      "stockInfo": {
+                        "total_in_stock": 35,
+                        "total_sold_out": 7,
+                        "total_for_sale": 12
+                      }
+                    }
                   }
                 }
               }

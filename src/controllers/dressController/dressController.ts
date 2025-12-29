@@ -838,24 +838,149 @@ export const getDressesWithDetails = async (req: AuthenticatedRequest, res: Resp
       }),
     ]);
 
-    // Add rental count for each dress
-    const resultsWithRentalCount = await Promise.all(
-      results.map(async (dress) => {
-        const rentalCount = await prisma.contractDress.count({
-          where: {
-            dress_id: dress.id,
-            contract: {
-              organization_id: organizationId,
-              deleted_at: null,
-            },
-          },
-        });
-        return {
-          ...dress,
-          rental_count: rentalCount,
-        };
-      })
+    // Optimize rental counts with a single grouped query instead of N+1
+    const rentalCounts = await prisma.contractDress.groupBy({
+      by: ['dress_id'],
+      where: {
+        dress_id: { in: results.map(d => d.id) },
+        contract: {
+          organization_id: organizationId,
+          deleted_at: null,
+        }
+      },
+      _count: {
+        dress_id: true
+      }
+    });
+
+    // Create a map for O(1) lookup
+    const rentalCountMap = new Map(
+      rentalCounts.map(rc => [rc.dress_id, rc._count.dress_id])
     );
+
+    // Add rental counts without additional queries
+    const resultsWithRentalCount = results.map(dress => ({
+      ...dress,
+      rental_count: rentalCountMap.get(dress.id) ?? 0,
+    }));
+
+    // ✨ Fetch filter metadata (available filters with counts)
+    // Use the base where clause without applied filters to show all available options
+    const baseWhere: Prisma.DressWhereInput = {
+      deleted_at: null,
+      organization_id: organizationId,
+    };
+
+    const [
+      typesWithCount,
+      sizesWithCount,
+      colorsWithCount,
+      conditionsWithCount,
+      priceStats,
+      stockStats
+    ] = await Promise.all([
+      // Types with dress count
+      prisma.dress.groupBy({
+        by: ['type_id'],
+        where: baseWhere,
+        _count: { type_id: true },
+      }).then(async (groups) => {
+        const typeIds = groups.map(g => g.type_id).filter((id): id is string => id !== null);
+        const types = await prisma.dressType.findMany({
+          where: { id: { in: typeIds }, deleted_at: null },
+          select: { id: true, name: true },
+          orderBy: { name: 'asc' }
+        });
+        return types.map(type => ({
+          ...type,
+          count: groups.find(g => g.type_id === type.id)?._count.type_id ?? 0
+        }));
+      }),
+
+      // Sizes with dress count
+      prisma.dress.groupBy({
+        by: ['size_id'],
+        where: baseWhere,
+        _count: { size_id: true },
+      }).then(async (groups) => {
+        const sizeIds = groups.map(g => g.size_id).filter((id): id is string => id !== null);
+        const sizes = await prisma.dressSize.findMany({
+          where: { id: { in: sizeIds }, deleted_at: null },
+          select: { id: true, name: true },
+          orderBy: { name: 'asc' }
+        });
+        return sizes.map(size => ({
+          ...size,
+          count: groups.find(g => g.size_id === size.id)?._count.size_id ?? 0
+        }));
+      }),
+
+      // Colors with dress count
+      prisma.dress.groupBy({
+        by: ['color_id'],
+        where: baseWhere,
+        _count: { color_id: true },
+      }).then(async (groups) => {
+        const colorIds = groups.map(g => g.color_id).filter((id): id is string => id !== null);
+        const colors = await prisma.dressColor.findMany({
+          where: { id: { in: colorIds }, deleted_at: null },
+          select: { id: true, name: true, hex_code: true },
+          orderBy: { name: 'asc' }
+        });
+        return colors.map(color => ({
+          ...color,
+          count: groups.find(g => g.color_id === color.id)?._count.color_id ?? 0
+        }));
+      }),
+
+      // Conditions with dress count
+      prisma.dress.groupBy({
+        by: ['condition_id'],
+        where: baseWhere,
+        _count: { condition_id: true },
+      }).then(async (groups) => {
+        const conditionIds = groups.map(g => g.condition_id).filter((id): id is string => id !== null);
+        const conditions = await prisma.dressCondition.findMany({
+          where: { id: { in: conditionIds }, deleted_at: null },
+          select: { id: true, name: true },
+          orderBy: { name: 'asc' }
+        });
+        return conditions.map(condition => ({
+          ...condition,
+          count: groups.find(g => g.condition_id === condition.id)?._count.condition_id ?? 0
+        }));
+      }),
+
+      // Price statistics
+      prisma.dress.aggregate({
+        where: baseWhere,
+        _min: {
+          price_ttc: true,
+          price_per_day_ttc: true,
+        },
+        _max: {
+          price_ttc: true,
+          price_per_day_ttc: true,
+        },
+      }),
+
+      // Stock statistics
+      prisma.dress.groupBy({
+        by: ['is_for_sale'],
+        where: baseWhere,
+        _count: { id: true },
+        _sum: { stock_quantity: true },
+      }),
+    ]);
+
+    // Calculate stock info
+    const totalInStock = await prisma.dress.count({
+      where: { ...baseWhere, stock_quantity: { gt: 0 } }
+    });
+    const totalSoldOut = await prisma.dress.count({
+      where: { ...baseWhere, stock_quantity: { lte: 0 } }
+    });
+    const totalForSale = stockStats.find(s => s.is_for_sale === true)?._count.id ?? 0;
 
     res.json({
       success: true,
@@ -863,6 +988,24 @@ export const getDressesWithDetails = async (req: AuthenticatedRequest, res: Resp
       page: pageNum,
       limit: limitNum,
       data: resultsWithRentalCount,
+      // ✨ Filter metadata
+      filters: {
+        types: typesWithCount,
+        sizes: sizesWithCount,
+        colors: colorsWithCount,
+        conditions: conditionsWithCount,
+        priceRange: {
+          min_ttc: priceStats._min.price_ttc ?? 0,
+          max_ttc: priceStats._max.price_ttc ?? 0,
+          min_per_day_ttc: priceStats._min.price_per_day_ttc ?? 0,
+          max_per_day_ttc: priceStats._max.price_per_day_ttc ?? 0,
+        },
+        stockInfo: {
+          total_in_stock: totalInStock,
+          total_sold_out: totalSoldOut,
+          total_for_sale: totalForSale,
+        }
+      }
     });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur récupération robes avec détails");
