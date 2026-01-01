@@ -27,6 +27,7 @@ async function main() {
       email: "contact@example.com",
       subscription_plan: "pro",
       is_active: true,
+      onboarding_completed: false, // Explicitly set to false for new organizations
     },
   });
   console.log(`✅ Organization created: ${defaultOrg.name} (${defaultOrg.id})`);

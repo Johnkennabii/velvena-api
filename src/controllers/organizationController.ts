@@ -312,6 +312,7 @@ export const createOrganization = async (
         subscription_status: "trial",
         trial_ends_at: new Date(Date.now() + subscriptionPlan.trial_days * 24 * 60 * 60 * 1000),
         is_active: true,
+        onboarding_completed: false, // Explicitly set to false for new organizations
         created_at: new Date(),
         created_by: req.user?.id || null,
       },
@@ -526,6 +527,7 @@ export const initializeOrganization = async (
           subscription_status: "trial",
           trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days trial
           is_active: true,
+          onboarding_completed: false, // Explicitly set to false for new organizations
           created_at: now,
         },
       });
