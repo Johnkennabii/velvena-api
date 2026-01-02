@@ -113,6 +113,10 @@ model Organization {
   subscription SubscriptionPlan? @relation(fields: [subscription_plan_id], references: [id])
   usage_events UsageEvent[]
 
+  // Calendly Integration
+  calendly_integrations CalendlyIntegration[]
+  calendly_events       CalendlyEvent[]
+
   @@index([slug])
   @@index([is_active])
   @@index([subscription_plan_id])
@@ -348,6 +352,7 @@ model Prospect {
   organization       Organization               @relation(fields: [organization_id], references: [id])
   dress_reservations ProspectDressReservation[]
   requests           ProspectRequest[]
+  calendly_events    CalendlyEvent[]
 
   @@unique([email, organization_id]) // Email unique per organization
   @@index([organization_id])
@@ -910,4 +915,98 @@ model AuditLog {
   @@index([status])
   @@index([created_at])
   @@index([retention_until]) // For automated cleanup after 7 years
+}
+
+// Calendly OAuth Integration
+model CalendlyIntegration {
+  id              String @id @default(uuid())
+  organization_id String
+
+  // Calendly User Information
+  calendly_user_uri  String  @unique // Calendly user URI (e.g., "https://api.calendly.com/users/XXXXX")
+  calendly_user_name String? // User's name from Calendly
+  calendly_email     String? // User's email from Calendly
+
+  // OAuth Tokens (encrypted)
+  access_token          String // Encrypted OAuth access token
+  refresh_token         String // Encrypted OAuth refresh token
+  token_type            String  @default("Bearer")
+  expires_at            DateTime // When the access token expires
+  scope                 String? // OAuth scopes granted
+
+  // Sync settings
+  auto_sync_enabled      Boolean  @default(true) // Whether to automatically sync events
+  sync_interval_minutes  Int      @default(30) // How often to sync (in minutes)
+  last_synced_at         DateTime? // Last time events were synced
+  last_sync_error        String? // Last sync error message if any
+  next_sync_at           DateTime? // Next scheduled sync time
+
+  // Webhook configuration
+  webhook_subscription_uri String? // Calendly webhook subscription URI
+  webhook_active           Boolean @default(false)
+
+  // Status
+  is_active  Boolean   @default(true)
+  created_at DateTime  @default(now())
+  created_by String?
+  updated_at DateTime? @updatedAt
+  updated_by String?
+  deleted_at DateTime?
+  deleted_by String?
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  events       CalendlyEvent[]
+
+  @@index([organization_id])
+  @@index([calendly_user_uri])
+  @@index([is_active])
+  @@index([last_synced_at])
+  @@index([next_sync_at])
+}
+
+// Calendly Events (synced from Calendly)
+model CalendlyEvent {
+  id              String @id @default(uuid())
+  organization_id String
+  integration_id  String
+
+  // Calendly Event Information
+  calendly_event_uri  String  @unique // Calendly event URI
+  calendly_event_type String? // Event type name
+  event_name          String // Event name/title
+  event_start_time    DateTime
+  event_end_time      DateTime
+  event_status        String // active, canceled
+  location            String? // Meeting location/link
+
+  // Invitee Information
+  invitee_name      String?
+  invitee_email     String?
+  invitee_phone     String?
+  invitee_timezone  String?
+  invitee_uri       String? // Calendly invitee URI
+
+  // Custom questions/answers from booking
+  invitee_questions Json? // Stores custom questions and answers
+
+  // Prospect Association
+  prospect_id String? // Linked prospect (if converted)
+
+  // Sync metadata
+  synced_at  DateTime  @default(now())
+  updated_at DateTime? @updatedAt
+
+  // Relations
+  organization Organization        @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  integration  CalendlyIntegration @relation(fields: [integration_id], references: [id], onDelete: Cascade)
+  prospect     Prospect?           @relation(fields: [prospect_id], references: [id])
+
+  @@index([organization_id])
+  @@index([integration_id])
+  @@index([prospect_id])
+  @@index([calendly_event_uri])
+  @@index([event_start_time])
+  @@index([event_status])
+  @@index([invitee_email])
 }

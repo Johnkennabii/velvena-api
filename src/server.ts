@@ -52,6 +52,7 @@ import stripeWebhooksRoutes from "./routes/stripe-webhooks.js";
 import accountDeletionRoutes from "./routes/accountDeletionRoutes.js";
 import dataExportRoutes from "./routes/dataExportRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
+import calendlyRoutes from "./routes/calendly.js";
 
 import {
   getContractSignLink,
@@ -218,6 +219,7 @@ const publicRoutes = [
   '/health',
   '/metrics',
   '/webhooks',
+  '/calendly/webhook',
   '/api-docs',
   '/'
 ];
@@ -315,6 +317,7 @@ app.use("/billing", billingRoutes);
 app.use("/account", accountDeletionRoutes);
 app.use("/data-export", dataExportRoutes);
 app.use("/ai", aiRoutes);
+app.use("/calendly", calendlyRoutes);
 
 // Health check routes (no auth required)
 app.use(healthRoutes);

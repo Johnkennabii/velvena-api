@@ -10,11 +10,12 @@
 import pino from "pino";
 import { runSubscriptionMaintenanceJobs } from "./trialExpirationJob.js";
 import { cleanupOldExports } from "../services/dataExportService.js";
+import { runCalendlySyncJob, cleanupOldCalendlyEvents } from "./calendlySyncJob.js";
 
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 
-// Interval de vérification : toutes les heures
-const CHECK_INTERVAL = 60 * 60 * 1000; // 1 heure en millisecondes
+// Interval de vérification : toutes les 30 minutes (pour Calendly sync)
+const CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes en millisecondes
 
 // Heure d'exécution quotidienne (format 24h)
 const EXECUTION_HOUR = 2; // 2h du matin
@@ -59,6 +60,10 @@ async function executeMaintenanceJobs(): Promise<void> {
     // Cleanup old export files (older than 24h)
     logger.info("🗑️ Cleaning up old export files...");
     await cleanupOldExports();
+
+    // Cleanup old Calendly events (older than 90 days)
+    logger.info("🗑️ Cleaning up old Calendly events...");
+    await cleanupOldCalendlyEvents();
 
     lastExecutionDate = new Date();
 
@@ -111,14 +116,28 @@ export function startScheduler(): NodeJS.Timeout {
     executeMaintenanceJobs();
   }
 
-  // Configurer l'intervalle de vérification
+  // Run Calendly sync immediately on startup
+  logger.info("▶️ Exécution immédiate du sync Calendly");
+  runCalendlySyncJob().catch((err) => {
+    logger.error({ err }, "Failed to run Calendly sync on startup");
+  });
+
+  // Configurer l'intervalle de vérification pour les jobs quotidiens
   const intervalId = setInterval(() => {
     if (shouldExecuteJob()) {
       executeMaintenanceJobs();
     }
   }, CHECK_INTERVAL);
 
-  logger.info("✅ Scheduler démarré et actif");
+  // Configurer l'intervalle pour le sync Calendly (toutes les 30 minutes)
+  setInterval(() => {
+    logger.info("⏰ Running scheduled Calendly sync");
+    runCalendlySyncJob().catch((err) => {
+      logger.error({ err }, "Failed to run scheduled Calendly sync");
+    });
+  }, CHECK_INTERVAL);
+
+  logger.info("✅ Scheduler démarré et actif (jobs quotidiens + sync Calendly)");
 
   return intervalId;
 }
