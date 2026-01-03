@@ -123,6 +123,11 @@ services:
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL:-https://velvena.fr/subscription/success}
       STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL:-https://velvena.fr/pricing}
+      CALENDLY_CLIENT_ID: ${CALENDLY_CLIENT_ID}
+      CALENDLY_CLIENT_SECRET: ${CALENDLY_CLIENT_SECRET}
+      CALENDLY_WEBHOOK_SIGNING_KEY: ${CALENDLY_WEBHOOK_SIGNING_KEY}
+      CALENDLY_REDIRECT_URI: ${CALENDLY_REDIRECT_URI}
+      CALENDLY_ENVIRONMENT: ${CALENDLY_ENVIRONMENT:-production}
     volumes:
       - uploads_data:/app/uploads
       - ./logs:/app/logs
