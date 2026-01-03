@@ -3,6 +3,7 @@ import prisma from "../lib/prisma.js";
 import logger from "../lib/logger.js";
 import { encrypt, decrypt, encryptOAuthTokens, decryptOAuthTokens } from "../lib/encryption.js";
 import { Prisma } from "@prisma/client";
+import { emitProspectCreated, emitProspectUpdated, notifyCalendlyProspect } from "../utils/prospects.js";
 
 const CALENDLY_API_BASE_URL = "https://api.calendly.com";
 const CALENDLY_AUTH_URL = "https://auth.calendly.com/oauth";
@@ -408,11 +409,31 @@ async function createProspectFromCalendlyEvent(
     let prospect;
 
     if (existingProspect) {
-      // Update existing prospect
-      prospect = existingProspect;
+      // Update existing prospect - add new event to notes
+      const newNote = `Rendez-vous Calendly prévu le ${new Date(calendlyEvent.event_start_time).toLocaleString("fr-FR")} - ${calendlyEvent.event_name}`;
+      const updatedNotes = existingProspect.notes
+        ? `${existingProspect.notes}\n\n${newNote}`
+        : newNote;
+
+      prospect = await prisma.prospect.update({
+        where: { id: existingProspect.id },
+        data: { notes: updatedNotes },
+      });
+
       logger.info(
         { prospectId: prospect.id, calendlyEventId: calendlyEvent.id },
-        "Linking existing prospect to Calendly event"
+        "Linking existing prospect to Calendly event and added note"
+      );
+
+      // Emit Socket.IO event for prospect update
+      emitProspectUpdated(organizationId, prospect);
+
+      // Send notification for the new appointment
+      await notifyCalendlyProspect(
+        organizationId,
+        prospect,
+        calendlyEvent.event_name,
+        new Date(calendlyEvent.event_start_time)
       );
     } else {
       // Create new prospect
@@ -427,13 +448,24 @@ async function createProspectFromCalendlyEvent(
           organization_id: organizationId,
           source: "calendly",
           status: "new",
-          notes: `Rendez-vous Calendly prévu le ${new Date(calendlyEvent.event_start_time).toLocaleString("fr-FR")}`,
+          notes: `Rendez-vous Calendly prévu le ${new Date(calendlyEvent.event_start_time).toLocaleString("fr-FR")} - ${calendlyEvent.event_name}`,
         },
       });
 
       logger.info(
         { prospectId: prospect.id, calendlyEventId: calendlyEvent.id },
         "Created new prospect from Calendly event"
+      );
+
+      // Emit Socket.IO event for new prospect
+      emitProspectCreated(organizationId, prospect);
+
+      // Send notification for new prospect
+      await notifyCalendlyProspect(
+        organizationId,
+        prospect,
+        calendlyEvent.event_name,
+        new Date(calendlyEvent.event_start_time)
       );
     }
 

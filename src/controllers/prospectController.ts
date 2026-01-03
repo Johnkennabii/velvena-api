@@ -3,6 +3,7 @@ import type { Response } from "express";
 import type { AuthenticatedRequest } from "../types/express.js";
 import prisma from "../lib/prisma.js";
 import pino from "../lib/logger.js";
+import { emitProspectCreated, emitProspectUpdated, emitProspectDeleted } from "../utils/prospects.js";
 
 // Get all prospects (excluding soft-deleted ones)
 export const getProspects = async (req: AuthenticatedRequest, res: Response) => {
@@ -448,6 +449,9 @@ export const createProspect = async (req: AuthenticatedRequest, res: Response) =
       };
     });
 
+    // Emit Socket.IO event for new prospect
+    emitProspectCreated(req.user!.organizationId, result);
+
     res.status(201).json({ success: true, data: result });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur création prospect");
@@ -525,6 +529,9 @@ export const updateProspect = async (req: AuthenticatedRequest, res: Response) =
       },
     });
 
+    // Emit Socket.IO event for prospect update
+    emitProspectUpdated(req.user!.organizationId, updated);
+
     res.json({ success: true, data: updated });
   } catch (err: any) {
     pino.error({ err }, "❌ Erreur update prospect");
@@ -565,6 +572,9 @@ export const softDeleteProspect = async (req: AuthenticatedRequest, res: Respons
         deleted_by: req.user?.id ?? null,
       },
     });
+
+    // Emit Socket.IO event for prospect deletion
+    emitProspectDeleted(req.user!.organizationId, String(id));
 
     res.json({ success: true, data: deleted });
   } catch (err: any) {

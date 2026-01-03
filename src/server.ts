@@ -59,6 +59,9 @@ import {
   signContractViaLink,
 } from "./controllers/contractController/contractController.js";
 
+import { oauthCallback as calendlyOAuthCallback } from "./controllers/calendlyController.js";
+import authMiddleware from "./middleware/authMiddleware.js";
+
 import { requireActiveSubscription } from "./middleware/subscriptionMiddleware.js";
 import { startScheduler, stopScheduler } from "./jobs/scheduler.js";
 
@@ -318,6 +321,10 @@ app.use("/account", accountDeletionRoutes);
 app.use("/data-export", dataExportRoutes);
 app.use("/ai", aiRoutes);
 app.use("/calendly", calendlyRoutes);
+
+// Alias Calendly OAuth callback pour compatibilité frontend
+// Le frontend appelle /auth/calendly/callback au lieu de /calendly/oauth/callback
+app.post("/auth/calendly/callback", authMiddleware, calendlyOAuthCallback);
 
 // Health check routes (no auth required)
 app.use(healthRoutes);

@@ -33,13 +33,50 @@ export const oauthCallback = async (req: AuthenticatedRequest, res: Response) =>
     // Get user information
     const user = await getCalendlyUser(tokens.access_token);
 
-    // Store integration
+    // Store integration in CalendlyIntegration table
     const integration = await storeCalendlyIntegration(
       req.user.organizationId,
       tokens,
       user,
       req.user.id
     );
+
+    // IMPORTANT: Also update Organization.settings.calendly for frontend compatibility
+    const organization = await prisma.organization.findUnique({
+      where: { id: req.user.organizationId },
+    });
+
+    if (organization) {
+      const currentSettings = (organization.settings as any) || {};
+      const currentCalendlySettings = currentSettings.calendly || {};
+
+      const newCalendlySettings = {
+        ...currentCalendlySettings, // Preserve existing values (e.g., calendly_link)
+        enabled: true, // Enable integration
+        mode: "simple",
+        oauth_connected: true,
+        oauth_email: user.email,
+        oauth_user_uri: user.uri,
+        oauth_user_name: user.name,
+        oauth_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
+        oauth_token_type: tokens.token_type,
+      };
+
+      await prisma.organization.update({
+        where: { id: req.user.organizationId },
+        data: {
+          settings: {
+            ...currentSettings,
+            calendly: newCalendlySettings,
+          },
+        },
+      });
+
+      logger.info(
+        { organizationId: req.user.organizationId },
+        "Updated Organization.settings.calendly"
+      );
+    }
 
     logger.info(
       {
@@ -64,6 +101,7 @@ export const oauthCallback = async (req: AuthenticatedRequest, res: Response) =>
     res.json({
       success: true,
       message: "Calendly integration connected successfully",
+      email: user.email, // IMPORTANT: Return email for frontend
       integration: {
         id: integration.id,
         calendly_user_name: integration.calendly_user_name,
@@ -156,6 +194,41 @@ export const disconnectIntegration = async (req: AuthenticatedRequest, res: Resp
         deleted_by: req.user.id,
       },
     });
+
+    // IMPORTANT: Also update Organization.settings.calendly
+    const organization = await prisma.organization.findUnique({
+      where: { id: req.user.organizationId },
+    });
+
+    if (organization) {
+      const currentSettings = (organization.settings as any) || {};
+      const currentCalendlySettings = currentSettings.calendly || {};
+
+      const updatedCalendlySettings = {
+        ...currentCalendlySettings,
+        enabled: false, // Disable integration
+        oauth_connected: false,
+        // Remove sensitive OAuth data
+        oauth_access_token: undefined,
+        oauth_refresh_token: undefined,
+        oauth_expires_at: undefined,
+      };
+
+      await prisma.organization.update({
+        where: { id: req.user.organizationId },
+        data: {
+          settings: {
+            ...currentSettings,
+            calendly: updatedCalendlySettings,
+          },
+        },
+      });
+
+      logger.info(
+        { organizationId: req.user.organizationId },
+        "Updated Organization.settings.calendly (disabled)"
+      );
+    }
 
     logger.info(
       { organizationId: req.user.organizationId, integrationId: integration.id },
