@@ -614,8 +614,15 @@ export async function createWebhookSubscription(
       throw new Error("Integration not found");
     }
 
-    // Get organization URI from user URI
-    const organizationUri = integration.calendly_user_uri.replace("/users/", "/organizations/");
+    // Get current user info to retrieve organization URI
+    const userResponse = await client.get("/users/me");
+    const organizationUri = userResponse.data.resource.current_organization;
+
+    if (!organizationUri) {
+      throw new Error("Organization URI not found in user response");
+    }
+
+    logger.info({ organizationUri }, "Creating webhook subscription for organization");
 
     const response = await client.post("/webhook_subscriptions", {
       url: webhookUrl,
