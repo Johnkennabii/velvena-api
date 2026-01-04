@@ -33,16 +33,34 @@ fi
 
 echo "🔑 Decrypting access token..."
 
-# Decrypt the access token using Node.js in the container
+# Decrypt the access token using Node.js in the container (using AES-256-GCM with PBKDF2)
 ACCESS_TOKEN=$(docker exec velvena-api node -e "
 const crypto = require('crypto');
 const encryptedToken = '$ENCRYPTED_TOKEN';
-const key = process.env.ENCRYPTION_KEY;
+const key = Buffer.from(process.env.ENCRYPTION_KEY, 'hex');
 
 try {
-  const decipher = crypto.createDecipher('aes-256-cbc', key);
-  let decrypted = decipher.update(encryptedToken, 'hex', 'utf8');
+  // Format: iv:authTag:salt:encrypted
+  const parts = encryptedToken.split(':');
+  if (parts.length !== 4) {
+    throw new Error('Invalid encrypted token format');
+  }
+
+  const iv = Buffer.from(parts[0], 'hex');
+  const authTag = Buffer.from(parts[1], 'hex');
+  const salt = Buffer.from(parts[2], 'hex');
+  const encrypted = parts[3];
+
+  // Derive key using PBKDF2
+  const derivedKey = crypto.pbkdf2Sync(key, salt, 100000, 32, 'sha512');
+
+  // Decrypt
+  const decipher = crypto.createDecipheriv('aes-256-gcm', derivedKey, iv);
+  decipher.setAuthTag(authTag);
+
+  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
+
   console.log(decrypted);
 } catch (err) {
   console.error('ERROR:', err.message);
