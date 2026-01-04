@@ -500,10 +500,11 @@ async function createProspectFromCalendlyEvent(
  */
 export async function processWebhookEvent(payload: any): Promise<void> {
   try {
-    const eventData = payload.event;
-    const inviteeData = payload.invitee;
+    // Calendly webhook structure: payload contains invitee data + scheduled_event
+    const eventData = payload.scheduled_event;
+    const inviteeData = payload; // Invitee data is in the root payload
 
-    if (!eventData || !inviteeData) {
+    if (!eventData || !inviteeData || !inviteeData.email) {
       logger.warn({ payload }, "Missing event or invitee data in webhook payload");
       return;
     }
