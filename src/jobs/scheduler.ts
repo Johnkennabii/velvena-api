@@ -5,16 +5,19 @@
  * - Nettoyage des trials expirés (quotidien à 2h du matin)
  * - Nettoyage des souscriptions expirées (quotidien à 2h du matin)
  * - Nettoyage des fichiers d'export (+24h) (quotidien à 2h du matin)
+ * - Nettoyage des événements Calendly anciens (quotidien à 2h du matin)
+ *
+ * Note: Calendly sync is now handled via webhooks in real-time, not by cron
  */
 
 import pino from "pino";
 import { runSubscriptionMaintenanceJobs } from "./trialExpirationJob.js";
 import { cleanupOldExports } from "../services/dataExportService.js";
-import { runCalendlySyncJob, cleanupOldCalendlyEvents } from "./calendlySyncJob.js";
+import { cleanupOldCalendlyEvents } from "./calendlySyncJob.js";
 
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 
-// Interval de vérification : toutes les 30 minutes (pour Calendly sync)
+// Interval de vérification : toutes les 30 minutes
 const CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes en millisecondes
 
 // Heure d'exécution quotidienne (format 24h)
@@ -116,12 +119,6 @@ export function startScheduler(): NodeJS.Timeout {
     executeMaintenanceJobs();
   }
 
-  // Run Calendly sync immediately on startup
-  logger.info("▶️ Exécution immédiate du sync Calendly");
-  runCalendlySyncJob().catch((err) => {
-    logger.error({ err }, "Failed to run Calendly sync on startup");
-  });
-
   // Configurer l'intervalle de vérification pour les jobs quotidiens
   const intervalId = setInterval(() => {
     if (shouldExecuteJob()) {
@@ -129,15 +126,8 @@ export function startScheduler(): NodeJS.Timeout {
     }
   }, CHECK_INTERVAL);
 
-  // Configurer l'intervalle pour le sync Calendly (toutes les 30 minutes)
-  setInterval(() => {
-    logger.info("⏰ Running scheduled Calendly sync");
-    runCalendlySyncJob().catch((err) => {
-      logger.error({ err }, "Failed to run scheduled Calendly sync");
-    });
-  }, CHECK_INTERVAL);
-
-  logger.info("✅ Scheduler démarré et actif (jobs quotidiens + sync Calendly)");
+  logger.info("✅ Scheduler démarré et actif (jobs quotidiens de maintenance)");
+  logger.info("ℹ️  Calendly sync is now handled via webhooks in real-time");
 
   return intervalId;
 }

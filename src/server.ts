@@ -207,6 +207,15 @@ app.use(
   stripeWebhooksRoutes
 );
 
+// ✅ Calendly Webhook route MUST come BEFORE express.json()
+// Calendly needs raw body for signature verification
+import { handleWebhook as calendlyWebhookHandler } from "./controllers/calendlyController.js";
+app.post(
+  "/calendly/webhook",
+  express.raw({ type: "application/json" }),
+  calendlyWebhookHandler
+);
+
 import { httpRequestCounter, httpRequestDuration } from "./utils/metrics.js";
 
 app.use(express.json());

@@ -8,6 +8,8 @@ import {
   syncCalendlyEvents,
   createWebhookSubscription,
   deleteWebhookSubscription,
+  processWebhookEvent,
+  markEventAsCanceled,
 } from "../services/calendlyService.js";
 import prisma from "../lib/prisma.js";
 import crypto from "crypto";
@@ -335,26 +337,37 @@ export const getCalendlyEvents = async (req: AuthenticatedRequest, res: Response
 
 /**
  * Webhook handler for Calendly events
+ * Note: Receives raw body (Buffer) for signature verification
  */
 export const handleWebhook = async (req: any, res: Response) => {
   try {
     const signature = req.headers["calendly-webhook-signature"];
-    const body = JSON.stringify(req.body);
 
-    // Verify webhook signature
-    if (signature) {
+    // req.body is a Buffer when using express.raw()
+    const rawBody = req.body.toString('utf8');
+
+    // Verify webhook signature with raw body
+    if (signature && process.env.CALENDLY_WEBHOOK_SIGNING_KEY) {
       const expectedSignature = crypto
-        .createHmac("sha256", process.env.CALENDLY_WEBHOOK_SIGNING_KEY!)
-        .update(body)
+        .createHmac("sha256", process.env.CALENDLY_WEBHOOK_SIGNING_KEY)
+        .update(rawBody)
         .digest("base64");
 
       if (signature !== expectedSignature) {
-        logger.warn("Invalid Calendly webhook signature");
+        logger.warn({
+          receivedSignature: signature,
+          expectedSignature
+        }, "Invalid Calendly webhook signature");
         return res.status(401).json({ error: "Invalid signature" });
       }
+
+      logger.info("✅ Calendly webhook signature verified");
+    } else {
+      logger.warn("⚠️ No signature verification (missing key or signature)");
     }
 
-    const event = req.body;
+    // Parse the JSON body after signature verification
+    const event = JSON.parse(rawBody);
     logger.info({ event: event.event }, "Received Calendly webhook event");
 
     // Handle different event types
@@ -386,32 +399,21 @@ export const handleWebhook = async (req: any, res: Response) => {
 
 /**
  * Handle invitee.created webhook event
+ * Process event directly from webhook payload without API polling
  */
 async function handleInviteeCreated(payload: any) {
-  const eventUri = payload.event?.uri;
-  if (!eventUri) {
-    logger.warn("No event URI in webhook payload");
-    return;
-  }
-
-  // Find integration by event owner
-  const integration = await prisma.calendlyIntegration.findFirst({
-    where: {
-      calendly_user_uri: payload.event?.event_memberships?.[0]?.user,
-      is_active: true,
-    },
-  });
-
-  if (integration) {
-    // Trigger sync for this integration
-    syncCalendlyEvents(integration.id).catch((err) => {
-      logger.error({ err, integrationId: integration.id }, "Failed to sync after webhook");
-    });
+  try {
+    await processWebhookEvent(payload);
+    logger.info("Successfully processed invitee.created webhook");
+  } catch (err: any) {
+    logger.error({ err, payload }, "Failed to process invitee.created webhook");
+    throw err;
   }
 }
 
 /**
  * Handle invitee.canceled webhook event
+ * Mark event as canceled directly from webhook
  */
 async function handleInviteeCanceled(payload: any) {
   const eventUri = payload.event?.uri;
@@ -420,11 +422,11 @@ async function handleInviteeCanceled(payload: any) {
     return;
   }
 
-  // Update event status to canceled
-  await prisma.calendlyEvent.updateMany({
-    where: { calendly_event_uri: eventUri },
-    data: { event_status: "canceled" },
-  });
-
-  logger.info({ eventUri }, "Calendly event marked as canceled");
+  try {
+    await markEventAsCanceled(eventUri);
+    logger.info({ eventUri }, "Successfully processed invitee.canceled webhook");
+  } catch (err: any) {
+    logger.error({ err, eventUri }, "Failed to process invitee.canceled webhook");
+    throw err;
+  }
 }

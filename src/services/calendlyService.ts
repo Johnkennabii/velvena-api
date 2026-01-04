@@ -495,6 +495,109 @@ async function createProspectFromCalendlyEvent(
 }
 
 /**
+ * Process a Calendly webhook event directly (without API polling)
+ * This is called when Calendly sends a webhook notification
+ */
+export async function processWebhookEvent(payload: any): Promise<void> {
+  try {
+    const eventData = payload.event;
+    const inviteeData = payload.invitee;
+
+    if (!eventData || !inviteeData) {
+      logger.warn({ payload }, "Missing event or invitee data in webhook payload");
+      return;
+    }
+
+    // Find integration by event owner URI
+    const ownerUri = eventData.event_memberships?.[0]?.user;
+    if (!ownerUri) {
+      logger.warn({ payload }, "Missing event owner URI in webhook");
+      return;
+    }
+
+    const integration = await prisma.calendlyIntegration.findFirst({
+      where: {
+        calendly_user_uri: ownerUri,
+        is_active: true,
+      },
+    });
+
+    if (!integration) {
+      logger.warn({ ownerUri }, "No active integration found for webhook event");
+      return;
+    }
+
+    // Parse webhook data into our format
+    const calendlyEvent = {
+      uri: eventData.uri,
+      name: eventData.name || "Calendly Event",
+      status: eventData.status || "active",
+      start_time: eventData.start_time,
+      end_time: eventData.end_time,
+      event_type: eventData.event_type,
+      location: eventData.location,
+      invitees_counter: eventData.invitees_counter || { total: 1, active: 1, limit: 1 },
+      created_at: eventData.created_at,
+      updated_at: eventData.updated_at,
+    };
+
+    const calendlyInvitee = {
+      uri: inviteeData.uri,
+      email: inviteeData.email,
+      name: inviteeData.name,
+      timezone: inviteeData.timezone || "UTC",
+      event: eventData.uri,
+      created_at: inviteeData.created_at,
+      updated_at: inviteeData.updated_at,
+      canceled: inviteeData.cancel_url ? false : inviteeData.canceled || false,
+      cancellation: inviteeData.cancellation,
+      questions_and_answers: inviteeData.questions_and_answers,
+      tracking: inviteeData.tracking,
+    };
+
+    // Process the event using our existing logic
+    await syncCalendlyEvent(integration, calendlyEvent as any, calendlyInvitee as any);
+
+    logger.info(
+      {
+        organizationId: integration.organization_id,
+        eventUri: eventData.uri,
+        inviteeEmail: inviteeData.email,
+      },
+      "Processed Calendly webhook event successfully"
+    );
+  } catch (error: any) {
+    logger.error(
+      { error: error.message, payload },
+      "Failed to process Calendly webhook event"
+    );
+    throw error;
+  }
+}
+
+/**
+ * Mark a Calendly event as canceled (from webhook)
+ */
+export async function markEventAsCanceled(eventUri: string): Promise<void> {
+  try {
+    const updated = await prisma.calendlyEvent.updateMany({
+      where: { calendly_event_uri: eventUri },
+      data: {
+        event_status: "canceled",
+        updated_at: new Date(),
+      },
+    });
+
+    if (updated.count > 0) {
+      logger.info({ eventUri, count: updated.count }, "Marked Calendly event(s) as canceled");
+    }
+  } catch (error: any) {
+    logger.error({ error: error.message, eventUri }, "Failed to mark event as canceled");
+    throw error;
+  }
+}
+
+/**
  * Create webhook subscription for Calendly events
  */
 export async function createWebhookSubscription(
@@ -511,16 +614,17 @@ export async function createWebhookSubscription(
       throw new Error("Integration not found");
     }
 
+    // Get organization URI from user URI
+    const organizationUri = integration.calendly_user_uri.replace("/users/", "/organizations/");
+
     const response = await client.post("/webhook_subscriptions", {
       url: webhookUrl,
       events: [
         "invitee.created",
         "invitee.canceled",
-        "invitee.rescheduled",
       ],
-      organization: integration.calendly_user_uri.replace("/users/", "/organizations/"),
+      organization: organizationUri,
       scope: "organization",
-      signing_key: process.env.CALENDLY_WEBHOOK_SIGNING_KEY,
     });
 
     const subscriptionUri = response.data.resource.uri;

@@ -6,21 +6,14 @@ import {
   disconnectIntegration,
   triggerSync,
   getCalendlyEvents,
-  handleWebhook,
 } from "../controllers/calendlyController.js";
 
 const router = express.Router();
 
 /**
- * PUBLIC ROUTES (no authentication required)
+ * Note: /calendly/webhook is mounted directly in server.ts with raw body middleware
+ * This allows proper signature verification before JSON parsing
  */
-
-/**
- * @route POST /calendly/webhook
- * @desc Handle Calendly webhook events
- * @access Public (verified by webhook signature)
- */
-router.post("/webhook", handleWebhook);
 
 /**
  * AUTHENTICATED ROUTES
