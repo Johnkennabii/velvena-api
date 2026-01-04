@@ -409,20 +409,21 @@ async function createProspectFromCalendlyEvent(
     let prospect;
 
     if (existingProspect) {
-      // Update existing prospect - add new event to notes
-      const newNote = `Rendez-vous Calendly prévu le ${new Date(calendlyEvent.event_start_time).toLocaleString("fr-FR")} - ${calendlyEvent.event_name}`;
-      const updatedNotes = existingProspect.notes
-        ? `${existingProspect.notes}\n\n${newNote}`
-        : newNote;
+      // Create a new note for the Calendly event
+      const noteContent = `Rendez-vous Calendly prévu le ${new Date(calendlyEvent.event_start_time).toLocaleString("fr-FR")} - ${calendlyEvent.event_name}`;
 
-      prospect = await prisma.prospect.update({
-        where: { id: existingProspect.id },
-        data: { notes: updatedNotes },
+      await prisma.prospectNote.create({
+        data: {
+          prospect_id: existingProspect.id,
+          content: noteContent,
+        },
       });
+
+      prospect = existingProspect;
 
       logger.info(
         { prospectId: prospect.id, calendlyEventId: calendlyEvent.id },
-        "Linking existing prospect to Calendly event and added note"
+        "Linking existing prospect to Calendly event and created note"
       );
 
       // Emit Socket.IO event for prospect update
@@ -448,13 +449,22 @@ async function createProspectFromCalendlyEvent(
           organization_id: organizationId,
           source: "calendly",
           status: "new",
-          notes: `Rendez-vous Calendly prévu le ${new Date(calendlyEvent.event_start_time).toLocaleString("fr-FR")} - ${calendlyEvent.event_name}`,
+        },
+      });
+
+      // Create a note for the Calendly event
+      const noteContent = `Rendez-vous Calendly prévu le ${new Date(calendlyEvent.event_start_time).toLocaleString("fr-FR")} - ${calendlyEvent.event_name}`;
+
+      await prisma.prospectNote.create({
+        data: {
+          prospect_id: prospect.id,
+          content: noteContent,
         },
       });
 
       logger.info(
         { prospectId: prospect.id, calendlyEventId: calendlyEvent.id },
-        "Created new prospect from Calendly event"
+        "Created new prospect from Calendly event with note"
       );
 
       // Emit Socket.IO event for new prospect

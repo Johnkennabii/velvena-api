@@ -296,6 +296,7 @@ app.use("/dresses-availability", dressesAvailabilityRoutes);
 app.use("/customers", customerRoutes);
 app.use("/customer-notes", customerNotesRoutes);
 app.use("/prospects", prospectRoutes);
+app.use("/api/prospects", prospectRoutes); // Alias pour compatibilité avec les nouveaux endpoints
 
 app.use("/contract-types", contractTypesRoutes);
 app.use("/contract-addons", contractAddonsRoutes);

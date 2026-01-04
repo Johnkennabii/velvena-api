@@ -353,9 +353,25 @@ model Prospect {
   dress_reservations ProspectDressReservation[]
   requests           ProspectRequest[]
   calendly_events    CalendlyEvent[]
+  notes_history      ProspectNote[]
 
   @@unique([email, organization_id]) // Email unique per organization
   @@index([organization_id])
+}
+
+model ProspectNote {
+  id          String    @id @default(uuid())
+  prospect_id String
+  content     String
+  created_at  DateTime  @default(now())
+  created_by  String?
+  updated_at  DateTime? @updatedAt
+  updated_by  String?
+  deleted_at  DateTime?
+  deleted_by  String?
+  prospect    Prospect  @relation(fields: [prospect_id], references: [id], onDelete: Cascade)
+
+  @@index([prospect_id])
 }
 
 model ProspectDressReservation {

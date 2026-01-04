@@ -9,6 +9,9 @@ import {
   softDeleteProspect,
   hardDeleteProspect,
   convertProspectToCustomer,
+  checkExistingClient,
+  getMergePreview,
+  mergeWithClient,
 } from "../controllers/prospectController.js";
 import {
   addDressReservations,
@@ -23,17 +26,45 @@ import {
   updateProspectRequest,
   deleteProspectRequest,
 } from "../controllers/prospectRequestController.js";
+import {
+  getProspectNotes,
+  getProspectNoteById,
+  createProspectNote,
+  updateProspectNote,
+  softDeleteProspectNote,
+  hardDeleteProspectNote,
+} from "../controllers/prospectNoteController.js";
 
 const router = Router();
+
+// ==================== ROUTES STATIQUES (AVANT LES ROUTES DYNAMIQUES) ====================
+
+// Vérifier si un email existe comme client (JWT ou API Key)
+router.get("/check-client", authMiddleware, checkExistingClient);
+
+// ==================== ROUTES PRINCIPALES ====================
 
 // Récupérer tous les prospects (JWT ou API Key)
 router.get("/", authMiddleware, getProspects);
 
-// Récupérer un prospect par ID (JWT ou API Key)
-router.get("/:id", authMiddleware, getProspectById);
-
 // Créer un nouveau prospect (JWT ou API Key)
 router.post("/", authMiddleware, createProspect);
+
+// ==================== ROUTES AVEC PATTERNS SPÉCIFIQUES ====================
+
+// Aperçu de la fusion (JWT ou API Key)
+router.get("/:prospectId/merge-preview", authMiddleware, getMergePreview);
+
+// Fusionner prospect avec client existant (JWT uniquement)
+router.post("/:prospectId/merge-with-client", authMiddleware, mergeWithClient);
+
+// Convert prospect to customer (JWT uniquement)
+router.post("/:id/convert", authMiddleware, convertProspectToCustomer);
+
+// ==================== ROUTES GÉNÉRIQUES (APRÈS LES ROUTES SPÉCIFIQUES) ====================
+
+// Récupérer un prospect par ID (JWT ou API Key)
+router.get("/:id", authMiddleware, getProspectById);
 
 // Mettre à jour un prospect (JWT ou API Key)
 router.put("/:id", authMiddleware, updateProspect);
@@ -43,9 +74,6 @@ router.patch("/:id", authMiddleware, softDeleteProspect);
 
 // Hard delete (JWT uniquement pour sécurité)
 router.delete("/:id", authMiddleware, hardDeleteProspect);
-
-// Convert prospect to customer (JWT uniquement)
-router.post("/:id/convert", authMiddleware, convertProspectToCustomer);
 
 // ==================== DRESS RESERVATIONS ====================
 
@@ -112,6 +140,50 @@ router.delete(
   "/:prospectId/requests/:requestId",
   authMiddleware,
   deleteProspectRequest
+);
+
+// ==================== PROSPECT NOTES ====================
+
+// Obtenir toutes les notes d'un prospect (JWT ou API Key)
+router.get(
+  "/:prospectId/notes",
+  authMiddleware,
+  getProspectNotes
+);
+
+// Obtenir une note spécifique (JWT ou API Key)
+router.get(
+  "/notes/:id",
+  authMiddleware,
+  getProspectNoteById
+);
+
+// Créer une nouvelle note pour un prospect (JWT ou API Key)
+router.post(
+  "/:prospectId/notes",
+  authMiddleware,
+  createProspectNote
+);
+
+// Mettre à jour une note (JWT ou API Key)
+router.put(
+  "/notes/:id",
+  authMiddleware,
+  updateProspectNote
+);
+
+// Soft delete d'une note (JWT uniquement)
+router.patch(
+  "/notes/:id",
+  authMiddleware,
+  softDeleteProspectNote
+);
+
+// Hard delete d'une note (JWT uniquement)
+router.delete(
+  "/notes/:id",
+  authMiddleware,
+  hardDeleteProspectNote
 );
 
 export default router;

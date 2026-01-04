@@ -41,7 +41,7 @@ export const getProspects = async (req: AuthenticatedRequest, res: Response) => 
     // Count total for pagination
     const total = await prisma.prospect.count({ where });
 
-    // Fetch paginated data with dress reservations
+    // Fetch paginated data with dress reservations and notes
     const prospects = await prisma.prospect.findMany({
       where,
       orderBy: { created_at: "desc" },
@@ -61,6 +61,10 @@ export const getProspects = async (req: AuthenticatedRequest, res: Response) => 
             },
           },
           orderBy: { rental_start_date: "asc" },
+        },
+        notes_history: {
+          where: { deleted_at: null },
+          orderBy: { created_at: "desc" },
         },
       },
     });
@@ -130,6 +134,10 @@ export const getProspectById = async (req: AuthenticatedRequest, res: Response) 
             },
           },
           orderBy: { rental_start_date: "asc" },
+        },
+        notes_history: {
+          where: { deleted_at: null },
+          orderBy: { created_at: "desc" },
         },
       },
     });
@@ -619,7 +627,7 @@ export const convertProspectToCustomer = async (req: AuthenticatedRequest, res: 
       return res.status(400).json({ success: false, error: "Prospect ID is required" });
     }
 
-    // Fetch prospect with dress reservations
+    // Fetch prospect with dress reservations and notes
     const prospect = await prisma.prospect.findUnique({
       where: { id: String(id) },
       include: {
@@ -636,6 +644,10 @@ export const convertProspectToCustomer = async (req: AuthenticatedRequest, res: 
             },
           },
           orderBy: { rental_start_date: "asc" },
+        },
+        notes_history: {
+          where: { deleted_at: null },
+          orderBy: { created_at: "desc" },
         },
       },
     });
@@ -689,6 +701,20 @@ export const convertProspectToCustomer = async (req: AuthenticatedRequest, res: 
           created_by: req.user?.id ?? null,
         },
       });
+
+      // Create customer notes from prospect history
+      if (prospect.notes_history && prospect.notes_history.length > 0) {
+        // Copy each prospect note to customer notes
+        for (const prospectNote of prospect.notes_history) {
+          await tx.customerNote.create({
+            data: {
+              customer_id: customer.id,
+              content: prospectNote.content,
+              created_by: req.user?.id ?? null,
+            },
+          });
+        }
+      }
 
       // Create a customer note with dress reservations info if any exist
       if (prospect.dress_reservations.length > 0) {
@@ -770,6 +796,318 @@ export const convertProspectToCustomer = async (req: AuthenticatedRequest, res: 
     res.status(500).json({
       success: false,
       error: err.message || "Failed to convert prospect to customer",
+      details: err.meta || err,
+    });
+  }
+};
+
+// Check if an email exists as a customer
+export const checkExistingClient = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { email } = req.query;
+
+    if (!email || typeof email !== "string") {
+      return res.status(400).json({
+        success: false,
+        error: "Email is required"
+      });
+    }
+
+    // Search for customer with this email in the organization
+    const customer = await prisma.customer.findUnique({
+      where: {
+        email_organization_id: {
+          email: email.trim().toLowerCase(),
+          organization_id: req.user!.organizationId,
+        },
+      },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        created_at: true,
+        deleted_at: true,
+      },
+    });
+
+    if (customer && !customer.deleted_at) {
+      // Remove deleted_at from response
+      const { deleted_at, ...clientData } = customer;
+      return res.json({
+        success: true,
+        data: {
+          exists: true,
+          client: clientData,
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        exists: false,
+      },
+    });
+  } catch (err: any) {
+    pino.error({ err }, "❌ Erreur vérification client existant");
+    res.status(500).json({
+      success: false,
+      error: err.message || "Failed to check existing client",
+      details: err.meta || err,
+    });
+  }
+};
+
+// Get merge preview (count notes and reservations)
+export const getMergePreview = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { prospectId } = req.params;
+    const { client_id } = req.query;
+
+    if (!prospectId) {
+      return res.status(400).json({ success: false, error: "Prospect ID is required" });
+    }
+
+    if (!client_id || typeof client_id !== "string") {
+      return res.status(400).json({ success: false, error: "Client ID is required" });
+    }
+
+    // Verify prospect exists and belongs to organization
+    const prospect = await prisma.prospect.findUnique({
+      where: { id: String(prospectId) },
+    });
+
+    if (!prospect || prospect.deleted_at || prospect.organization_id !== req.user!.organizationId) {
+      return res.status(404).json({ success: false, error: "Prospect not found" });
+    }
+
+    // Verify client exists and belongs to organization
+    const client = await prisma.customer.findUnique({
+      where: { id: String(client_id) },
+    });
+
+    if (!client || client.deleted_at || client.organization_id !== req.user!.organizationId) {
+      return res.status(404).json({ success: false, error: "Client not found" });
+    }
+
+    // Count notes
+    const notesCount = await prisma.prospectNote.count({
+      where: {
+        prospect_id: String(prospectId),
+        deleted_at: null,
+      },
+    });
+
+    // Count reservations
+    const reservationsCount = await prisma.prospectDressReservation.count({
+      where: {
+        prospect_id: String(prospectId),
+        deleted_at: null,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        notes_count: notesCount,
+        reservations_count: reservationsCount,
+      },
+    });
+  } catch (err: any) {
+    pino.error({ err }, "❌ Erreur aperçu fusion");
+    res.status(500).json({
+      success: false,
+      error: err.message || "Failed to get merge preview",
+      details: err.meta || err,
+    });
+  }
+};
+
+// Merge prospect with existing client
+export const mergeWithClient = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { prospectId } = req.params;
+    const { client_id } = req.body;
+
+    if (!prospectId) {
+      return res.status(400).json({ success: false, error: "Prospect ID is required" });
+    }
+
+    if (!client_id) {
+      return res.status(400).json({ success: false, error: "Client ID is required" });
+    }
+
+    // Perform merge in a transaction
+    await prisma.$transaction(async (tx) => {
+      // 1. Verify prospect exists and belongs to organization
+      const prospect = await tx.prospect.findUnique({
+        where: { id: String(prospectId) },
+        include: {
+          notes_history: {
+            where: { deleted_at: null },
+          },
+          dress_reservations: {
+            where: { deleted_at: null },
+          },
+        },
+      });
+
+      if (!prospect || prospect.deleted_at || prospect.organization_id !== req.user!.organizationId) {
+        throw new Error("Prospect not found");
+      }
+
+      // 2. Verify client exists and belongs to organization
+      const client = await tx.customer.findUnique({
+        where: { id: String(client_id) },
+      });
+
+      if (!client || client.deleted_at || client.organization_id !== req.user!.organizationId) {
+        throw new Error("Client not found");
+      }
+
+      // 3. Verify emails match
+      if (prospect.email.toLowerCase() !== client.email.toLowerCase()) {
+        throw new Error("Email addresses do not match");
+      }
+
+      // 4. Check if prospect is already converted
+      if (prospect.converted_at) {
+        throw new Error("Prospect already converted to customer");
+      }
+
+      // 5. Transfer prospect notes to customer notes
+      for (const note of prospect.notes_history) {
+        await tx.customerNote.create({
+          data: {
+            customer_id: client.id,
+            content: note.content,
+            created_by: note.created_by,
+            created_at: note.created_at,
+          },
+        });
+      }
+
+      // 6. Create a summary note about dress reservations if any exist
+      if (prospect.dress_reservations.length > 0) {
+        let noteContent = "📋 Réservations transférées depuis prospect (fusion):\n\n";
+
+        for (const reservation of prospect.dress_reservations) {
+          const dress = await tx.dress.findUnique({
+            where: { id: reservation.dress_id },
+            include: {
+              type: true,
+              size: true,
+              color: true,
+              condition: true,
+            },
+          });
+
+          if (dress) {
+            const startDate = new Date(reservation.rental_start_date);
+            const endDate = new Date(reservation.rental_end_date);
+            const rentalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+            noteContent += `• ${dress.name}\n`;
+            noteContent += `  Période: ${startDate.toLocaleDateString("fr-FR")} au ${endDate.toLocaleDateString("fr-FR")} (${rentalDays} jours)\n`;
+            if (reservation.notes) {
+              noteContent += `  Notes: ${reservation.notes}\n`;
+            }
+            noteContent += `\n`;
+          }
+        }
+
+        await tx.customerNote.create({
+          data: {
+            customer_id: client.id,
+            content: noteContent,
+            created_by: req.user?.id ?? null,
+          },
+        });
+      }
+
+      // 7. Soft delete prospect notes (they're now transferred)
+      await tx.prospectNote.updateMany({
+        where: {
+          prospect_id: String(prospectId),
+          deleted_at: null,
+        },
+        data: {
+          deleted_at: new Date(),
+          deleted_by: req.user?.id ?? null,
+        },
+      });
+
+      // 8. Soft delete prospect reservations (info now in customer notes)
+      await tx.prospectDressReservation.updateMany({
+        where: {
+          prospect_id: String(prospectId),
+          deleted_at: null,
+        },
+        data: {
+          deleted_at: new Date(),
+          deleted_by: req.user?.id ?? null,
+        },
+      });
+
+      // 9. Mark prospect as converted and soft-deleted
+      await tx.prospect.update({
+        where: { id: String(prospectId) },
+        data: {
+          status: "converted",
+          converted_at: new Date(),
+          converted_by: req.user?.id ?? null,
+          converted_to: client.id,
+          deleted_at: new Date(),
+          deleted_by: req.user?.id ?? null,
+          updated_at: new Date(),
+          updated_by: req.user?.id ?? null,
+        },
+      });
+
+      pino.info(
+        {
+          prospectId: String(prospectId),
+          clientId: client.id,
+          notesTransferred: prospect.notes_history.length,
+          reservationsTransferred: prospect.dress_reservations.length,
+        },
+        "✅ Prospect fusionné avec client existant"
+      );
+    });
+
+    res.json({
+      success: true,
+      message: "Prospect fusionné avec succès",
+    });
+  } catch (err: any) {
+    pino.error({ err }, "❌ Erreur fusion prospect avec client");
+
+    // Handle specific errors
+    if (err.message === "Prospect not found" || err.message === "Client not found") {
+      return res.status(404).json({
+        success: false,
+        error: err.message,
+      });
+    }
+
+    if (err.message === "Email addresses do not match") {
+      return res.status(400).json({
+        success: false,
+        error: "L'email du prospect ne correspond pas à celui du client",
+      });
+    }
+
+    if (err.message === "Prospect already converted to customer") {
+      return res.status(409).json({
+        success: false,
+        error: "Ce prospect a déjà été converti en client",
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: err.message || "Failed to merge prospect with client",
       details: err.meta || err,
     });
   }
