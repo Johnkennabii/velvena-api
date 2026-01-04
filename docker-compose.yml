@@ -307,7 +307,7 @@ services:
       args:
         VITE_API_URL: ${FRONTEND_API_URL:-https://api.velvena.fr}
         VITE_CALENDLY_CLIENT_ID: ${VITE_CALENDLY_CLIENT_ID}
-        VITE_CALENDLY_REDIRECT_URI: ${VITE_CALENDLY_REDIRECT_URI:-https://velvena.fr/auth/calendly/callback}
+        VITE_CALENDLY_REDIRECT_URI: ${VITE_CALENDLY_REDIRECT_URI:-https://app.velvena.fr/auth/calendly/callback}
     container_name: velvena-frontend
     restart: unless-stopped
     ports:
