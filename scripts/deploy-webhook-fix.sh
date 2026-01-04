@@ -7,8 +7,8 @@ set -e
 
 echo "🚀 Deploying Calendly webhook fix..."
 
-# Navigate to project directory
-cd /root/velvena || { echo "❌ Project directory not found"; exit 1; }
+# Use current directory (script should be run from project root)
+PROJECT_DIR=$(pwd)
 
 # Pull latest code
 echo "📥 Pulling latest code from git..."
