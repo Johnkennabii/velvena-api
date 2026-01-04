@@ -95,7 +95,7 @@ export const oauthCallback = async (req: AuthenticatedRequest, res: Response) =>
     });
 
     // Create webhook subscription asynchronously
-    const webhookUrl = `${process.env.APP_URL || "http://localhost:3000"}/api/calendly/webhook`;
+    const webhookUrl = `${process.env.API_URL || "http://localhost:3000"}/calendly/webhook`;
     createWebhookSubscription(integration.id, webhookUrl).catch((err) => {
       logger.error({ err, integrationId: integration.id }, "Failed to create webhook (non-blocking)");
     });
@@ -368,7 +368,14 @@ export const handleWebhook = async (req: any, res: Response) => {
 
     // Parse the JSON body after signature verification
     const event = JSON.parse(rawBody);
-    logger.info({ event: event.event }, "Received Calendly webhook event");
+
+    // LOG DETAILED EVENT INFORMATION FOR DEBUGGING
+    logger.info({
+      eventType: event.event,
+      payload: event.payload,
+      createdAt: event.created_at,
+      fullEventKeys: Object.keys(event)
+    }, "📥 Received Calendly webhook - FULL DETAILS");
 
     // Handle different event types
     switch (event.event) {
@@ -404,9 +411,12 @@ export const handleWebhook = async (req: any, res: Response) => {
 async function handleInviteeCreated(payload: any) {
   try {
     await processWebhookEvent(payload);
-    logger.info("Successfully processed invitee.created webhook");
+    logger.info({
+      inviteeEmail: payload.email,
+      eventStartTime: payload.event?.start_time
+    }, "✅ Successfully processed invitee.created webhook");
   } catch (err: any) {
-    logger.error({ err, payload }, "Failed to process invitee.created webhook");
+    logger.error({ err, payload }, "❌ Failed to process invitee.created webhook");
     throw err;
   }
 }
