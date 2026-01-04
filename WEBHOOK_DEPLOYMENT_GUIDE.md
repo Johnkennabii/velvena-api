@@ -3,8 +3,12 @@
 ## Problem
 Les prospects sont créés uniquement lors de la déconnexion/reconnexion de Calendly (sync complète), mais pas instantanément lors de la création d'un nouveau rendez-vous Calendly.
 
-## Cause
-Le webhook n'est pas créé correctement car le backend n'a pas été redémarré avec le nouveau code qui corrige la récupération de l'organization URI.
+## Root Cause Identified ✅
+**CRITICAL BUG**: Le webhook URL utilisait `APP_URL` (frontend) au lieu de `API_URL` (backend), ce qui envoyait les webhooks Calendly vers la mauvaise URL:
+- ❌ Ancienne URL incorrecte: `http://localhost:4173/api/calendly/webhook` (frontend)
+- ✅ Nouvelle URL correcte: `https://api.velvena.fr/calendly/webhook` (backend)
+
+Le webhook n'était donc jamais reçu par le backend, empêchant la création instantanée des prospects.
 
 ## Solution
 
@@ -24,14 +28,16 @@ Le script va:
 2. ✅ Redémarrer le conteneur backend
 3. ✅ Afficher les logs récents
 
-### Étape 2: Reconnecter Calendly
+### Étape 2: Reconnecter Calendly ⚠️ CRITIQUE
+
+**IMPORTANT**: Il est ABSOLUMENT NÉCESSAIRE de déconnecter et reconnecter Calendly pour recréer le webhook avec la bonne URL!
 
 1. Aller sur l'interface frontend (https://app.velvena.fr)
 2. Aller dans **Paramètres > Intégrations**
-3. **Déconnecter** Calendly
-4. **Reconnecter** Calendly
+3. **Déconnecter** Calendly (ceci va supprimer l'ancien webhook avec la mauvaise URL)
+4. **Reconnecter** Calendly (ceci va créer un nouveau webhook avec la bonne URL: `https://api.velvena.fr/calendly/webhook`)
 
-Cette reconnexion va déclencher la création du webhook avec le nouveau code.
+Cette reconnexion va déclencher la création du webhook avec la bonne URL backend.
 
 ### Étape 3: Vérifier la configuration
 
@@ -59,8 +65,12 @@ Vous devriez voir:
 Vous devriez voir dans les logs:
 ```
 ✅ Calendly webhook signature verified
-Received Calendly webhook event: invitee.created
-Processed Calendly webhook event successfully
+📥 Received Calendly webhook - FULL DETAILS
+   eventType: "invitee.created"
+   payload: { email: "...", name: "...", event: {...} }
+✅ Successfully processed invitee.created webhook
+   inviteeEmail: "..."
+   eventStartTime: "..."
 🟢 Socket.IO: Emitting prospect:created to org:...
 ```
 
