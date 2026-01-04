@@ -347,16 +347,34 @@ export const handleWebhook = async (req: any, res: Response) => {
     const rawBody = req.body.toString('utf8');
 
     // Verify webhook signature with raw body
+    // Calendly signature format: "t=timestamp,v1=signature_hex"
     if (signature && process.env.CALENDLY_WEBHOOK_SIGNING_KEY) {
+      const signatureParts = (signature as string).split(',');
+      const timestampPart = signatureParts.find(part => part.startsWith('t='));
+      const signaturePart = signatureParts.find(part => part.startsWith('v1='));
+
+      if (!timestampPart || !signaturePart) {
+        logger.warn({ signature }, "Invalid Calendly signature format");
+        return res.status(401).json({ error: "Invalid signature format" });
+      }
+
+      const timestamp = timestampPart.split('=')[1];
+      const receivedSignature = signaturePart.split('=')[1];
+
+      // Create signed payload: timestamp.rawBody
+      const signedPayload = `${timestamp}.${rawBody}`;
+
+      // Calculate expected signature in hex
       const expectedSignature = crypto
         .createHmac("sha256", process.env.CALENDLY_WEBHOOK_SIGNING_KEY)
-        .update(rawBody)
-        .digest("base64");
+        .update(signedPayload)
+        .digest("hex");
 
-      if (signature !== expectedSignature) {
+      if (receivedSignature !== expectedSignature) {
         logger.warn({
-          receivedSignature: signature,
-          expectedSignature
+          receivedSignature,
+          expectedSignature,
+          timestamp
         }, "Invalid Calendly webhook signature");
         return res.status(401).json({ error: "Invalid signature" });
       }
