@@ -427,7 +427,7 @@ async function createProspectFromCalendlyEvent(
       );
 
       // Emit Socket.IO event for prospect update
-      emitProspectUpdated(organizationId, prospect);
+      await emitProspectUpdated(organizationId, prospect);
 
       // Send notification for the new appointment
       await notifyCalendlyProspect(
@@ -468,7 +468,7 @@ async function createProspectFromCalendlyEvent(
       );
 
       // Emit Socket.IO event for new prospect
-      emitProspectCreated(organizationId, prospect);
+      await emitProspectCreated(organizationId, prospect);
 
       // Send notification for new prospect
       await notifyCalendlyProspect(

@@ -2,12 +2,24 @@
 import { io } from "../server.js";
 import pino from "../lib/logger.js";
 import { emitAndStoreNotification } from "./notifications.js";
+import prisma from "../lib/prisma.js";
 
 /**
  * Emit prospect created event to all users in the organization
  */
-export function emitProspectCreated(organizationId: string, prospect: any) {
+export async function emitProspectCreated(organizationId: string, prospect: any) {
   try {
+    // Fetch notes_history to include in the event
+    const prospectWithNotes = await prisma.prospect.findUnique({
+      where: { id: prospect.id },
+      include: {
+        notes_history: {
+          where: { deleted_at: null },
+          orderBy: { created_at: "desc" },
+        },
+      },
+    });
+
     io.to(`org:${organizationId}`).emit("prospect:created", {
       id: prospect.id,
       firstname: prospect.firstname,
@@ -17,6 +29,7 @@ export function emitProspectCreated(organizationId: string, prospect: any) {
       status: prospect.status,
       source: prospect.source,
       notes: prospect.notes,
+      notes_history: prospectWithNotes?.notes_history || [],
       created_at: prospect.created_at,
     });
 
@@ -32,8 +45,19 @@ export function emitProspectCreated(organizationId: string, prospect: any) {
 /**
  * Emit prospect updated event to all users in the organization
  */
-export function emitProspectUpdated(organizationId: string, prospect: any) {
+export async function emitProspectUpdated(organizationId: string, prospect: any) {
   try {
+    // Fetch notes_history to include in the event
+    const prospectWithNotes = await prisma.prospect.findUnique({
+      where: { id: prospect.id },
+      include: {
+        notes_history: {
+          where: { deleted_at: null },
+          orderBy: { created_at: "desc" },
+        },
+      },
+    });
+
     io.to(`org:${organizationId}`).emit("prospect:updated", {
       id: prospect.id,
       firstname: prospect.firstname,
@@ -43,6 +67,7 @@ export function emitProspectUpdated(organizationId: string, prospect: any) {
       status: prospect.status,
       source: prospect.source,
       notes: prospect.notes,
+      notes_history: prospectWithNotes?.notes_history || [],
       updated_at: prospect.updated_at,
     });
 

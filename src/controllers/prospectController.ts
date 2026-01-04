@@ -458,7 +458,7 @@ export const createProspect = async (req: AuthenticatedRequest, res: Response) =
     });
 
     // Emit Socket.IO event for new prospect
-    emitProspectCreated(req.user!.organizationId, result);
+    await emitProspectCreated(req.user!.organizationId, result);
 
     res.status(201).json({ success: true, data: result });
   } catch (err: any) {
@@ -538,7 +538,7 @@ export const updateProspect = async (req: AuthenticatedRequest, res: Response) =
     });
 
     // Emit Socket.IO event for prospect update
-    emitProspectUpdated(req.user!.organizationId, updated);
+    await emitProspectUpdated(req.user!.organizationId, updated);
 
     res.json({ success: true, data: updated });
   } catch (err: any) {
