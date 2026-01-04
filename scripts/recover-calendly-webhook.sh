@@ -9,20 +9,18 @@ echo "🔍 Recovering Calendly webhook..."
 echo ""
 
 # Get integration details from database
-INTEGRATION_DATA=$(docker exec -it velvena-postgres psql -U velvena_user -d velvena_db -t -c "SELECT id, access_token, organization_uri FROM \"CalendlyIntegration\" WHERE is_active = true;" 2>/dev/null)
+INTEGRATION_DATA=$(docker exec -it velvena-postgres psql -U velvena_user -d velvena_db -t -c "SELECT id, access_token FROM \"CalendlyIntegration\" WHERE is_active = true;" 2>/dev/null)
 
 if [[ -z "$INTEGRATION_DATA" ]]; then
     echo "❌ No active Calendly integration found in database"
     exit 1
 fi
 
-# Parse the data (format: id | access_token | organization_uri)
+# Parse the data (format: id | access_token)
 INTEGRATION_ID=$(echo "$INTEGRATION_DATA" | awk -F'|' '{print $1}' | tr -d ' \r\n')
 ENCRYPTED_TOKEN=$(echo "$INTEGRATION_DATA" | awk -F'|' '{print $2}' | tr -d ' \r\n')
-ORG_URI=$(echo "$INTEGRATION_DATA" | awk -F'|' '{print $3}' | tr -d ' \r\n')
 
 echo "✅ Found integration: $INTEGRATION_ID"
-echo "📍 Organization: $ORG_URI"
 echo ""
 
 # Get ENCRYPTION_KEY from container environment
@@ -58,6 +56,29 @@ if [[ $? -ne 0 ]] || [[ -z "$ACCESS_TOKEN" ]]; then
 fi
 
 echo "✅ Token decrypted successfully"
+echo ""
+
+# Get organization URI from Calendly API
+echo "📍 Fetching organization URI from Calendly..."
+USER_RESPONSE=$(curl -s -X GET \
+  "https://api.calendly.com/users/me" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json")
+
+if echo "$USER_RESPONSE" | grep -q "error"; then
+    echo "❌ Failed to fetch user info from Calendly:"
+    echo "$USER_RESPONSE" | jq '.' 2>/dev/null || echo "$USER_RESPONSE"
+    exit 1
+fi
+
+ORG_URI=$(echo "$USER_RESPONSE" | jq -r '.resource.current_organization')
+
+if [[ -z "$ORG_URI" ]] || [[ "$ORG_URI" == "null" ]]; then
+    echo "❌ Organization URI not found in user response"
+    exit 1
+fi
+
+echo "✅ Organization URI: $ORG_URI"
 echo ""
 
 # Get API_URL from container
